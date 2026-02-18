@@ -81,7 +81,8 @@ function buildDayPrompts(
   dayName: string,
   additionalNotes?: string,
   mode: "normal" | "compact" | "ultra" = "normal",
-  excludedMealNames: string[] = []
+  excludedMealNames: string[] = [],
+  correctionHint?: string
 ) {
   const { age, allergiesText, notesText } = buildPatientBasePrompt(
     patient,
@@ -140,9 +141,28 @@ Regeln:
 - Besondere Hinweise: ${notesText}
 
 Erstelle den Plan für ${dayName}.
-${excludedMealNames.length > 0 ? `WICHTIG: Verwende KEINE der folgenden bereits genutzten Gerichte: ${excludedMealNames.join(", ")}.` : ""}`;
+${excludedMealNames.length > 0 ? `WICHTIG: Verwende KEINE der folgenden bereits genutzten Gerichte: ${excludedMealNames.join(", ")}.` : ""}
+${correctionHint ? `KORREKTURHINWEIS: ${correctionHint}` : ""}`;
 
   return { systemPrompt, userPrompt };
+}
+
+function normalizeText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function requestsNoMeat(additionalNotes?: string): boolean {
+  if (!additionalNotes) return false;
+  const notes = normalizeText(additionalNotes);
+  return /\bohne\s*fleisch\b|\bvegetar/i.test(notes);
+}
+
+function getEffectiveDailyKcal(day: DayPlanData): number {
+  const mealSum = day.meals.reduce((sum, meal) => sum + meal.kcal, 0);
+  return Math.round(Math.max(day.dailyKcal, mealSum));
 }
 
 function tryParseModelJson(content: string): unknown {
@@ -189,63 +209,126 @@ async function generateSingleDayPlan(
       ];
 
   let lastError = "Die KI-Antwort war unvollständig.";
+  let correctionHint: string | undefined;
+  const needsNoMeat = requestsNoMeat(additionalNotes);
 
   for (const attempt of attempts) {
-    const { systemPrompt, userPrompt } = buildDayPrompts(
-      patient,
-      dayName,
-      additionalNotes,
-      attempt.mode,
-      excludedMealNames
-    );
+    for (let retry = 0; retry < 2; retry++) {
+      const { systemPrompt, userPrompt } = buildDayPrompts(
+        patient,
+        dayName,
+        additionalNotes,
+        attempt.mode,
+        excludedMealNames,
+        correctionHint
+      );
 
-    const response = await getOpenAIClient().chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.35,
-      max_tokens: attempt.maxTokens,
-    });
+      const response = await getOpenAIClient().chat.completions.create({
+        model: "gpt-4o-mini",
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.3,
+        max_tokens: attempt.maxTokens,
+      });
 
-    const choice = response.choices[0];
-    const content = choice?.message?.content;
+      const choice = response.choices[0];
+      const content = choice?.message?.content;
 
-    if (!content || choice?.finish_reason === "length") {
-      lastError = "Die KI-Antwort war unvollständig.";
-      continue;
+      if (!content || choice?.finish_reason === "length") {
+        lastError = "Die KI-Antwort war unvollständig.";
+        correctionHint =
+          "Die letzte Antwort war abgeschnitten. Gib ein kompaktes, vollständiges JSON im exakt geforderten Format zurück.";
+        continue;
+      }
+
+      let parsed: unknown;
+      try {
+        parsed = tryParseModelJson(content);
+      } catch {
+        lastError = "Die KI-Antwort konnte nicht verarbeitet werden.";
+        correctionHint =
+          "Die letzte Antwort war kein valides JSON. Antworte ausschließlich mit einem gültigen JSON-Objekt ohne Zusatztext.";
+        continue;
+      }
+
+      const result = daySchema.safeParse(parsed);
+      if (!result.success) {
+        lastError = "Die KI-Antwort entsprach nicht dem erwarteten Format.";
+        correctionHint =
+          "Die letzte Antwort hatte ein ungültiges Format. Nutze exakt die geforderten Felder und Datentypen.";
+        continue;
+      }
+
+      if (result.data.dayName !== dayName) {
+        lastError = "Die KI hat einen falschen Wochentag geliefert.";
+        correctionHint = `Verwende exakt den Wochentag "${dayName}" in dayName.`;
+        continue;
+      }
+
+      const normalizedDay: DayPlanData = {
+        ...result.data,
+        dailyKcal: getEffectiveDailyKcal(result.data),
+      };
+
+      if (normalizedDay.dailyKcal < 1800) {
+        lastError = `${dayName} unterschreitet 1800 kcal.`;
+        correctionHint = `Die letzte Antwort hatte ${normalizedDay.dailyKcal} kcal und war zu niedrig. Erhöhe auf mindestens 1800 kcal durch größere Portionen und energiedichte, ausgewogene Zutaten (z.B. Nüsse, Hülsenfrüchte, Vollkorn, gesunde Öle).`;
+        continue;
+      }
+
+      if (needsNoMeat && containsMeat(normalizedDay)) {
+        lastError = `${dayName} enthält Fleisch trotz Vorgabe ohne Fleisch.`;
+        correctionHint =
+          "Die letzte Antwort enthielt Fleisch/Fisch/Wurst. Erstelle eine strikt fleischfreie Variante (vegetarisch), bei gleicher Kalorienvorgabe.";
+        continue;
+      }
+
+      return normalizedDay;
     }
-
-    let parsed: unknown;
-    try {
-      parsed = tryParseModelJson(content);
-    } catch {
-      lastError = "Die KI-Antwort konnte nicht verarbeitet werden.";
-      continue;
-    }
-
-    const result = daySchema.safeParse(parsed);
-    if (!result.success) {
-      lastError = "Die KI-Antwort entsprach nicht dem erwarteten Format.";
-      continue;
-    }
-
-    if (result.data.dayName !== dayName) {
-      lastError = "Die KI hat einen falschen Wochentag geliefert.";
-      continue;
-    }
-
-    if (result.data.dailyKcal < 1800) {
-      lastError = `${dayName} unterschreitet 1800 kcal.`;
-      continue;
-    }
-
-    return result.data;
   }
 
   throw new Error(`${dayName}: ${lastError} Bitte erneut versuchen.`);
+}
+
+function containsMeat(day: DayPlanData): boolean {
+  const meatKeywords = [
+    "huhn",
+    "pute",
+    "rind",
+    "schwein",
+    "hackfleisch",
+    "salami",
+    "schinken",
+    "wurst",
+    "speck",
+    "fleisch",
+    "bacon",
+    "chicken",
+    "beef",
+    "pork",
+    "ham",
+    "turkey",
+  ];
+
+  const haystack = normalizeText(
+    day.meals
+    .flatMap((meal) => [
+      meal.name,
+      meal.description,
+      meal.recipe,
+      ...meal.ingredients.map((i) => i.name),
+    ])
+    .join(" ")
+  );
+  return meatKeywords.some((keyword) => {
+    if (haystack.includes(`${keyword}frei`)) {
+      return false;
+    }
+    return haystack.includes(keyword);
+  });
 }
 
 function normalizeMealName(name: string): string {
