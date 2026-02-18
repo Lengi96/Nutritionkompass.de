@@ -178,6 +178,73 @@ export const mealPlansRouter = router({
       });
     }),
 
+  // Rezept eines Gerichts im gespeicherten Plan aktualisieren
+  updateMealRecipe: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string(),
+        dayIndex: z.number().int().min(0).max(6),
+        mealIndex: z.number().int().min(0).max(10),
+        recipe: z
+          .string()
+          .trim()
+          .min(5, "Das Rezept muss mindestens 5 Zeichen lang sein.")
+          .max(5000, "Das Rezept ist zu lang."),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const plan = await ctx.prisma.mealPlan.findUnique({
+        where: { id: input.planId },
+        include: {
+          patient: {
+            select: {
+              organizationId: true,
+            },
+          },
+        },
+      });
+
+      if (!plan) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Ernährungsplan nicht gefunden.",
+        });
+      }
+
+      if (plan.patient.organizationId !== ctx.organizationId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Zugriff verweigert.",
+        });
+      }
+
+      const planData = plan.planJson as unknown as {
+        days?: Array<{
+          meals?: Array<Record<string, unknown>>;
+        }>;
+      };
+
+      const day = planData.days?.[input.dayIndex];
+      const meal = day?.meals?.[input.mealIndex];
+      if (!day || !meal) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Ungültiger Tag oder Mahlzeit.",
+        });
+      }
+
+      meal.recipe = input.recipe;
+
+      await ctx.prisma.mealPlan.update({
+        where: { id: input.planId },
+        data: {
+          planJson: planData as unknown as Prisma.InputJsonValue,
+        },
+      });
+
+      return { success: true };
+    }),
+
   // Einzelnen Plan laden
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))

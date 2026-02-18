@@ -18,6 +18,10 @@ const mealSchema = z.object({
   mealType: z.enum(["Frühstück", "Mittagessen", "Abendessen", "Snack"]),
   name: z.string(),
   description: z.string(),
+  recipe: z
+    .string()
+    .min(20, "Rezept ist zu kurz.")
+    .max(5000, "Rezept ist zu lang."),
   kcal: z.number(),
   protein: z.number(),
   carbs: z.number(),
@@ -98,6 +102,7 @@ Format:
       "mealType": "Frühstück" | "Mittagessen" | "Abendessen" | "Snack",
       "name": "string",
       "description": "string",
+      "recipe": "string (kurze Zubereitung in 3-6 Schritten, durch ';' getrennt)",
       "kcal": number,
       "protein": number,
       "carbs": number,
@@ -122,6 +127,7 @@ Regeln:
 - Jede Mahlzeit des Tages muss sich deutlich unterscheiden (keine Dubletten)
 - Pro Mahlzeit maximal ${maxIngredients} Zutaten
 - Beschreibung kurz halten (max. ${maxDescriptionChars} Zeichen)
+- recipe muss pro Mahlzeit vorhanden sein (3-6 kurze Schritte, mit ';' trennen)
 - Nur alltagstaugliche Zutaten in Deutschland
 - Allergien strikt beachten
 - Kein Zusatztext, nur JSON`;

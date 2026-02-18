@@ -114,15 +114,20 @@ export default function MealPlansPage() {
                   <TableHead>Erstellt von</TableHead>
                   <TableHead>Einkaufsliste</TableHead>
                   <TableHead>Erstellt am</TableHead>
+                  <TableHead className="text-right">Aktion</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {plans.map((plan) => (
                   <TableRow key={plan.id}>
                     <TableCell className="font-medium">
-                      <Link className="hover:underline" href={`/patients/${plan.patient.id}`}>
-                        {plan.patient.pseudonym}
-                      </Link>
+                      {plan.patient?.id ? (
+                        <Link className="hover:underline" href={`/patients/${plan.patient.id}`}>
+                          {plan.patient.pseudonym}
+                        </Link>
+                      ) : (
+                        <span>{plan.patient?.pseudonym ?? "Unbekannt"}</span>
+                      )}
                     </TableCell>
                     <TableCell>KW {getWeekNumber(new Date(plan.weekStart))}</TableCell>
                     <TableCell>
@@ -130,7 +135,7 @@ export default function MealPlansPage() {
                         {plan.totalKcal.toLocaleString("de-DE")} kcal
                       </Badge>
                     </TableCell>
-                    <TableCell>{plan.createdByUser.name}</TableCell>
+                    <TableCell>{plan.createdByUser?.name ?? "Unbekannt"}</TableCell>
                     <TableCell>
                       {plan.shoppingList ? (
                         <Link href={`/shopping-lists/${plan.shoppingList.id}`}>
@@ -144,8 +149,13 @@ export default function MealPlansPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Link className="hover:underline" href={`/meal-plans/${plan.id}`}>
-                        {new Date(plan.createdAt).toLocaleDateString("de-DE")}
+                      {new Date(plan.createdAt).toLocaleDateString("de-DE")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/meal-plans/${plan.id}`}>
+                        <Button variant="outline" size="sm" className="rounded-xl">
+                          Ansehen
+                        </Button>
                       </Link>
                     </TableCell>
                   </TableRow>

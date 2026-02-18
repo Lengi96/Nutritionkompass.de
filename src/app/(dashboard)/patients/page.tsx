@@ -18,12 +18,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Users, Loader2 } from "lucide-react";
+import { Plus, Search, Users, Loader2, Sparkles } from "lucide-react";
 import { CreatePatientModal } from "@/components/modals/CreatePatientModal";
+import { GeneratePlanModal } from "@/components/modals/GeneratePlanModal";
 
 export default function PatientsPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [selectedPatientForPlan, setSelectedPatientForPlan] = useState<{
+    id: string;
+    pseudonym: string;
+  } | null>(null);
   const [inlineFeedback, setInlineFeedback] = useState<{
     type: "success" | "error";
     message: string;
@@ -148,11 +154,28 @@ export default function PatientsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/patients/${patient.id}`}>
-                        <Button variant="ghost" size="sm" className="rounded-xl">
-                          Details
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-xl"
+                          onClick={() => {
+                            setSelectedPatientForPlan({
+                              id: patient.id,
+                              pseudonym: patient.pseudonym,
+                            });
+                            setPlanModalOpen(true);
+                          }}
+                        >
+                          <Sparkles className="mr-1 h-3 w-3" />
+                          Plan
                         </Button>
-                      </Link>
+                        <Link href={`/patients/${patient.id}`}>
+                          <Button variant="ghost" size="sm" className="rounded-xl">
+                            Details
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -175,6 +198,23 @@ export default function PatientsPage() {
           refetch();
         }}
       />
+
+      {selectedPatientForPlan && (
+        <GeneratePlanModal
+          open={planModalOpen}
+          onOpenChange={setPlanModalOpen}
+          patientId={selectedPatientForPlan.id}
+          patientPseudonym={selectedPatientForPlan.pseudonym}
+          onSuccess={() => {
+            setPlanModalOpen(false);
+            setInlineFeedback({
+              type: "success",
+              message: `Ernährungsplan für ${selectedPatientForPlan.pseudonym} wurde erstellt.`,
+            });
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

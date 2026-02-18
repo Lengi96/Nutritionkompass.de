@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
   Loader2,
@@ -24,11 +25,14 @@ import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
 export default function MealPlanDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const utils = trpc.useUtils();
   const planId = params.id as string;
   const [inlineFeedback, setInlineFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [recipeDrafts, setRecipeDrafts] = useState<Record<string, string>>({});
+  const [savingRecipeKey, setSavingRecipeKey] = useState<string | null>(null);
 
   const { data: plan, isLoading } = trpc.mealPlans.getById.useQuery({
     id: planId,
@@ -53,6 +57,24 @@ export default function MealPlanDetailPage() {
       },
     });
 
+  const updateMealRecipe = trpc.mealPlans.updateMealRecipe.useMutation({
+    onSuccess: async () => {
+      toast.success("Rezept gespeichert.");
+      setInlineFeedback({
+        type: "success",
+        message: "Rezept wurde gespeichert.",
+      });
+      await utils.mealPlans.getById.invalidate({ id: planId });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Rezept konnte nicht gespeichert werden.");
+      setInlineFeedback({
+        type: "error",
+        message: error.message || "Rezept konnte nicht gespeichert werden.",
+      });
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -75,6 +97,20 @@ export default function MealPlanDetailPage() {
     0
   );
   const avgDailyKcal = Math.round(weekTotalKcal / 7);
+
+  function getMealKey(dayIdx: number, mealIdx: number): string {
+    return `${dayIdx}-${mealIdx}`;
+  }
+
+  function getRecipeDraft(
+    key: string,
+    fallbackRecipe: string | undefined
+  ): string {
+    if (Object.prototype.hasOwnProperty.call(recipeDrafts, key)) {
+      return recipeDrafts[key];
+    }
+    return fallbackRecipe ?? "";
+  }
 
   return (
     <div className="space-y-6">
@@ -173,7 +209,7 @@ export default function MealPlanDetailPage() {
 
       {/* 7-Tage-Grid */}
       <div className="grid gap-4">
-        {planData.days.map((day) => (
+        {planData.days.map((day, dayIdx) => (
           <Card key={day.dayName} className="rounded-xl shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -187,9 +223,19 @@ export default function MealPlanDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {day.meals.map((meal, idx) => (
+                {day.meals.map((meal, mealIdx) => {
+                  const mealKey = getMealKey(dayIdx, mealIdx);
+                  const currentRecipe =
+                    (meal as unknown as { recipe?: string }).recipe ?? "";
+                  const draftRecipe = getRecipeDraft(mealKey, currentRecipe);
+                  const recipeSteps = parseRecipeSteps(currentRecipe);
+                  const canSaveRecipe =
+                    draftRecipe.trim().length >= 5 &&
+                    draftRecipe.trim() !== currentRecipe.trim();
+
+                  return (
                   <div
-                    key={idx}
+                    key={mealKey}
                     className="rounded-xl border p-3 hover:bg-accent/30 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -209,13 +255,83 @@ export default function MealPlanDetailPage() {
                     <p className="text-xs text-muted-foreground mt-1">
                       {meal.description}
                     </p>
+                    <p className="mt-2 text-xs text-text-main/80">
+                      <span className="font-medium">Rezept:</span>{" "}
+                      {(recipeSteps[0] ||
+                        "Keine Rezeptschritte vorhanden.")}
+                    </p>
                     <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
                       <span>P: {meal.protein}g</span>
                       <span>K: {meal.carbs}g</span>
                       <span>F: {meal.fat}g</span>
                     </div>
+
+                    <details className="mt-3 rounded-lg border bg-white/70 p-2">
+                      <summary className="cursor-pointer text-xs font-medium text-primary">
+                        Rezept anzeigen / bearbeiten
+                      </summary>
+                      <div className="mt-2 space-y-2">
+                        {recipeSteps.length > 0 && (
+                          <ol className="list-decimal space-y-1 pl-4 text-xs text-text-main/80">
+                            {recipeSteps.map((step, idx) => (
+                              <li key={`${mealKey}-step-${idx}`}>{step}</li>
+                            ))}
+                          </ol>
+                        )}
+                        <Textarea
+                          value={draftRecipe}
+                          onChange={(event) =>
+                            setRecipeDrafts((prev) => ({
+                              ...prev,
+                              [mealKey]: event.target.value,
+                            }))
+                          }
+                          rows={5}
+                          className="rounded-lg text-xs"
+                          placeholder="Rezept in kurzen Schritten, z.B. Schritt 1; Schritt 2; Schritt 3"
+                        />
+                        <div className="flex justify-end">
+                          <Button
+                            size="sm"
+                            className="rounded-lg"
+                            disabled={
+                              savingRecipeKey === mealKey ||
+                              updateMealRecipe.isPending ||
+                              !canSaveRecipe
+                            }
+                            onClick={() => {
+                              setInlineFeedback(null);
+                              setSavingRecipeKey(mealKey);
+                              updateMealRecipe.mutate(
+                                {
+                                  planId,
+                                  dayIndex: dayIdx,
+                                  mealIndex: mealIdx,
+                                  recipe: draftRecipe.trim(),
+                                },
+                                {
+                                  onSettled: () => {
+                                    setSavingRecipeKey(null);
+                                  },
+                                }
+                              );
+                            }}
+                          >
+                            {savingRecipeKey === mealKey ? (
+                              <>
+                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                Speichert...
+                              </>
+                            ) : (
+                              "Rezept speichern"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </details>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -318,4 +434,11 @@ function getWeekNumber(date: Date): number {
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
+function parseRecipeSteps(recipe: string): string[] {
+  return recipe
+    .split(/;|\n/)
+    .map((step) => step.trim())
+    .filter((step) => step.length > 0);
 }
