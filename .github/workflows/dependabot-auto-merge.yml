@@ -1,21 +1,55 @@
 name: Dependabot Auto Merge
 
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  enable-automerge:
-    if: github.actor == 'dependabot[bot]' && github.event.pull_request.draft == false
+  merge:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Enable auto-merge for Dependabot PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-        run: gh pr merge "$PR_NUMBER" --repo "$REPO" --auto --squash
+      - name: Merge Dependabot PR after successful CI
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prs = context.payload.workflow_run.pull_requests || [];
+
+            if (prs.length === 0) {
+              core.info("No pull request associated with this workflow run.");
+              return;
+            }
+
+            for (const prRef of prs) {
+              const prNumber = prRef.number;
+              const { data: pr } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: prNumber,
+              });
+
+              if (pr.user.login !== "dependabot[bot]") {
+                core.info(`PR #${prNumber} is not from Dependabot, skipping.`);
+                continue;
+              }
+
+              if (pr.state !== "open" || pr.draft) {
+                core.info(`PR #${prNumber} is not mergeable now, skipping.`);
+                continue;
+              }
+
+              await github.rest.pulls.merge({
+                owner,
+                repo,
+                pull_number: prNumber,
+                merge_method: "squash",
+              });
+
+              core.info(`Merged Dependabot PR #${prNumber}.`);
+            }
