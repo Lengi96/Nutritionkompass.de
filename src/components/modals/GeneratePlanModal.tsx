@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 function getNextMonday(): string {
@@ -185,15 +185,22 @@ export function GeneratePlanModal({
             <Label htmlFor="weekStart">
               Woche ab (Montag) <span className="text-destructive">*</span>
             </Label>
-            <Input id="weekStart" type="date" className="rounded-xl" {...register("weekStart")} />
+            <Input
+              id="weekStart"
+              type="date"
+              className="rounded-xl"
+              disabled={generatePlan.isPending}
+              {...register("weekStart")}
+            />
             {errors.weekStart && (
               <p className="text-xs text-destructive">{errors.weekStart.message}</p>
             )}
           </div>
 
-          <label className="flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer hover:bg-accent/30 transition-colors">
+          <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${generatePlan.isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-accent/30"}`}>
             <Checkbox
               checked={basedOnPrevious}
+              disabled={generatePlan.isPending}
               onCheckedChange={(checked) => setValue("basedOnPreviousPlan", !!checked)}
             />
             <div>
@@ -204,9 +211,10 @@ export function GeneratePlanModal({
             </div>
           </label>
 
-          <label className="flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer hover:bg-accent/30 transition-colors">
+          <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${generatePlan.isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-accent/30"}`}>
             <Checkbox
               checked={fastMode}
+              disabled={generatePlan.isPending}
               onCheckedChange={(checked) => setValue("fastMode", !!checked)}
             />
             <div>
@@ -224,6 +232,7 @@ export function GeneratePlanModal({
               className="rounded-xl"
               placeholder="z.B. Keine Suppen, mehr Snacks, vegetarische Woche..."
               rows={3}
+              disabled={generatePlan.isPending}
               {...register("additionalNotes")}
             />
           </div>
@@ -265,14 +274,23 @@ export function GeneratePlanModal({
           )}
 
           <Button
-            type="submit"
-            className="w-full rounded-xl bg-primary hover:bg-primary-600"
-            disabled={generatePlan.isPending}
+            type={generatePlan.isPending ? "button" : "submit"}
+            onClick={(e) => {
+              if (generatePlan.isPending) {
+                e.preventDefault();
+                onOpenChange(false);
+              }
+            }}
+            className={`w-full rounded-xl ${
+              generatePlan.isPending
+                ? "bg-destructive hover:bg-destructive-700"
+                : "bg-primary hover:bg-primary-600"
+            }`}
           >
             {generatePlan.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Plan wird generiert...
+                <X className="mr-2 h-4 w-4" />
+                Generierung abbrechen
               </>
             ) : (
               <>
