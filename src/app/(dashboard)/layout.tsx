@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { TrialBanner } from "@/components/layout/TrialBanner";
 import { TRPCProvider } from "@/trpc/client";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
         <div className="min-h-screen bg-background">
           <Sidebar user={user} />
           <div className="lg:pl-64">
+            <TrialBanner />
             <TopBar user={user} />
             <main className="p-6">{children}</main>
           </div>

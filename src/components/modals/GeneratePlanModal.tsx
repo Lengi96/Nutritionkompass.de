@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,6 +60,11 @@ export function GeneratePlanModal({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [progress, setProgress] = useState<{
+    message: string;
+    dayIndex: number;
+  } | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     register,
@@ -79,8 +85,23 @@ export function GeneratePlanModal({
   const basedOnPrevious = watch("basedOnPreviousPlan");
   const fastMode = watch("fastMode");
 
+  // Progress Query
+  const { refetch: refetchProgress } = trpc.mealPlans.getProgress.useQuery(
+    undefined,
+    {
+      enabled: false, // Nicht automatisch abrufen
+    }
+  );
+
   const generatePlan = trpc.mealPlans.generate.useMutation({
     onSuccess: (data) => {
+      // Polling stoppen
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      setProgress(null);
+
       toast.success("Ernährungsplan erfolgreich erstellt!");
       setInlineFeedback({
         type: "success",
@@ -90,6 +111,13 @@ export function GeneratePlanModal({
       router.push(`/meal-plans/${data.id}`);
     },
     onError: (error) => {
+      // Polling stoppen
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      setProgress(null);
+
       toast.error(
         error.message || "Fehler bei der Generierung. Bitte erneut versuchen."
       );
@@ -101,8 +129,30 @@ export function GeneratePlanModal({
     },
   });
 
+  // Cleanup bei Modal Close
+  useEffect(() => {
+    if (!open && progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+  }, [open]);
+
   function onSubmit(data: GeneratePlanFormData) {
     setInlineFeedback(null);
+    setProgress({ message: "Wird vorbereitet...", dayIndex: 0 });
+
+    // Polling starten
+    progressIntervalRef.current = setInterval(() => {
+      refetchProgress().then((result) => {
+        if (result.data?.message) {
+          setProgress({
+            message: result.data.message,
+            dayIndex: result.data.dayIndex ?? 0,
+          });
+        }
+      });
+    }, 500);
+
     generatePlan.mutate({
       patientId,
       weekStart: data.weekStart,
@@ -184,6 +234,21 @@ export function GeneratePlanModal({
               : "Stabilmodus: meist 60-180 Sekunden mit höherer Erfolgsquote."}{" "}
             Der Plan wird mit mindestens 1800 kcal pro Tag erstellt.
           </div>
+
+          {progress && (
+            <div className="space-y-2 rounded-xl bg-primary/5 p-4 border border-primary/20">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium text-text-main">{progress.message}</span>
+                <span className="text-muted-foreground">
+                  {progress.dayIndex}/9
+                </span>
+              </div>
+              <Progress
+                value={(progress.dayIndex / 9) * 100}
+                className="h-2 rounded-xl"
+              />
+            </div>
+          )}
 
           {inlineFeedback && (
             <div

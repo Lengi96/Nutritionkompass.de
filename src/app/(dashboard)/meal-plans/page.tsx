@@ -7,7 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ClipboardList, Loader2, Plus, ShoppingCart } from "lucide-react";
+import { ClipboardList, Loader2, Plus, ShoppingCart, Beef, Wheat, Droplets } from "lucide-react";
+import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
+
+function calcMacros(planJson: unknown): { protein: number; carbs: number; fat: number } {
+  try {
+    const plan = planJson as MealPlanData;
+    let protein = 0, carbs = 0, fat = 0;
+    for (const day of plan.days) {
+      for (const meal of day.meals) {
+        protein += meal.protein ?? 0;
+        carbs += meal.carbs ?? 0;
+        fat += meal.fat ?? 0;
+      }
+    }
+    return { protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) };
+  } catch {
+    return { protein: 0, carbs: 0, fat: 0 };
+  }
+}
 import {
   Dialog,
   DialogContent,
@@ -109,8 +127,9 @@ export default function MealPlansPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Patient</TableHead>
-                  <TableHead>Kalenderwoche</TableHead>
+                  <TableHead>KW</TableHead>
                   <TableHead>Kalorien/Woche</TableHead>
+                  <TableHead>Makros/Woche</TableHead>
                   <TableHead>Erstellt von</TableHead>
                   <TableHead>Einkaufsliste</TableHead>
                   <TableHead>Erstellt am</TableHead>
@@ -118,7 +137,9 @@ export default function MealPlansPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {plans.map((plan) => (
+                {plans.map((plan) => {
+                  const macros = calcMacros(plan.planJson);
+                  return (
                   <TableRow key={plan.id}>
                     <TableCell className="font-medium">
                       {plan.patient?.id ? (
@@ -134,6 +155,22 @@ export default function MealPlansPage() {
                       <Badge variant="secondary" className="rounded-xl bg-secondary/20 text-secondary-600">
                         {plan.totalKcal.toLocaleString("de-DE")} kcal
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1 text-xs">
+                        <span className="flex items-center gap-1 text-blue-600">
+                          <Beef className="h-3 w-3" />
+                          {macros.protein} g Protein
+                        </span>
+                        <span className="flex items-center gap-1 text-amber-600">
+                          <Wheat className="h-3 w-3" />
+                          {macros.carbs} g Kohlenhydrate
+                        </span>
+                        <span className="flex items-center gap-1 text-rose-500">
+                          <Droplets className="h-3 w-3" />
+                          {macros.fat} g Fett
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>{plan.createdByUser?.name ?? "Unbekannt"}</TableCell>
                     <TableCell>
@@ -159,7 +196,8 @@ export default function MealPlansPage() {
                       </Link>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           )}

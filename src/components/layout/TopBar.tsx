@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
@@ -26,6 +27,8 @@ const pageTitles: Record<string, string> = {
   "/meal-plans": "Ernährungspläne",
   "/shopping-lists": "Einkaufslisten",
   "/settings": "Einstellungen",
+  "/profile": "Mein Profil",
+  "/billing": "Abonnement",
 };
 
 function getBreadcrumbs(pathname: string) {
@@ -72,17 +75,22 @@ export function TopBar({ user }: TopBarProps) {
       <div>
         <h1 className="text-lg font-semibold text-text-main">{title}</h1>
         {breadcrumbs.length > 1 && (
-          <nav className="flex items-center gap-1 text-xs text-muted-foreground">
+          <nav className="flex items-center gap-1 text-xs text-muted-foreground" aria-label="Breadcrumb">
             {breadcrumbs.map((crumb, idx) => (
               <span key={crumb.href} className="flex items-center gap-1">
-                {idx > 0 && <ChevronRight className="h-3 w-3" />}
-                <span
-                  className={
-                    idx === breadcrumbs.length - 1 ? "text-text-main" : ""
-                  }
-                >
-                  {crumb.label}
-                </span>
+                {idx > 0 && <ChevronRight className="h-3 w-3" aria-hidden="true" />}
+                {idx === breadcrumbs.length - 1 ? (
+                  <span className="text-text-main" aria-current="page">
+                    {crumb.label}
+                  </span>
+                ) : (
+                  <Link
+                    href={crumb.href}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {crumb.label}
+                  </Link>
+                )}
               </span>
             ))}
           </nav>
@@ -106,10 +114,12 @@ export function TopBar({ user }: TopBarProps) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem disabled>
-            <User className="mr-2 h-4 w-4" />
-            Profil
-          </DropdownMenuItem>
+          <Link href="/profile">
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              Profil
+            </DropdownMenuItem>
+          </Link>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => signOut({ callbackUrl: "/login" })}

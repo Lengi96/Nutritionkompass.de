@@ -29,6 +29,8 @@ import {
   ArrowLeft,
   ClipboardList,
   TrendingUp,
+  Pencil,
+  CalendarDays,
 } from "lucide-react";
 import {
   LineChart,
@@ -41,12 +43,14 @@ import {
   ReferenceLine,
 } from "recharts";
 import { GeneratePlanModal } from "@/components/modals/GeneratePlanModal";
+import { EditPatientModal } from "@/components/modals/EditPatientModal";
 
 export default function PatientDetailPage() {
   const params = useParams();
   const patientIdParam = params.id;
   const patientId = Array.isArray(patientIdParam) ? patientIdParam[0] : patientIdParam;
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const {
     data: patient,
@@ -146,13 +150,23 @@ export default function PatientDetailPage() {
                   : "Keine bekannt"}
               </CardDescription>
             </div>
-            <Button
-              className="rounded-xl bg-primary hover:bg-primary-600"
-              onClick={() => setGenerateModalOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Plan generieren
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setEditModalOpen(true)}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Bearbeiten
+              </Button>
+              <Button
+                className="rounded-xl bg-primary hover:bg-primary-600"
+                onClick={() => setGenerateModalOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Plan generieren
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -235,6 +249,21 @@ export default function PatientDetailPage() {
                       : "Keine"}
                   </span>
                 </div>
+                {patient.targetDate && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <CalendarDays className="h-3 w-3" />
+                      Zieldatum
+                    </span>
+                    <span className="text-sm font-medium">
+                      {new Date(patient.targetDate).toLocaleDateString("de-DE", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -415,6 +444,25 @@ export default function PatientDetailPage() {
         patientPseudonym={patient.pseudonym}
         onSuccess={() => {
           setGenerateModalOpen(false);
+          refetch();
+        }}
+      />
+
+      {/* Edit Patient Modal */}
+      <EditPatientModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        patient={{
+          id: patientId,
+          pseudonym: patient.pseudonym,
+          currentWeight: Number(patient.currentWeight),
+          targetWeight: Number(patient.targetWeight),
+          targetDate: patient.targetDate,
+          allergies: patient.allergies,
+          notes: patient.notes,
+        }}
+        onSuccess={() => {
+          setEditModalOpen(false);
           refetch();
         }}
       />

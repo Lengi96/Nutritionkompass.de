@@ -383,12 +383,15 @@ export async function generateMealPlan(
   additionalNotes?: string,
   options?: {
     fastMode?: boolean;
+    onProgress?: (message: string) => void;
   }
 ): Promise<{ plan: MealPlanData; prompt: string }> {
   const fastMode = options?.fastMode ?? false;
+  const onProgress = options?.onProgress;
 
   const days: DayPlanData[] = [];
-  for (const dayName of DAY_NAMES) {
+  for (let i = 0; i < DAY_NAMES.length; i++) {
+    const dayName = DAY_NAMES[i];
     const excludedNames = getExcludedNamesFromDays(days);
     const dayPlan = await generateSingleDayPlan(
       patient,
@@ -398,10 +401,12 @@ export async function generateMealPlan(
       excludedNames
     );
     days.push(dayPlan);
+    onProgress?.(`Lädt ${dayName} (${i + 1}/7)...`);
   }
 
   // Nachkorrektur: doppelte Gerichte über die Woche reduzieren
   for (let pass = 0; pass < 2; pass++) {
+    onProgress?.(`Prüfe Varianz der Mahlzeiten (Durchlauf ${pass + 1}/2)...`);
     const issues = findVarietyIssues(days);
     if (issues.length === 0) break;
 

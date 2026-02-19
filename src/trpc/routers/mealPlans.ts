@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import type { Prisma } from "@prisma/client";
 import { router, protectedProcedure } from "../init";
 import { generateMealPlan } from "@/lib/openai/nutritionPrompt";
+import { PLAN_LIMITS } from "@/lib/stripe";
 
 // Sicherheitshinweis: Rate Limiting – Max 10 Generierungen pro User pro Stunde
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -27,6 +28,33 @@ function checkRateLimit(userId: string): void {
   entry.count++;
 }
 
+// Progress-Tracking pro User
+interface ProgressState {
+  message: string;
+  dayIndex: number;
+  timestamp: number;
+}
+
+const progressMap = new Map<string, ProgressState>();
+
+function setProgress(userId: string, message: string, dayIndex: number): void {
+  progressMap.set(userId, {
+    message,
+    dayIndex,
+    timestamp: Date.now(),
+  });
+}
+
+function getProgress(userId: string): ProgressState | null {
+  const progress = progressMap.get(userId);
+  // Alte Progress-States (älter als 5 Minuten) entfernen
+  if (progress && Date.now() - progress.timestamp > 5 * 60 * 1000) {
+    progressMap.delete(userId);
+    return null;
+  }
+  return progress || null;
+}
+
 export const mealPlansRouter = router({
   // Ernährungsplan mit KI generieren
   generate: protectedProcedure
@@ -42,6 +70,33 @@ export const mealPlansRouter = router({
     .mutation(async ({ ctx, input }) => {
       // Rate Limiting prüfen
       checkRateLimit(ctx.user.id);
+
+      // Monatliches Plan-Limit basierend auf Abo-Plan prüfen
+      const org = await ctx.prisma.organization.findUniqueOrThrow({
+        where: { id: ctx.organizationId },
+      });
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const plansThisMonth = await ctx.prisma.mealPlan.count({
+        where: {
+          patient: { organizationId: ctx.organizationId },
+          createdAt: { gte: startOfMonth },
+        },
+      });
+      const monthlyLimit = PLAN_LIMITS[org.subscriptionPlan].maxPlansPerMonth;
+      if (plansThisMonth >= monthlyLimit) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Monatliches Plan-Limit (${monthlyLimit}) erreicht. Bitte upgraden Sie Ihren Plan.`,
+        });
+      }
+
+      // Testphase prüfen
+      if (org.subscriptionPlan === "TRIAL" && org.trialEndsAt && org.trialEndsAt < new Date()) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Ihre Testphase ist abgelaufen. Bitte wählen Sie einen Plan unter /billing.",
+        });
+      }
 
       // Patient laden und Berechtigung prüfen
       const patient = await ctx.prisma.patient.findUnique({
@@ -77,7 +132,9 @@ export const mealPlansRouter = router({
         }
       }
 
-      // KI-Plan generieren
+      // KI-Plan generieren mit Progress-Tracking
+      setProgress(ctx.user.id, "Wird vorbereitet...", 0);
+
       const { plan, prompt } = await generateMealPlan(
         {
           birthYear: patient.birthYear,
@@ -86,7 +143,15 @@ export const mealPlansRouter = router({
           allergies: patient.allergies,
         },
         notes || undefined,
-        { fastMode: input.fastMode }
+        {
+          fastMode: input.fastMode,
+          onProgress: (message: string) => {
+            // Extrahiere Tag-Nummer aus Message (z.B. "Lädt Montag (1/7)..." -> 1)
+            const dayMatch = message.match(/\((\d+)\/\d+\)/);
+            const dayIndex = dayMatch ? parseInt(dayMatch[1], 10) : 0;
+            setProgress(ctx.user.id, message, dayIndex);
+          },
+        }
       );
 
       // Gesamt-Kalorien berechnen
@@ -283,4 +348,10 @@ export const mealPlansRouter = router({
 
       return plan;
     }),
+
+  // Fortschritt einer laufenden Plan-Generierung abrufen
+  getProgress: protectedProcedure.query(({ ctx }) => {
+    const progress = getProgress(ctx.user.id);
+    return progress || { message: null, dayIndex: 0 };
+  }),
 });

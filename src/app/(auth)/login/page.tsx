@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Compass, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +42,27 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Ungültige Anmeldedaten. Bitte überprüfen Sie E-Mail und Passwort.");
+      // NextAuth v5 gibt "CredentialsSignin" zurück, auch bei custom Errors.
+      // Wir prüfen per tRPC ob die E-Mail unverifiziert ist.
+      try {
+        const res = await fetch(
+          `/api/trpc/auth.checkVerificationStatus?input=${encodeURIComponent(
+            JSON.stringify({ json: { email: data.email } })
+          )}`
+        );
+        const json = await res.json();
+        if (json?.result?.data?.json?.needsVerification) {
+          router.push(
+            `/verify-email?email=${encodeURIComponent(data.email)}`
+          );
+          return;
+        }
+      } catch {
+        // Fallback: normaler Fehler anzeigen
+      }
+      setError(
+        "Ungültige Anmeldedaten. Bitte überprüfen Sie E-Mail und Passwort."
+      );
       return;
     }
 
@@ -87,7 +108,15 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Passwort</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Passwort</Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Passwort vergessen?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -118,6 +147,16 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            Noch kein Konto?{" "}
+            <Link
+              href="/register"
+              className="text-primary font-medium hover:underline"
+            >
+              Jetzt registrieren
+            </Link>
+          </p>
         </CardContent>
       </Card>
 

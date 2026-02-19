@@ -8,6 +8,7 @@ import {
   Users,
   ClipboardList,
   ShoppingCart,
+  CreditCard,
   Settings,
   LogOut,
   Menu,
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/patients", label: "Patienten", icon: Users },
   { href: "/meal-plans", label: "Ernährungspläne", icon: ClipboardList },
   { href: "/shopping-lists", label: "Einkaufslisten", icon: ShoppingCart },
+  { href: "/billing", label: "Abonnement", icon: CreditCard },
 ];
 
 const adminItems = [
@@ -55,6 +57,7 @@ function NavLink({
     <Link
       href={href}
       onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
       className={cn(
         "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
         isActive
@@ -152,6 +155,7 @@ export function Sidebar({ user }: SidebarProps) {
             variant="ghost"
             size="icon"
             className="lg:hidden fixed top-4 left-4 z-40"
+            aria-label="Menü öffnen"
           >
             <Menu className="h-6 w-6" />
           </Button>

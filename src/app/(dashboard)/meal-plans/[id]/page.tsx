@@ -18,6 +18,9 @@ import {
   Loader2,
   ShoppingCart,
   FileDown,
+  Beef,
+  Wheat,
+  Droplets,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
@@ -97,6 +100,24 @@ export default function MealPlanDetailPage() {
     0
   );
   const avgDailyKcal = Math.round(weekTotalKcal / 7);
+
+  // Makros für die ganze Woche
+  const weekMacros = planData.days.reduce(
+    (acc, day) => {
+      for (const meal of day.meals) {
+        acc.protein += meal.protein ?? 0;
+        acc.carbs += meal.carbs ?? 0;
+        acc.fat += meal.fat ?? 0;
+      }
+      return acc;
+    },
+    { protein: 0, carbs: 0, fat: 0 }
+  );
+  const avgMacros = {
+    protein: Math.round(weekMacros.protein / 7),
+    carbs: Math.round(weekMacros.carbs / 7),
+    fat: Math.round(weekMacros.fat / 7),
+  };
 
   function getMealKey(dayIdx: number, mealIdx: number): string {
     return `${dayIdx}-${mealIdx}`;
@@ -190,12 +211,12 @@ export default function MealPlanDetailPage() {
             </div>
           )}
 
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3">
             <Badge
               variant="secondary"
               className="rounded-xl bg-secondary/20 text-secondary-600 text-base px-4 py-1"
             >
-              {"\u00D8"} {avgDailyKcal} kcal/Tag
+              Ø {avgDailyKcal} kcal/Tag
             </Badge>
             <Badge
               variant="secondary"
@@ -203,22 +224,58 @@ export default function MealPlanDetailPage() {
             >
               {weekTotalKcal.toLocaleString("de-DE")} kcal/Woche
             </Badge>
+            <Badge
+              variant="secondary"
+              className="rounded-xl bg-blue-50 text-blue-600 text-sm px-3 py-1 flex items-center gap-1"
+            >
+              <Beef className="h-3.5 w-3.5" />
+              Ø {avgMacros.protein}g P / {Math.round(weekMacros.protein)}g/Wo
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="rounded-xl bg-amber-50 text-amber-600 text-sm px-3 py-1 flex items-center gap-1"
+            >
+              <Wheat className="h-3.5 w-3.5" />
+              Ø {avgMacros.carbs}g K / {Math.round(weekMacros.carbs)}g/Wo
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="rounded-xl bg-rose-50 text-rose-500 text-sm px-3 py-1 flex items-center gap-1"
+            >
+              <Droplets className="h-3.5 w-3.5" />
+              Ø {avgMacros.fat}g F / {Math.round(weekMacros.fat)}g/Wo
+            </Badge>
           </div>
         </CardContent>
       </Card>
 
       {/* 7-Tage-Grid */}
       <div className="grid gap-4">
-        {planData.days.map((day, dayIdx) => (
+        {planData.days.map((day, dayIdx) => {
+          const dayProtein = Math.round(day.meals.reduce((s, m) => s + (m.protein ?? 0), 0));
+          const dayCarbs = Math.round(day.meals.reduce((s, m) => s + (m.carbs ?? 0), 0));
+          const dayFat = Math.round(day.meals.reduce((s, m) => s + (m.fat ?? 0), 0));
+          return (
           <Card key={day.dayName} className="rounded-xl shadow-sm">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle className="text-lg text-text-main">
                   {day.dayName}
                 </CardTitle>
-                <Badge className="rounded-xl bg-primary text-white">
-                  {day.dailyKcal} kcal
-                </Badge>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge className="rounded-xl bg-primary text-white">
+                    {day.dailyKcal} kcal
+                  </Badge>
+                  <Badge variant="secondary" className="rounded-xl bg-blue-50 text-blue-600 text-xs px-2 py-0.5 flex items-center gap-1">
+                    <Beef className="h-3 w-3" />{dayProtein}g
+                  </Badge>
+                  <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
+                    <Wheat className="h-3 w-3" />{dayCarbs}g
+                  </Badge>
+                  <Badge variant="secondary" className="rounded-xl bg-rose-50 text-rose-500 text-xs px-2 py-0.5 flex items-center gap-1">
+                    <Droplets className="h-3 w-3" />{dayFat}g
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -335,7 +392,8 @@ export default function MealPlanDetailPage() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Shopping List Link */}

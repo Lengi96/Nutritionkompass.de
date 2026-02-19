@@ -61,6 +61,7 @@ const createPatientSchema = z
       })
       .min(30, "Zielgewicht muss mindestens 30 kg betragen.")
       .max(200, "Zielgewicht darf maximal 200 kg betragen."),
+    targetDate: z.string().optional(),
     allergies: z.array(z.string()),
     notes: z.string().optional(),
   })
@@ -138,7 +139,10 @@ export function CreatePatientModal({
 
   function onSubmit(data: CreatePatientFormData) {
     setInlineFeedback(null);
-    createPatient.mutate(data);
+    createPatient.mutate({
+      ...data,
+      targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+    });
   }
 
   return (
@@ -246,6 +250,22 @@ export function CreatePatientModal({
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Zieldatum (optional) */}
+          <div className="space-y-2">
+            <Label htmlFor="targetDate">
+              Zieldatum (optional)
+            </Label>
+            <Input
+              id="targetDate"
+              type="date"
+              className="rounded-xl"
+              {...register("targetDate")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Optionaler Zeithorizont – dient der Orientierung, nicht dem Druck.
+            </p>
           </div>
 
           {/* Allergien */}

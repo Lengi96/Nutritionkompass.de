@@ -5,44 +5,49 @@ import { NextResponse } from "next/server";
 // Edge-kompatible Middleware: Verwendet nur auth.config (ohne Prisma/bcrypt)
 const { auth } = NextAuth(authConfig);
 
+// Geschützte Routen (Login erforderlich)
+const protectedPaths = ["/dashboard", "/patients", "/meal-plans", "/shopping-lists", "/settings", "/billing", "/profile"];
+// Öffentliche Routen (kein Login nötig)
+const publicPaths = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/invite", "/impressum", "/datenschutz", "/agb", "/api/auth", "/api/trpc", "/api/health", "/api/webhooks/stripe"];
+
+function isProtectedRoute(pathname: string): boolean {
+  return protectedPaths.some((path) => pathname === path || pathname.startsWith(path + "/"));
+}
+
+function isPublicRoute(pathname: string): boolean {
+  return publicPaths.some((path) => pathname === path || pathname.startsWith(path + "/"));
+}
+
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const isLoginPage = nextUrl.pathname === "/login";
-  const isDashboard = nextUrl.pathname.startsWith("/dashboard");
-  const isSettings = nextUrl.pathname.startsWith("/settings");
-  const isApiAuth = nextUrl.pathname.startsWith("/api/auth");
-  const isApiTrpc = nextUrl.pathname.startsWith("/api/trpc");
+  const pathname = nextUrl.pathname;
 
-  // API-Routes durchlassen
-  if (isApiAuth || isApiTrpc) {
+  // Öffentliche Routen und API-Routes durchlassen
+  if (isPublicRoute(pathname)) {
+    // Eingeloggter User auf Login/Register → Redirect zu Dashboard
+    if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
+      return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    }
     return NextResponse.next();
   }
 
-  // Eingeloggter User auf Login-Seite → Redirect zu Dashboard
-  if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL("/dashboard", nextUrl));
+  // Root-URL → Landing Page (öffentlich)
+  if (pathname === "/") {
+    return NextResponse.next();
   }
 
   // Nicht eingeloggt auf geschützter Route → Redirect zu Login
-  if (!isLoggedIn && isDashboard) {
+  if (!isLoggedIn && isProtectedRoute(pathname)) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  // Sicherheitshinweis: Settings-Seite nur für Admins zugänglich
-  if (isSettings && isLoggedIn) {
+  // Settings-Seite nur für Admins
+  if (pathname.startsWith("/settings") && isLoggedIn) {
     const role = req.auth?.user?.role;
     if (role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", nextUrl));
     }
-  }
-
-  // Root-URL → Redirect zu Dashboard oder Login
-  if (nextUrl.pathname === "/") {
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl));
-    }
-    return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
   return NextResponse.next();

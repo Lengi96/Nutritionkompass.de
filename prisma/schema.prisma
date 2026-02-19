@@ -13,12 +13,35 @@ enum Role {
   STAFF
 }
 
+enum SubscriptionPlan {
+  TRIAL
+  BASIC
+  PROFESSIONAL
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+}
+
 model Organization {
   id        String    @id @default(cuid())
   name      String
   createdAt DateTime  @default(now())
-  users     User[]
-  patients  Patient[]
+
+  // Stripe & Subscription
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?
+  subscriptionPlan     SubscriptionPlan   @default(TRIAL)
+  subscriptionStatus   SubscriptionStatus @default(TRIALING)
+  trialEndsAt          DateTime?
+
+  users       User[]
+  patients    Patient[]
+  invitations StaffInvitation[]
 }
 
 model User {
@@ -33,6 +56,14 @@ model User {
   createdAt      DateTime     @default(now())
   mealPlans      MealPlan[]
 
+  // E-Mail-Verifizierung
+  emailVerified          Boolean   @default(false)
+  emailVerificationToken String?   @unique
+
+  // Passwort-Reset
+  resetToken             String?   @unique
+  resetTokenExpiresAt    DateTime?
+
   @@index([organizationId])
   @@index([email])
 }
@@ -45,6 +76,7 @@ model Patient {
   birthYear      Int
   currentWeight  Decimal       @db.Decimal(5, 2)
   targetWeight   Decimal       @db.Decimal(5, 2)
+  targetDate     DateTime?     // Optionales Zieldatum für Gewichtsziel
   allergies      String[]
   notes          String?
   isActive       Boolean       @default(true)
@@ -90,4 +122,20 @@ model ShoppingList {
   mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
   itemsJson  Json
   createdAt  DateTime @default(now())
+}
+
+model StaffInvitation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  email          String
+  name           String
+  role           Role         @default(STAFF)
+  token          String       @unique
+  expiresAt      DateTime
+  invitedBy      String
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, email])
+  @@index([token])
 }

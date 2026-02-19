@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure, adminProcedure } from "../init";
+import { PLAN_LIMITS } from "@/lib/stripe";
 
 export const patientsRouter = router({
   // Neuen Patienten anlegen
@@ -24,11 +25,27 @@ export const patientsRouter = router({
           .number()
           .min(30, "Zielgewicht muss mindestens 30 kg betragen.")
           .max(200, "Zielgewicht darf maximal 200 kg betragen."),
+        targetDate: z.coerce.date().optional().nullable(),
         allergies: z.array(z.string()),
         notes: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Patientenlimit basierend auf Abo-Plan prüfen
+      const org = await ctx.prisma.organization.findUniqueOrThrow({
+        where: { id: ctx.organizationId },
+      });
+      const patientCount = await ctx.prisma.patient.count({
+        where: { organizationId: ctx.organizationId, isActive: true },
+      });
+      const limits = PLAN_LIMITS[org.subscriptionPlan];
+      if (patientCount >= limits.maxPatients) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Maximale Patientenanzahl (${limits.maxPatients}) für Ihren Plan erreicht. Bitte upgraden Sie Ihren Plan.`,
+        });
+      }
+
       // Sicherheitshinweis: organizationId wird aus der Session entnommen, nicht vom Client
       const patient = await ctx.prisma.patient.create({
         data: {
@@ -133,6 +150,7 @@ export const patientsRouter = router({
         id: z.string(),
         currentWeight: z.number().min(30).max(200).optional(),
         targetWeight: z.number().min(30).max(200).optional(),
+        targetDate: z.coerce.date().optional().nullable(),
         allergies: z.array(z.string()).optional(),
         notes: z.string().optional(),
       })
