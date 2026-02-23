@@ -1,11 +1,18 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import type { Prisma } from "@prisma/client";
 import { router, protectedProcedure } from "../init";
 import { generateMealPlan } from "@/lib/openai/nutritionPrompt";
 import { PLAN_LIMITS } from "@/lib/stripe";
 
-// Sicherheitshinweis: Rate Limiting – Max 10 Generierungen pro User pro Stunde
+const MEAL_TYPE_VALUES = [
+  "Frühstück",
+  "Mittagessen",
+  "Abendessen",
+  "Snack",
+] as const;
+
+// Sicherheitshinweis: Rate Limiting â€“ Max 10 Generierungen pro User pro Stunde
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(userId: string): void {
@@ -21,7 +28,7 @@ function checkRateLimit(userId: string): void {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message:
-        "Sie haben das Limit von 10 Plan-Generierungen pro Stunde erreicht. Bitte versuchen Sie es später erneut.",
+        "Sie haben das Limit von 10 Plan-Generierungen pro Stunde erreicht. Bitte versuchen Sie es spÃ¤ter erneut.",
     });
   }
 
@@ -54,7 +61,7 @@ function setProgress(
 
 function getProgress(userId: string): ProgressState | null {
   const progress = progressMap.get(userId);
-  // Alte Progress-States (älter als 5 Minuten) entfernen
+  // Alte Progress-States (Ã¤lter als 5 Minuten) entfernen
   if (progress && Date.now() - progress.timestamp > 5 * 60 * 1000) {
     progressMap.delete(userId);
     return null;
@@ -63,23 +70,24 @@ function getProgress(userId: string): ProgressState | null {
 }
 
 export const mealPlansRouter = router({
-  // Ernährungsplan mit KI generieren
+  // ErnÃ¤hrungsplan mit KI generieren
   generate: protectedProcedure
     .input(
       z.object({
         patientId: z.string(),
         weekStart: z.string().transform((val) => new Date(val)),
         numDays: z.number().int().min(1).max(14).default(7),
+        fixedMealTypes: z.array(z.enum(MEAL_TYPE_VALUES)).default([]),
         additionalNotes: z.string().optional(),
         basedOnPreviousPlan: z.boolean().default(false),
         fastMode: z.boolean().default(true),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Rate Limiting prüfen
+      // Rate Limiting prÃ¼fen
       checkRateLimit(ctx.user.id);
 
-      // Monatliches Plan-Limit basierend auf Abo-Plan prüfen
+      // Monatliches Plan-Limit basierend auf Abo-Plan prÃ¼fen
       const org = await ctx.prisma.organization.findUniqueOrThrow({
         where: { id: ctx.organizationId },
       });
@@ -98,15 +106,15 @@ export const mealPlansRouter = router({
         });
       }
 
-      // Testphase prüfen
+      // Testphase prÃ¼fen
       if (org.subscriptionPlan === "TRIAL" && org.trialEndsAt && org.trialEndsAt < new Date()) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Ihre Testphase ist abgelaufen. Bitte wählen Sie einen Plan unter /billing.",
+          message: "Ihre Testphase ist abgelaufen. Bitte wÃ¤hlen Sie einen Plan unter /billing.",
         });
       }
 
-      // Patient laden und Berechtigung prüfen
+      // Patient laden und Berechtigung prÃ¼fen
       const patient = await ctx.prisma.patient.findUnique({
         where: { id: input.patientId },
       });
@@ -126,7 +134,7 @@ export const mealPlansRouter = router({
         });
       }
 
-      // Zusätzliche Hinweise zusammenbauen
+      // ZusÃ¤tzliche Hinweise zusammenbauen
       let notes = input.additionalNotes || "";
 
       if (input.basedOnPreviousPlan) {
@@ -149,7 +157,7 @@ export const mealPlansRouter = router({
       if (agreement) {
         const parts: string[] = [];
         if (agreement.canPortionIndependent) {
-          parts.push("Darf vollständig eigenständig portionieren");
+          parts.push("Darf vollstÃ¤ndig eigenstÃ¤ndig portionieren");
         } else if (agreement.canPortionSupervised) {
           parts.push("Darf unter Aufsicht portionieren");
         }
@@ -181,6 +189,7 @@ export const mealPlansRouter = router({
           notes || undefined,
           {
             numDays: input.numDays,
+            fixedMealTypes: input.fixedMealTypes,
             fastMode: input.fastMode,
             onProgress: (message: string) => {
               // Extrahiert Tag-Index und Gesamtanzahl aus dem Fortschritts-Text.
@@ -226,11 +235,11 @@ export const mealPlansRouter = router({
       return { id: mealPlan.id };
     }),
 
-  // Alle Pläne eines Patienten
+  // Alle PlÃ¤ne eines Patienten
   getByPatient: protectedProcedure
     .input(z.object({ patientId: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Sicherheitshinweis: Zunächst prüfen ob Patient zur Organisation gehört
+      // Sicherheitshinweis: ZunÃ¤chst prÃ¼fen ob Patient zur Organisation gehÃ¶rt
       const patient = await ctx.prisma.patient.findUnique({
         where: { id: input.patientId },
         select: { organizationId: true },
@@ -257,7 +266,7 @@ export const mealPlansRouter = router({
       });
     }),
 
-  // Alle Pläne der eigenen Organisation (z. B. für Übersichtsseite)
+  // Alle PlÃ¤ne der eigenen Organisation (z. B. fÃ¼r Ãœbersichtsseite)
   list: protectedProcedure
     .input(
       z
@@ -323,7 +332,7 @@ export const mealPlansRouter = router({
       if (!plan) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Ernährungsplan nicht gefunden.",
+          message: "ErnÃ¤hrungsplan nicht gefunden.",
         });
       }
 
@@ -345,7 +354,7 @@ export const mealPlansRouter = router({
       if (!day || !meal) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Ungültiger Tag oder Mahlzeit.",
+          message: "UngÃ¼ltiger Tag oder Mahlzeit.",
         });
       }
 
@@ -393,11 +402,11 @@ export const mealPlansRouter = router({
       if (!plan) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Ernährungsplan nicht gefunden.",
+          message: "ErnÃ¤hrungsplan nicht gefunden.",
         });
       }
 
-      // Sicherheitshinweis: Organization-Check über Patient-Relation
+      // Sicherheitshinweis: Organization-Check Ã¼ber Patient-Relation
       if (plan.patient.organizationId !== ctx.organizationId) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -414,3 +423,6 @@ export const mealPlansRouter = router({
     return progress || { message: null, dayIndex: 0, totalDays: 7 };
   }),
 });
+
+
+

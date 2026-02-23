@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -23,6 +23,10 @@ import {
   Wheat,
   Droplets,
   Handshake,
+  Coffee,
+  UtensilsCrossed,
+  Moon,
+  Apple,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
@@ -92,12 +96,13 @@ export default function MealPlanDetailPage() {
   if (!plan) {
     return (
       <div className="text-center py-20 text-muted-foreground">
-        <p>Ernährungsplan nicht gefunden.</p>
+        <p>ErnÃ¤hrungsplan nicht gefunden.</p>
       </div>
     );
   }
 
   const planData = plan.planJson as unknown as MealPlanData;
+  const planHint = extractPlanHint(plan.promptUsed);
   const totalDays = Math.max(planData.days.length, 1);
   const weekTotalKcal = planData.days.reduce(
     (sum, day) => sum + day.dailyKcal,
@@ -105,7 +110,7 @@ export default function MealPlanDetailPage() {
   );
   const avgDailyKcal = Math.round(weekTotalKcal / totalDays);
 
-  // Makros für die ganze Woche
+  // Makros fÃ¼r die ganze Woche
   const weekMacros = planData.days.reduce(
     (acc, day) => {
       for (const meal of day.meals) {
@@ -139,13 +144,13 @@ export default function MealPlanDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Zurück-Link */}
+      {/* ZurÃ¼ck-Link */}
       <Link
         href={`/patients/${plan.patientId}`}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-text-main"
       >
         <ArrowLeft className="h-4 w-4" />
-        Zurück zur Bewohner:in
+        ZurÃ¼ck zur Bewohner:in
       </Link>
 
       {/* Plan-Header */}
@@ -154,7 +159,12 @@ export default function MealPlanDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle className="text-xl text-text-main">
-                Ernährungsplan – {plan.patient.pseudonym}
+                ErnÃ¤hrungsplan â€“ {plan.patient.pseudonym}
+                {planHint ? (
+                  <span className="ml-1 text-base font-medium text-muted-foreground">
+                    ({planHint})
+                  </span>
+                ) : null}
               </CardTitle>
               <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
                 <span>
@@ -220,7 +230,7 @@ export default function MealPlanDetailPage() {
               variant="secondary"
               className="rounded-xl bg-secondary/20 text-secondary-600 text-base px-4 py-1"
             >
-              Ø {avgDailyKcal} kcal/Tag
+              Ã˜ {avgDailyKcal} kcal/Tag
             </Badge>
             <Badge
               variant="secondary"
@@ -233,21 +243,21 @@ export default function MealPlanDetailPage() {
               className="rounded-xl bg-blue-50 text-blue-600 text-sm px-3 py-1 flex items-center gap-1"
             >
               <Beef className="h-3.5 w-3.5" />
-              Ø {avgMacros.protein}g P / {Math.round(weekMacros.protein)}g/Wo
+              Ã˜ {avgMacros.protein}g P / {Math.round(weekMacros.protein)}g/Wo
             </Badge>
             <Badge
               variant="secondary"
               className="rounded-xl bg-amber-50 text-amber-600 text-sm px-3 py-1 flex items-center gap-1"
             >
               <Wheat className="h-3.5 w-3.5" />
-              Ø {avgMacros.carbs}g K / {Math.round(weekMacros.carbs)}g/Wo
+              Ã˜ {avgMacros.carbs}g K / {Math.round(weekMacros.carbs)}g/Wo
             </Badge>
             <Badge
               variant="secondary"
               className="rounded-xl bg-amber-50 text-amber-600 text-sm px-3 py-1 flex items-center gap-1"
             >
               <Droplets className="h-3.5 w-3.5" />
-              Ø {avgMacros.fat}g F / {Math.round(weekMacros.fat)}g/Wo
+              Ã˜ {avgMacros.fat}g F / {Math.round(weekMacros.fat)}g/Wo
             </Badge>
           </div>
           {(() => {
@@ -255,7 +265,7 @@ export default function MealPlanDetailPage() {
             if (ag) {
               const parts: string[] = [];
               if (ag.canPortionIndependent) {
-                parts.push("Darf vollständig eigenständig portionieren");
+                parts.push("Darf vollstÃ¤ndig eigenstÃ¤ndig portionieren");
               } else if (ag.canPortionSupervised) {
                 parts.push("Darf unter Aufsicht portionieren");
               }
@@ -337,7 +347,14 @@ export default function MealPlanDetailPage() {
                       const currentRecipe =
                         (meal as unknown as { recipe?: string }).recipe ?? "";
                       const draftRecipe = getRecipeDraft(mealKey, currentRecipe);
-                      const recipeSteps = parseRecipeSteps(currentRecipe);
+                      const allRecipeSteps = parseRecipeSteps(currentRecipe);
+                      const recipeSteps = allRecipeSteps.filter(
+                        (step) => !/^tipp:/i.test(step)
+                      );
+                      const tipSteps = allRecipeSteps.filter((step) =>
+                        /^tipp:/i.test(step)
+                      );
+                      const mealMeta = getMealTypeMeta(meal.mealType);
                       const canSaveRecipe =
                         draftRecipe.trim().length >= 5 &&
                         draftRecipe.trim() !== currentRecipe.trim();
@@ -347,8 +364,9 @@ export default function MealPlanDetailPage() {
                           key={mealKey}
                           className="rounded-xl border p-3 hover:bg-accent/30 transition-colors"
                         >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-semibold text-primary uppercase">
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+                              <mealMeta.icon className="h-3.5 w-3.5" />
                               {meal.mealType}
                             </span>
                             <Badge
@@ -364,11 +382,43 @@ export default function MealPlanDetailPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             {meal.description}
                           </p>
-                          <p className="mt-2 text-xs text-text-main/80">
-                            <span className="font-medium">Rezept:</span>{" "}
-                            {(recipeSteps[0] ||
-                              "Keine Rezeptschritte vorhanden.")}
-                          </p>
+
+                          <div className="mt-2 rounded-lg border bg-white/80 p-2">
+                            <p className="text-[11px] font-semibold text-text-main/90">
+                              Zutaten pro Portion
+                            </p>
+                            <div className="mt-1 space-y-1 text-[11px] text-text-main/80">
+                              {(meal.ingredients ?? []).slice(0, 5).map((ingredient, idx) => (
+                                <div
+                                  key={`${mealKey}-ingredient-${idx}`}
+                                  className="flex items-center justify-between gap-2"
+                                >
+                                  <span className="truncate">{ingredient.name}</span>
+                                  <span className="shrink-0 font-medium">
+                                    {ingredient.amount} {ingredient.unit}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-2 rounded-lg border bg-primary/5 p-2">
+                            <p className="text-[11px] font-semibold text-text-main/90">
+                              Zubereitung (kurz)
+                            </p>
+                            {recipeSteps.length > 0 ? (
+                              <ol className="mt-1 list-decimal space-y-1 pl-4 text-[11px] text-text-main/80">
+                                {recipeSteps.slice(0, 2).map((step, idx) => (
+                                  <li key={`${mealKey}-preview-step-${idx}`}>{step}</li>
+                                ))}
+                              </ol>
+                            ) : (
+                              <p className="mt-1 text-[11px] text-text-main/70">
+                                Keine Rezeptschritte vorhanden.
+                              </p>
+                            )}
+                          </div>
+
                           <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
                             <span>P: {meal.protein}g</span>
                             <span>K: {meal.carbs}g</span>
@@ -380,12 +430,41 @@ export default function MealPlanDetailPage() {
                               Rezept anzeigen / bearbeiten
                             </summary>
                             <div className="mt-2 space-y-2">
-                              {recipeSteps.length > 0 && (
-                                <ol className="list-decimal space-y-1 pl-4 text-xs text-text-main/80">
-                                  {recipeSteps.map((step, idx) => (
-                                    <li key={`${mealKey}-step-${idx}`}>{step}</li>
+                              <div className="rounded-lg border bg-white p-2">
+                                <p className="text-xs font-medium text-text-main">
+                                  Zutaten mit Mengen
+                                </p>
+                                <div className="mt-1 space-y-1 text-xs text-text-main/80">
+                                  {(meal.ingredients ?? []).map((ingredient, idx) => (
+                                    <div
+                                      key={`${mealKey}-ingredient-full-${idx}`}
+                                      className="flex items-center justify-between gap-2"
+                                    >
+                                      <span>{ingredient.name}</span>
+                                      <span className="font-medium">
+                                        {ingredient.amount} {ingredient.unit}
+                                      </span>
+                                    </div>
                                   ))}
-                                </ol>
+                                </div>
+                              </div>
+                              {recipeSteps.length > 0 ? (
+                                <div className="rounded-lg border bg-white p-2">
+                                  <p className="text-xs font-medium text-text-main">
+                                    Schritt-fÃ¼r-Schritt-Anleitung
+                                  </p>
+                                  <ol className="mt-1 list-decimal space-y-1 pl-4 text-xs text-text-main/80">
+                                    {recipeSteps.map((step, idx) => (
+                                      <li key={`${mealKey}-step-${idx}`}>{step}</li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              ) : null}
+                              {(tipSteps[0] || "").length > 0 && (
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-700">
+                                  <span className="font-medium">KÃ¼chentipp:</span>{" "}
+                                  {tipSteps[0].replace(/^tipp:\s*/i, "")}
+                                </div>
                               )}
                               <Textarea
                                 value={draftRecipe}
@@ -397,7 +476,7 @@ export default function MealPlanDetailPage() {
                                 }
                                 rows={5}
                                 className="rounded-lg text-xs"
-                                placeholder="Rezept in kurzen Schritten, z.B. Schritt 1; Schritt 2; Schritt 3"
+                                placeholder="Rezept mit Mengen/Zeiten, z.B. Schritt 1; Schritt 2; ...; Tipp: ..."
                               />
                               <div className="flex justify-end">
                                 <Button
@@ -559,9 +638,59 @@ function getShortWeekday(date: Date): string {
     .replace(".", "");
 }
 
+function getMealTypeMeta(mealType: string): {
+  icon: typeof Coffee;
+} {
+  switch (mealType) {
+    case "FrÃ¼hstÃ¼ck":
+      return { icon: Coffee };
+    case "Mittagessen":
+      return { icon: UtensilsCrossed };
+    case "Abendessen":
+      return { icon: Moon };
+    case "Snack":
+      return { icon: Apple };
+    default:
+      return { icon: Coffee };
+  }
+}
+
+function extractPlanHint(promptUsed?: string | null): string | null {
+  if (!promptUsed) return null;
+
+  const hintMatch = promptUsed.match(/Hinweise:\s*([^|]+)/i);
+  if (!hintMatch?.[1]) return null;
+
+  let hint = hintMatch[1].trim();
+  if (!hint || /keine besonderen hinweise/i.test(hint)) return null;
+
+  hint = hint
+    .replace(/Vorheriger Plan als Referenz vorhanden[\s\S]*/i, "")
+    .split(/\r?\n/)[0]
+    .trim();
+
+  if (!hint) return null;
+
+  const normalized = hint.toLowerCase();
+  if (normalized.includes("vegetar")) return "vegetarisch";
+  if (normalized.includes("vegan")) return "vegan";
+  if (normalized.includes("laktose")) return "laktosearm";
+  if (normalized.includes("gluten")) return "glutenfrei";
+  if (normalized.includes("snack")) return "mehr Snacks";
+  if (normalized.includes("mittags warm") || normalized.includes("abends kalt")) {
+    return "mittags warm, abends kalt";
+  }
+
+  return hint.length > 36 ? `${hint.slice(0, 33).trim()}...` : hint;
+}
 function parseRecipeSteps(recipe: string): string[] {
   return recipe
     .split(/;|\n/)
     .map((step) => step.trim())
     .filter((step) => step.length > 0);
 }
+
+
+
+
+

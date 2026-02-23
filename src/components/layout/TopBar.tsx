@@ -71,11 +71,11 @@ export function TopBar({ user }: TopBarProps) {
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-surface px-6">
-      <div>
-        <h1 className="text-lg font-semibold text-text-main">{title}</h1>
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-surface pl-14 pr-3 sm:px-6">
+      <div className="min-w-0">
+        <h1 className="truncate text-base font-semibold text-text-main sm:text-lg">{title}</h1>
         {breadcrumbs.length > 1 && (
-          <nav className="flex items-center gap-1 text-xs text-muted-foreground" aria-label="Breadcrumb">
+          <nav className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex" aria-label="Breadcrumb">
             {breadcrumbs.map((crumb, idx) => (
               <span key={crumb.href} className="flex items-center gap-1">
                 {idx > 0 && <ChevronRight className="h-3 w-3" aria-hidden="true" />}

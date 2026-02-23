@@ -26,12 +26,12 @@ export default async function DashboardLayout({
   return (
     <SessionProvider>
       <TRPCProvider>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen overflow-x-hidden bg-background">
           <Sidebar user={user} />
-          <div className="lg:pl-64">
+          <div className="min-w-0 lg:pl-64">
             <TrialBanner />
             <TopBar user={user} />
-            <main className="p-6">{children}</main>
+            <main className="p-4 sm:p-6">{children}</main>
           </div>
         </div>
       </TRPCProvider>

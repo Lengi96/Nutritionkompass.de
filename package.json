@@ -7,12 +7,12 @@
   "author": "Lengi96",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Lengi96/Tellerchen_app.git"
+    "url": "https://github.com/Lengi96/Nutritionkompass.de.git"
   },
   "bugs": {
-    "url": "https://github.com/Lengi96/Tellerchen_app/issues"
+    "url": "https://github.com/Lengi96/Nutritionkompass.de/issues"
   },
-  "homepage": "https://github.com/Lengi96/Tellerchen_app#readme",
+  "homepage": "https://github.com/Lengi96/Nutritionkompass.de#readme",
   "keywords": [
     "nextjs",
     "trpc",

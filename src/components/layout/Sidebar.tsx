@@ -216,7 +216,7 @@ export function Sidebar({ user }: SidebarProps) {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 overflow-y-auto p-0">
           <SidebarContent
             user={user}
             onNavClick={() => setMobileOpen(false)}

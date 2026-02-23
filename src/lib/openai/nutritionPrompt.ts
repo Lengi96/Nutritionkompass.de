@@ -1,12 +1,12 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { getOpenAIClient } from "./client";
 
 const ingredientSchema = z.object({
   name: z.string(),
   amount: z.number(),
-  unit: z.enum(["g", "ml", "Stück", "EL", "TL"]),
+  unit: z.enum(["g", "ml", "StÃ¼ck", "EL", "TL"]),
   category: z.enum([
-    "Gemüse & Obst",
+    "GemÃ¼se & Obst",
     "Protein",
     "Milchprodukte",
     "Kohlenhydrate",
@@ -18,7 +18,7 @@ const mealSchema = z.object({
   mealType: z.enum(["Frühstück", "Mittagessen", "Abendessen", "Snack"]),
   name: z.string(),
   description: z.string(),
-  recipe: z.string().min(140, "Rezept ist zu kurz.").max(1200, "Rezept ist zu lang."),
+  recipe: z.string().min(220, "Rezept ist zu kurz.").max(1600, "Rezept ist zu lang."),
   kcal: z.number(),
   protein: z.number(),
   carbs: z.number(),
@@ -41,6 +41,7 @@ export type MealData = z.infer<typeof mealSchema>;
 export type IngredientData = z.infer<typeof ingredientSchema>;
 
 type DayPlanData = z.infer<typeof daySchema>;
+type MealType = MealData["mealType"];
 
 const DAY_REQUEST_TIMEOUT_MS = 6_500;
 
@@ -63,29 +64,29 @@ const DAY_NAMES = [
 ] as const;
 
 const BASE_MEAL_LIBRARY = {
-  Frühstück: [
+  "Frühstück": [
     "Overnight-Oats mit Banane",
-    "Vollkornbrot mit Frischkäse und Gurke",
+    "Vollkornbrot mit FrischkÃ¤se und Gurke",
     "Joghurt-Bowl mit Haferflocken",
-    "Rührei mit Vollkorntoast",
+    "RÃ¼hrei mit Vollkorntoast",
   ],
-  Mittagessen: [
+  "Mittagessen": [
     "Linsencurry mit Reis",
-    "Pasta mit Tomatensauce und Gemüse",
-    "Kartoffelpfanne mit Kräuterquark",
+    "Pasta mit Tomatensauce und GemÃ¼se",
+    "Kartoffelpfanne mit KrÃ¤uterquark",
     "Reis-Bowl mit Kichererbsen",
   ],
-  Abendessen: [
-    "Gemüseomelett mit Ofenkartoffeln",
+  "Abendessen": [
+    "GemÃ¼seomelett mit Ofenkartoffeln",
     "Wraps mit Bohnen und Salat",
     "Couscous-Salat mit Feta",
     "Vollkornbrotzeit mit Rohkost",
   ],
-  Snack: [
+  "Snack": [
     "Apfel mit Nussmus",
     "Quark mit Beeren",
     "Haferkekse und Banane",
-    "Joghurt mit Nüssen",
+    "Joghurt mit NÃ¼ssen",
   ],
 } as const;
 
@@ -191,7 +192,7 @@ function findVarietyIssues(days: DayPlanData[]): number[] {
 }
 
 function buildFallbackRecipe(mealName: string): string {
-  return `Zutaten abmessen und bereitstellen; Gemüse bzw. Beilage gründlich vorbereiten; Hauptzutaten in einer Pfanne oder einem Topf bei mittlerer Hitze anrösten; Flüssigkeit oder Sauce zugeben und alles 8-12 Minuten sanft garen; Mit Kräutern, Salz und Pfeffer abschmecken; Portionsweise anrichten und warm servieren. (${mealName})`;
+  return `Alle Zutaten exakt abwiegen (z. B. 180 g Beilage, 120 g Proteinquelle, 150 g Gemuese, 1 EL Oel) und griffbereit stellen; Beilage nach Packungsangabe garen und dabei die Garzeit auf 10-12 Minuten timen; Proteinquelle in einer beschichteten Pfanne mit 1 EL Oel bei mittlerer Hitze 4-6 Minuten anbraten und einmal wenden; Gemuese zugeben, 50 ml Wasser oder Sauce einruehren und weitere 6-8 Minuten sanft garen; Mit Salz, Pfeffer und Kraeutern abschmecken, dann alles portionsgerecht anrichten; Tipp: Fuer ${mealName} die Sauce erst am Ende zugeben, damit Konsistenz und Naehrstoffe erhalten bleiben.`;
 }
 
 function createFallbackMeal(
@@ -201,10 +202,10 @@ function createFallbackMeal(
   const pool = BASE_MEAL_LIBRARY[mealType];
   const mealName = pool[dayIndex % pool.length];
   const kcalMap = {
-    Frühstück: 430,
-    Mittagessen: 620,
-    Abendessen: 560,
-    Snack: 260,
+    "Frühstück": 430,
+    "Mittagessen": 620,
+    "Abendessen": 560,
+    "Snack": 260,
   } as const;
   const kcal = kcalMap[mealType];
 
@@ -219,9 +220,9 @@ function createFallbackMeal(
     fat: Math.round(kcal * 0.3 / 9),
     ingredients: [
       { name: "Hauptzutat", amount: 180, unit: "g" as const, category: "Kohlenhydrate" as const },
-      { name: "Gemüse", amount: 150, unit: "g" as const, category: "Gemüse & Obst" as const },
+      { name: "GemÃ¼se", amount: 150, unit: "g" as const, category: "GemÃ¼se & Obst" as const },
       { name: "Proteinquelle", amount: 120, unit: "g" as const, category: "Protein" as const },
-      { name: "Öl", amount: 1, unit: "EL" as const, category: "Sonstiges" as const },
+      { name: "Ã–l", amount: 1, unit: "EL" as const, category: "Sonstiges" as const },
     ],
   };
 }
@@ -245,11 +246,54 @@ function buildFallbackPlan(dayNames: string[]): MealPlanData {
   return parsed.data;
 }
 
+function applyFixedMealTypes(
+  plan: MealPlanData,
+  fixedMealTypes: MealType[]
+): MealPlanData {
+  if (fixedMealTypes.length === 0 || plan.days.length === 0) {
+    return plan;
+  }
+
+  const fixedSet = new Set(fixedMealTypes);
+  const templateByType = new Map<MealType, MealData>();
+
+  for (const meal of plan.days[0].meals) {
+    if (fixedSet.has(meal.mealType)) {
+      templateByType.set(meal.mealType, meal);
+    }
+  }
+
+  const normalizedDays = plan.days.map((day) => {
+    const meals = day.meals.map((meal) => {
+      const template = templateByType.get(meal.mealType);
+      return template
+        ? {
+            ...template,
+            mealType: meal.mealType,
+          }
+        : meal;
+    });
+
+    const normalizedDay = {
+      ...day,
+      meals,
+    };
+
+    return {
+      ...normalizedDay,
+      dailyKcal: getEffectiveDailyKcal(normalizedDay),
+    };
+  });
+
+  return { days: normalizedDays };
+}
+
 export async function generateMealPlan(
   patient: PatientForPrompt,
   additionalNotes?: string,
   options?: {
     numDays?: number;
+    fixedMealTypes?: MealType[];
     fastMode?: boolean;
     requestTimeoutMs?: number;
     onProgress?: (message: string) => void;
@@ -258,6 +302,7 @@ export async function generateMealPlan(
   const numDays = Math.min(14, Math.max(1, options?.numDays ?? 7));
   const requestTimeoutMs =
     options?.requestTimeoutMs ?? (options?.fastMode ? 12_000 : DAY_REQUEST_TIMEOUT_MS);
+  const fixedMealTypes = options?.fixedMealTypes ?? [];
   const onProgress = options?.onProgress;
   const dayNames = Array.from({ length: numDays }, (_, index) => getDayNameByIndex(index));
   const { age, allergiesText, notesText, autonomyText } = buildPatientBasePrompt(
@@ -267,8 +312,8 @@ export async function generateMealPlan(
 
   onProgress?.(`Erstelle Gesamtplan (${numDays} Tage)...`);
 
-  const systemPrompt = `Du bist ein spezialisierter Ernährungsplaner.
-Gib AUSSCHLIESSLICH ein valides JSON-Objekt zurück.
+  const systemPrompt = `Du bist ein spezialisierter ErnÃ¤hrungsplaner.
+Gib AUSSCHLIESSLICH ein valides JSON-Objekt zurÃ¼ck.
 
 Format:
 {
@@ -280,7 +325,7 @@ Format:
           "mealType": "Frühstück" | "Mittagessen" | "Abendessen" | "Snack",
           "name": "string",
           "description": "string",
-          "recipe": "string (4-7 Schritte, durch ';' getrennt, 320-650 Zeichen)",
+          "recipe": "string (6-9 Schritte, durch ';' getrennt, 420-900 Zeichen, letzter Schritt beginnt mit 'Tipp:')",
           "kcal": number,
           "protein": number,
           "carbs": number,
@@ -289,8 +334,8 @@ Format:
             {
               "name": "string",
               "amount": number,
-              "unit": "g" | "ml" | "Stück" | "EL" | "TL",
-              "category": "Gemüse & Obst" | "Protein" | "Milchprodukte" | "Kohlenhydrate" | "Sonstiges"
+              "unit": "g" | "ml" | "StÃ¼ck" | "EL" | "TL",
+              "category": "GemÃ¼se & Obst" | "Protein" | "Milchprodukte" | "Kohlenhydrate" | "Sonstiges"
             }
           ]
         }
@@ -306,18 +351,23 @@ Regeln:
 - Pro Tag genau 4 Mahlzeiten: Frühstück, Mittagessen, Abendessen, Snack.
 - dailyKcal mindestens 1800.
 - Zutaten alltagstauglich in Deutschland.
+- Rezept je Mahlzeit mit klaren Arbeitsschritten, Zeitangaben und Hitzehinweisen (z. B. mittlere Hitze, 8 Minuten).
+- In jedem Rezept konkrete Mengen aus den Zutaten verwenden (z. B. 120 g, 1 EL, 200 ml).
+- Letzter Rezeptschritt beginnt immer mit "Tipp:" und gibt einen praktischen Zubereitungshinweis.
+- ${fixedMealTypes.length > 0 ? `Diese Mahlzeiten muessen jeden Tag identisch sein (Name, Rezept, Zutaten): ${fixedMealTypes.join(", ")}.` : "Wenn keine fixen Mahlzeiten vorgegeben sind, variiere die Gerichte ueber die Tage."}
 - Allergien strikt beachten.
-- Kein Zusatztext, kein Markdown, keine Codeblöcke.`;
+- Kein Zusatztext, kein Markdown, keine CodeblÃ¶cke.`;
 
   const userPrompt = `Patient:
 - Alter: ${age}
 - Aktuelles Gewicht: ${patient.currentWeight} kg
 - Zielgewicht: ${patient.targetWeight} kg
-- Allergien/Unverträglichkeiten: ${allergiesText}
+- Allergien/UnvertrÃ¤glichkeiten: ${allergiesText}
 - Besondere Hinweise: ${notesText}
 - Selbstständigkeit/Absprachen: ${autonomyText}
+${fixedMealTypes.length > 0 ? `- Feste Mahlzeiten (taeglich gleich): ${fixedMealTypes.join(", ")}` : ""}
 
-Erstelle den vollständigen ${numDays}-Tage-Plan in genau einem JSON-Objekt im geforderten Format.`;
+Erstelle den vollstÃ¤ndigen ${numDays}-Tage-Plan in genau einem JSON-Objekt im geforderten Format.`;
 
   let parsedPlan: MealPlanData | null = null;
   const maxTokens = Math.min(3800, 700 + numDays * 400);
@@ -360,6 +410,7 @@ Erstelle den vollständigen ${numDays}-Tage-Plan in genau einem JSON-Objekt im g
     parsedPlan = buildFallbackPlan(dayNames);
   }
 
+  parsedPlan = applyFixedMealTypes(parsedPlan, fixedMealTypes);
   findVarietyIssues(parsedPlan.days);
 
   const result = mealPlanSchema.safeParse(parsedPlan);
@@ -368,6 +419,10 @@ Erstelle den vollständigen ${numDays}-Tage-Plan in genau einem JSON-Objekt im g
 
   return {
     plan: result.data,
-    prompt: `Einzelschuss-Generierung | Alter: ${age} | Allergien: ${allergiesText} | Hinweise: ${notesText} | Absprachen: ${autonomyText}`,
+    prompt: `Einzelschuss-Generierung | Alter: ${age} | Allergien: ${allergiesText} | Hinweise: ${notesText} | Fixe Mahlzeiten: ${fixedMealTypes.length > 0 ? fixedMealTypes.join(", ") : "Keine"} | Absprachen: ${autonomyText}`,
   };
 }
+
+
+
+

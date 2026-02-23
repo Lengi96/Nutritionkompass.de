@@ -31,6 +31,12 @@ import { toast } from "sonner";
 import { incrementMealPlansUnreadCount } from "@/lib/mealPlanNotifications";
 
 const OPTIMISTIC_TICK_MS = 700;
+const MEAL_TYPE_OPTIONS = [
+  "Frühstück",
+  "Mittagessen",
+  "Abendessen",
+  "Snack",
+] as const;
 
 function getNextMonday(): string {
   const now = new Date();
@@ -44,6 +50,7 @@ function getNextMonday(): string {
 const generatePlanSchema = z.object({
   weekStart: z.string().min(1, "Bitte eine Woche auswählen."),
   numDays: z.number().int().min(1).max(14).default(7),
+  fixedMealTypes: z.array(z.enum(MEAL_TYPE_OPTIONS)).default([]),
   basedOnPreviousPlan: z.boolean().optional(),
   additionalNotes: z.string().optional(),
 });
@@ -91,12 +98,14 @@ export function GeneratePlanModal({
     defaultValues: {
       weekStart: getNextMonday(),
       numDays: 7,
+      fixedMealTypes: [],
       basedOnPreviousPlan: false,
       additionalNotes: "",
     },
   });
 
   const basedOnPrevious = watch("basedOnPreviousPlan");
+  const fixedMealTypes = watch("fixedMealTypes");
 
   const additionalNotesExamples = [
     "Vegetarisch, keine Fischgerichte",
@@ -275,6 +284,7 @@ export function GeneratePlanModal({
       patientId,
       weekStart: data.weekStart,
       numDays: data.numDays,
+      fixedMealTypes: data.fixedMealTypes ?? [],
       basedOnPreviousPlan: data.basedOnPreviousPlan ?? false,
       fastMode: true,
       additionalNotes: data.additionalNotes || undefined,
@@ -351,6 +361,44 @@ export function GeneratePlanModal({
               </p>
             </div>
           </label>
+
+          <div className="space-y-2 rounded-xl border px-4 py-3">
+            <Label className="text-sm font-medium">
+              Mahlzeit jeden Tag gleich (optional)
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Ausgewählte Mahlzeiten werden für alle Tage identisch gesetzt.
+            </p>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {MEAL_TYPE_OPTIONS.map((mealType) => {
+                const checked = fixedMealTypes?.includes(mealType) ?? false;
+                return (
+                  <label
+                    key={mealType}
+                    className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-xs transition-colors ${
+                      generatePlan.isPending
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer hover:bg-accent/30"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={checked}
+                      disabled={generatePlan.isPending}
+                      onCheckedChange={(nextChecked) => {
+                        const next = nextChecked
+                          ? [...(fixedMealTypes ?? []), mealType]
+                          : (fixedMealTypes ?? []).filter((item) => item !== mealType);
+                        setValue("fixedMealTypes", Array.from(new Set(next)), {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                    <span>{mealType}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="additionalNotes">Besondere Hinweise für diese Woche (optional)</Label>
