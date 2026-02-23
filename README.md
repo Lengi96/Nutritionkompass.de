@@ -1,22 +1,26 @@
-# NutriKompass
+﻿# NutriKompass
 
-KI-gestuetzte Ernaehrungsplanung fuer Einrichtungen, die Jugendliche mit Essstoerungen betreuen.
+NutriKompass ist eine KI-gestützte Ernährungsplanung für Einrichtungen.
+Die Anwendung unterstützt Teams bei der strukturierten Planung, Freigabe und Übergabe von Ernährungsplänen inklusive Einkaufslisten.
 
-## Features
+## Aktueller Funktionsumfang
 
-- Individuelle 7-Tage-Ernaehrungsplaene
-- Automatische Einkaufslisten
-- PDF-Export fuer Plaene und Listen
-- Dashboard fuer Patienten, Plaene und Organisation
-- Authentifizierung mit NextAuth
-- Datenpersistenz mit Prisma + PostgreSQL (z. B. Supabase)
+- Flexible Planungszeiträume: `1`, `3`, `7` oder bis `14` Tage
+- Optionale feste Mahlzeiten über den ganzen Plan (z. B. Frühstück täglich gleich)
+- Detaillierte Rezeptausgaben mit Mengen, Schritten und Küchentipps
+- Hintergrund-Generierung mit Fortschrittsanzeige und Benachrichtigung im UI
+- Dynamische Tages-Tabs je nach Planlänge
+- Automatische Einkaufslisten aus Plänen
+- Einkaufslisten-Ansicht (Woche/Alle) und Löschfunktion für Nutzer
+- PDF-Export für Ernährungspläne und Einkaufslisten
+- Rollen-/Teamfunktionen, Authentifizierung und Organisationskontext
 
 ## Tech Stack
 
 - Next.js 14 (App Router)
 - TypeScript
 - tRPC
-- Prisma
+- Prisma + PostgreSQL
 - NextAuth
 - Tailwind CSS
 - OpenAI API
@@ -28,58 +32,74 @@ KI-gestuetzte Ernaehrungsplanung fuer Einrichtungen, die Jugendliche mit Essstoe
 - PostgreSQL-Datenbank
 - OpenAI API Key
 
-## Setup (lokal)
+## Lokales Setup
 
-1. Abhaengigkeiten installieren:
+1. Abhängigkeiten installieren
+
 ```bash
 npm install
 ```
 
-2. Umgebungsvariablen setzen:
+2. Umgebungsvariablen anlegen
+
 ```bash
 cp .env.example .env
 ```
-Dann Werte in `.env` eintragen.
 
-3. Prisma-Client generieren:
+Danach Werte in `.env` eintragen.
+
+3. Prisma Client generieren
+
 ```bash
 npm run db:generate
 ```
 
-4. Datenbank migrieren (dev):
+4. Datenbank migrieren (Dev)
+
 ```bash
 npm run db:migrate
 ```
 
-5. Dev-Server starten:
+5. Dev-Server starten
+
 ```bash
 npm run dev
 ```
 
-App: `http://localhost:3000`
+App läuft dann unter: `http://localhost:3000`
 
-## Verfuegbare Scripts
+## Wichtige Scripts
 
-- `npm run dev` - Next.js Dev Server
+- `npm run dev` - Development Server
 - `npm run build` - Production Build
 - `npm run start` - Production Server
 - `npm run lint` - ESLint
 - `npm run db:generate` - Prisma Client generieren
-- `npm run db:migrate` - Prisma Migrationen (dev)
+- `npm run db:migrate` - Prisma Migrationen (Dev)
 - `npm run db:push` - Schema in DB pushen
-- `npm run db:seed` - Seed Script ausfuehren
+- `npm run db:seed` - Seed ausführen
 - `npm run db:studio` - Prisma Studio
+
+## Deploy-Hinweis (Netlify)
+
+Aktuell ist Auto-Build auf Netlify bewusst deaktiviert (`stop_builds=true`), damit lokal getestet und gesammelt deployt werden kann.
+
+Empfohlener Ablauf:
+
+1. Lokal entwickeln und testen (`npm run dev`, ggf. `npm run build`)
+2. Änderungen gesammelt auf `main` pushen
+3. Manuellen Netlify-Build/Deploy auslösen
 
 ## Sicherheit & Datenschutz
 
 - Keine echten Patientennamen im Klartext verwenden
-- API-Keys niemals committen
-- Vor Deployment produktive Secrets setzen
+- API-Keys und Secrets niemals committen
+- Produktive Secrets nur in sicheren Umgebungen setzen
 
 ## Contributing
 
-Bitte lies zuerst `CONTRIBUTING.md`.
+Bitte zuerst `CONTRIBUTING.md` lesen.
 
 ## Lizenz
 
-Dieses Projekt steht unter der MIT-Lizenz. Siehe `LICENSE`.
+MIT-Lizenz, siehe `LICENSE`.
