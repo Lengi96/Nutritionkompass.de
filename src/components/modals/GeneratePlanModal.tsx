@@ -231,7 +231,7 @@ export function GeneratePlanModal({
     });
     generationStartedAtRef.current = Date.now();
 
-    const estimatedMsPerDay = 3200;
+    const estimatedMsPerDay = 2200;
     optimisticIntervalRef.current = setInterval(() => {
       setProgress((prev) => {
         if (!prev) return prev;
@@ -276,7 +276,7 @@ export function GeneratePlanModal({
       weekStart: data.weekStart,
       numDays: data.numDays,
       basedOnPreviousPlan: data.basedOnPreviousPlan ?? false,
-      fastMode: false,
+      fastMode: true,
       additionalNotes: data.additionalNotes || undefined,
     });
   }

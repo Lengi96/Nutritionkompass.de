@@ -72,7 +72,7 @@ export const mealPlansRouter = router({
         numDays: z.number().int().min(1).max(14).default(7),
         additionalNotes: z.string().optional(),
         basedOnPreviousPlan: z.boolean().default(false),
-        fastMode: z.boolean().default(false),
+        fastMode: z.boolean().default(true),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -167,27 +167,43 @@ export const mealPlansRouter = router({
       // KI-Plan generieren mit Progress-Tracking
       setProgress(ctx.user.id, "Wird vorbereitet...", 0, input.numDays);
 
-      const { plan, prompt } = await generateMealPlan(
-        {
-          birthYear: patient.birthYear,
-          currentWeight: Number(patient.currentWeight),
-          targetWeight: Number(patient.targetWeight),
-          allergies: patient.allergies,
-          autonomyNotes: effectiveAutonomyNotes,
-        },
-        notes || undefined,
-        {
-          numDays: input.numDays,
-          fastMode: input.fastMode,
-          onProgress: (message: string) => {
-            // Extrahiert Tag-Index und Gesamtanzahl aus dem Fortschritts-Text.
-            const dayMatch = message.match(/\((\d+)\/(\d+)\)/);
-            const dayIndex = dayMatch ? parseInt(dayMatch[1], 10) : 0;
-            const totalDays = dayMatch ? parseInt(dayMatch[2], 10) : input.numDays;
-            setProgress(ctx.user.id, message, dayIndex, totalDays);
+      let plan: Awaited<ReturnType<typeof generateMealPlan>>["plan"];
+      let prompt: string;
+      try {
+        const generated = await generateMealPlan(
+          {
+            birthYear: patient.birthYear,
+            currentWeight: Number(patient.currentWeight),
+            targetWeight: Number(patient.targetWeight),
+            allergies: patient.allergies,
+            autonomyNotes: effectiveAutonomyNotes,
           },
-        }
-      );
+          notes || undefined,
+          {
+            numDays: input.numDays,
+            fastMode: input.fastMode,
+            onProgress: (message: string) => {
+              // Extrahiert Tag-Index und Gesamtanzahl aus dem Fortschritts-Text.
+              const dayMatch = message.match(/\((\d+)\/(\d+)\)/);
+              const dayIndex = dayMatch ? parseInt(dayMatch[1], 10) : 0;
+              const totalDays = dayMatch ? parseInt(dayMatch[2], 10) : input.numDays;
+              setProgress(ctx.user.id, message, dayIndex, totalDays);
+            },
+          }
+        );
+        plan = generated.plan;
+        prompt = generated.prompt;
+      } catch (error) {
+        const rawMessage =
+          error instanceof Error ? error.message : "Unbekannter Generierungsfehler";
+        console.error("[mealPlans.generate] KI-Generierung fehlgeschlagen:", rawMessage);
+
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Die Plan-Generierung ist fehlgeschlagen. Bitte erneut versuchen oder die Tagesanzahl reduzieren.",
+        });
+      }
 
       // Gesamt-Kalorien berechnen
       const totalKcal = plan.days.reduce(
