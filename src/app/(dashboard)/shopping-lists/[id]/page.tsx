@@ -236,18 +236,25 @@ export default function ShoppingListDetailPage() {
                           onCheckedChange={() => toggleItem(key)}
                           className="rounded"
                         />
-                        <span
-                          className={`flex-1 text-sm ${
-                            isChecked
-                              ? "line-through text-muted-foreground"
-                              : "text-text-main"
-                          }`}
-                        >
-                          {item.name}
-                        </span>
-                        <span className="text-sm text-muted-foreground font-mono">
-                          {item.amount} {item.unit}
-                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`text-sm ${
+                                isChecked
+                                  ? "line-through text-muted-foreground"
+                                  : "text-text-main"
+                              }`}
+                            >
+                              {item.name}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground"
+                            >
+                              {item.amount} {item.unit}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}

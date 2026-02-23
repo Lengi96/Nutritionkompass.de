@@ -19,8 +19,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Sparkles, X, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
+import { incrementMealPlansUnreadCount } from "@/lib/mealPlanNotifications";
+
+const OPTIMISTIC_TICK_MS = 700;
 
 function getNextMonday(): string {
   const now = new Date();
@@ -33,12 +43,13 @@ function getNextMonday(): string {
 
 const generatePlanSchema = z.object({
   weekStart: z.string().min(1, "Bitte eine Woche auswählen."),
+  numDays: z.number().int().min(1).max(14).default(7),
   basedOnPreviousPlan: z.boolean().optional(),
-  fastMode: z.boolean().optional(),
   additionalNotes: z.string().optional(),
 });
 
-type GeneratePlanFormData = z.infer<typeof generatePlanSchema>;
+type GeneratePlanFormInput = z.input<typeof generatePlanSchema>;
+type GeneratePlanFormData = z.output<typeof generatePlanSchema>;
 
 interface GeneratePlanModalProps {
   open: boolean;
@@ -63,8 +74,11 @@ export function GeneratePlanModal({
   const [progress, setProgress] = useState<{
     message: string;
     dayIndex: number;
+    totalDays: number;
   } | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const optimisticIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const generationStartedAtRef = useRef<number>(0);
 
   const {
     register,
@@ -72,18 +86,60 @@ export function GeneratePlanModal({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<GeneratePlanFormData>({
+  } = useForm<GeneratePlanFormInput, unknown, GeneratePlanFormData>({
     resolver: zodResolver(generatePlanSchema),
     defaultValues: {
       weekStart: getNextMonday(),
+      numDays: 7,
       basedOnPreviousPlan: false,
-      fastMode: false,
       additionalNotes: "",
     },
   });
 
   const basedOnPrevious = watch("basedOnPreviousPlan");
-  const fastMode = watch("fastMode");
+
+  const additionalNotesExamples = [
+    "Vegetarisch, keine Fischgerichte",
+    "Mittags warm, abends kalt",
+    "Mehr Snacks zwischen den Hauptmahlzeiten",
+    "Laktosearm und keine rohen Zwiebeln",
+    "Einfache Rezepte mit maximal 20 Minuten Zubereitung",
+  ];
+
+  const noteTemplates = [
+    {
+      id: "vegetarisch",
+      label: "Vegetarische Woche",
+      text: "Vegetarische Woche, keine Fisch- oder Fleischgerichte.",
+    },
+    {
+      id: "schnell",
+      label: "Schnelle Rezepte",
+      text: "Bitte nur einfache Rezepte mit maximal 20 Minuten Zubereitungszeit.",
+    },
+    {
+      id: "snacks",
+      label: "Mehr Snacks",
+      text: "Mehr Zwischenmahlzeiten und energiereiche Snacks einplanen.",
+    },
+    {
+      id: "unvertraeglichkeiten",
+      label: "Laktosearm",
+      text: "Laktosearme Planung, bitte ohne offensichtliche Milchprodukte.",
+    },
+    {
+      id: "struktur",
+      label: "Tagesstruktur",
+      text: "Mittags warm, abends kalt; klare, wiederkehrende Tagesstruktur.",
+    },
+  ] as const;
+
+  function getActiveDayMessage(completedDays: number, totalDays: number): string {
+    if (completedDays >= totalDays) {
+      return `Finalisiere Plan (${totalDays}/${totalDays})...`;
+    }
+    return `Tag ${Math.min(completedDays + 1, totalDays)} von ${totalDays} wird erstellt...`;
+  }
 
   // Progress Query
   const { refetch: refetchProgress } = trpc.mealPlans.getProgress.useQuery(
@@ -100,21 +156,35 @@ export function GeneratePlanModal({
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
       }
+      if (optimisticIntervalRef.current) {
+        clearInterval(optimisticIntervalRef.current);
+        optimisticIntervalRef.current = null;
+      }
       setProgress(null);
 
-      toast.success("Ernährungsplan erfolgreich erstellt!");
-      setInlineFeedback({
-        type: "success",
-        message: "Plan wurde erstellt. Weiterleitung zur Detailseite...",
-      });
       onSuccess();
-      router.push(`/meal-plans/${data.id}`);
+
+      if (open) {
+        toast.success("Ernährungsplan erfolgreich erstellt!");
+        setInlineFeedback({
+          type: "success",
+          message: "Plan wurde erstellt. Weiterleitung zur Detailseite...",
+        });
+        router.push(`/meal-plans/${data.id}`);
+      } else {
+        incrementMealPlansUnreadCount(1);
+        toast.success("Plan fertig. Unter „Ernährungspläne“ wartet ein neuer Eintrag.");
+      }
     },
     onError: (error) => {
       // Polling stoppen
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
+      }
+      if (optimisticIntervalRef.current) {
+        clearInterval(optimisticIntervalRef.current);
+        optimisticIntervalRef.current = null;
       }
       setProgress(null);
 
@@ -131,23 +201,71 @@ export function GeneratePlanModal({
 
   // Cleanup bei Modal Close
   useEffect(() => {
-    if (!open && progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-      progressIntervalRef.current = null;
+    if (!open) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      if (optimisticIntervalRef.current) {
+        clearInterval(optimisticIntervalRef.current);
+        optimisticIntervalRef.current = null;
+      }
     }
   }, [open]);
 
   function onSubmit(data: GeneratePlanFormData) {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (optimisticIntervalRef.current) {
+      clearInterval(optimisticIntervalRef.current);
+      optimisticIntervalRef.current = null;
+    }
+
     setInlineFeedback(null);
-    setProgress({ message: "Wird vorbereitet...", dayIndex: 0 });
+    setProgress({
+      message: getActiveDayMessage(0, data.numDays),
+      dayIndex: 0,
+      totalDays: data.numDays,
+    });
+    generationStartedAtRef.current = Date.now();
+
+    const estimatedMsPerDay = 3200;
+    optimisticIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (!prev) return prev;
+        const elapsed = Date.now() - generationStartedAtRef.current;
+        const optimisticCompleted = Math.min(
+          prev.totalDays - 1,
+          Math.floor(elapsed / estimatedMsPerDay)
+        );
+
+        if (optimisticCompleted <= prev.dayIndex) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          dayIndex: optimisticCompleted,
+          message: getActiveDayMessage(optimisticCompleted, prev.totalDays),
+        };
+      });
+    }, OPTIMISTIC_TICK_MS);
 
     // Polling starten
     progressIntervalRef.current = setInterval(() => {
       refetchProgress().then((result) => {
         if (result.data?.message) {
-          setProgress({
-            message: result.data.message,
-            dayIndex: result.data.dayIndex ?? 0,
+          const serverDayIndex = result.data.dayIndex ?? 0;
+          const serverTotalDays = result.data.totalDays ?? data.numDays;
+          setProgress((prev) => {
+            const mergedDayIndex = Math.max(prev?.dayIndex ?? 0, serverDayIndex);
+            return {
+              message: result.data.message ?? getActiveDayMessage(mergedDayIndex, serverTotalDays),
+              dayIndex: mergedDayIndex,
+              totalDays: serverTotalDays,
+            };
           });
         }
       });
@@ -156,15 +274,16 @@ export function GeneratePlanModal({
     generatePlan.mutate({
       patientId,
       weekStart: data.weekStart,
+      numDays: data.numDays,
       basedOnPreviousPlan: data.basedOnPreviousPlan ?? false,
-      fastMode: data.fastMode ?? false,
+      fastMode: false,
       additionalNotes: data.additionalNotes || undefined,
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-xl">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-sm rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-text-main flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -197,6 +316,28 @@ export function GeneratePlanModal({
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="numDays">
+              Planungszeitraum (Tage) <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="numDays"
+              type="number"
+              min={1}
+              max={14}
+              step={1}
+              className="rounded-xl"
+              disabled={generatePlan.isPending}
+              {...register("numDays", {
+                setValueAs: (value) => Number(value),
+              })}
+            />
+            {errors.numDays && (
+              <p className="text-xs text-destructive">{errors.numDays.message}</p>
+            )}
+            <p className="text-xs text-muted-foreground">Empfohlen: 1, 3, 7 oder 14 Tage.</p>
+          </div>
+
           <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${generatePlan.isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-accent/30"}`}>
             <Checkbox
               checked={basedOnPrevious}
@@ -211,22 +352,27 @@ export function GeneratePlanModal({
             </div>
           </label>
 
-          <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${generatePlan.isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-accent/30"}`}>
-            <Checkbox
-              checked={fastMode}
-              disabled={generatePlan.isPending}
-              onCheckedChange={(checked) => setValue("fastMode", !!checked)}
-            />
-            <div>
-              <span className="text-sm font-medium">Schnellmodus</span>
-              <p className="text-xs text-muted-foreground">
-                Schneller, aber mit etwas höherem Fehlerrisiko bei der Generierung
-              </p>
-            </div>
-          </label>
-
           <div className="space-y-2">
             <Label htmlFor="additionalNotes">Besondere Hinweise für diese Woche (optional)</Label>
+            <Select
+              onValueChange={(selectedId) => {
+                const selectedTemplate = noteTemplates.find((tpl) => tpl.id === selectedId);
+                if (!selectedTemplate) return;
+                setValue("additionalNotes", selectedTemplate.text, { shouldDirty: true });
+              }}
+              disabled={generatePlan.isPending}
+            >
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Hinweisvorlage wählen (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {noteTemplates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Textarea
               id="additionalNotes"
               className="rounded-xl"
@@ -235,12 +381,21 @@ export function GeneratePlanModal({
               disabled={generatePlan.isPending}
               {...register("additionalNotes")}
             />
+            <div className="rounded-xl border border-border bg-muted/30 px-3 py-2">
+              <p className="mb-2 flex items-center gap-1 text-xs font-medium text-text-main">
+                <Lightbulb className="h-3.5 w-3.5 text-primary" />
+                Was Sie hier eintragen können:
+              </p>
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                {additionalNotesExamples.map((example) => (
+                  <li key={example}>• {example}</li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="rounded-xl bg-accent/50 px-4 py-3 text-xs text-muted-foreground">
-            {fastMode
-              ? "Schnellmodus: meist 30-90 Sekunden."
-              : "Stabilmodus: meist 60-180 Sekunden mit höherer Erfolgsquote."}{" "}
+            Die Generierung läuft im Hintergrund und kann je nach Umfang bis zu einige Minuten dauern.
             Der Plan wird mit mindestens 1800 kcal pro Tag erstellt.
           </div>
 
@@ -249,11 +404,11 @@ export function GeneratePlanModal({
               <div className="flex justify-between text-sm">
                 <span className="font-medium text-text-main">{progress.message}</span>
                 <span className="text-muted-foreground">
-                  {progress.dayIndex}/9
+                  {progress.dayIndex}/{progress.totalDays}
                 </span>
               </div>
               <Progress
-                value={(progress.dayIndex / 9) * 100}
+                value={(progress.dayIndex / Math.max(progress.totalDays, 1)) * 100}
                 className="h-2 rounded-xl"
               />
             </div>
@@ -283,14 +438,14 @@ export function GeneratePlanModal({
             }}
             className={`w-full rounded-xl ${
               generatePlan.isPending
-                ? "bg-destructive hover:bg-destructive-700"
+                ? "bg-muted text-foreground hover:bg-muted"
                 : "bg-primary hover:bg-primary-600"
             }`}
           >
             {generatePlan.isPending ? (
               <>
                 <X className="mr-2 h-4 w-4" />
-                Generierung abbrechen
+                Im Hintergrund weiterlaufen lassen
               </>
             ) : (
               <>

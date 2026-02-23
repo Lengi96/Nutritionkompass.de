@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | NutriKompass",
   },
   description:
-    "KI-gestützte Ernährungsplanung für Einrichtungen. Individuelle 7-Tage-Pläne, automatische Einkaufslisten und PDF-Export. DSGVO-konform.",
+    "KI-gestützte Ernährungsplanung für Einrichtungen. Individuelle 1- bis 14-Tage-Pläne, automatische Einkaufslisten und PDF-Export. DSGVO-konform.",
   icons: {
     icon: "/favicon.svg",
   },

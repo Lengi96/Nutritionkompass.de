@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/trpc/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { GeneratePlanModal } from "@/components/modals/GeneratePlanModal";
+import { clearMealPlansUnreadCount } from "@/lib/mealPlanNotifications";
 
 function getWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -50,6 +51,10 @@ export default function MealPlansPage() {
     id: string;
     pseudonym: string;
   } | null>(null);
+
+  useEffect(() => {
+    clearMealPlansUnreadCount();
+  }, []);
 
   const {
     data: plans,

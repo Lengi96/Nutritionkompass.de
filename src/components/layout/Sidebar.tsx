@@ -20,6 +20,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/client";
+import {
+  clearMealPlansUnreadCount,
+  getMealPlansUnreadCount,
+  subscribeMealPlansUnread,
+} from "@/lib/mealPlanNotifications";
 
 interface SidebarProps {
   user: {
@@ -81,6 +86,7 @@ function SidebarContent({
 }: SidebarProps & { onNavClick?: () => void }) {
   const pathname = usePathname();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [mealPlansUnreadCount, setMealPlansUnreadCount] = useState(0);
 
   // Trial-Badge: Subscription-Daten laden
   const { data: subscription } = trpc.billing.getSubscription.useQuery();
@@ -92,6 +98,17 @@ function SidebarContent({
       setBannerDismissed(true);
     }
   }, []);
+
+  useEffect(() => {
+    setMealPlansUnreadCount(getMealPlansUnreadCount());
+    return subscribeMealPlansUnread(setMealPlansUnreadCount);
+  }, []);
+
+  useEffect(() => {
+    if (pathname.startsWith("/meal-plans")) {
+      clearMealPlansUnreadCount();
+    }
+  }, [pathname]);
 
   // Trial-Badge berechnen
   const showTrialBadge =
@@ -121,9 +138,18 @@ function SidebarContent({
                 ? pathname === "/dashboard"
                 : pathname.startsWith(item.href)
             }
-            onClick={onNavClick}
+            onClick={() => {
+              if (item.href === "/meal-plans") {
+                clearMealPlansUnreadCount();
+              }
+              onNavClick?.();
+            }}
             badge={
-              item.href === "/billing" && showTrialBadge ? (
+              item.href === "/meal-plans" && mealPlansUnreadCount > 0 ? (
+                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                  {mealPlansUnreadCount > 9 ? "9+" : mealPlansUnreadCount}
+                </span>
+              ) : item.href === "/billing" && showTrialBadge ? (
                 <span className="inline-flex items-center rounded-lg bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">
                   ⚡ {subscription.trialDaysLeft}d
                 </span>

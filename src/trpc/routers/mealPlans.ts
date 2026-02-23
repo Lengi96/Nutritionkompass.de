@@ -32,15 +32,22 @@ function checkRateLimit(userId: string): void {
 interface ProgressState {
   message: string;
   dayIndex: number;
+  totalDays: number;
   timestamp: number;
 }
 
 const progressMap = new Map<string, ProgressState>();
 
-function setProgress(userId: string, message: string, dayIndex: number): void {
+function setProgress(
+  userId: string,
+  message: string,
+  dayIndex: number,
+  totalDays: number
+): void {
   progressMap.set(userId, {
     message,
     dayIndex,
+    totalDays,
     timestamp: Date.now(),
   });
 }
@@ -62,6 +69,7 @@ export const mealPlansRouter = router({
       z.object({
         patientId: z.string(),
         weekStart: z.string().transform((val) => new Date(val)),
+        numDays: z.number().int().min(1).max(14).default(7),
         additionalNotes: z.string().optional(),
         basedOnPreviousPlan: z.boolean().default(false),
         fastMode: z.boolean().default(false),
@@ -157,7 +165,7 @@ export const mealPlansRouter = router({
       const effectiveAutonomyNotes = autonomyText || patient.autonomyNotes;
 
       // KI-Plan generieren mit Progress-Tracking
-      setProgress(ctx.user.id, "Wird vorbereitet...", 0);
+      setProgress(ctx.user.id, "Wird vorbereitet...", 0, input.numDays);
 
       const { plan, prompt } = await generateMealPlan(
         {
@@ -169,12 +177,14 @@ export const mealPlansRouter = router({
         },
         notes || undefined,
         {
+          numDays: input.numDays,
           fastMode: input.fastMode,
           onProgress: (message: string) => {
-            // Extrahiere Tag-Nummer aus Message (z.B. "Lädt Montag (1/7)..." -> 1)
-            const dayMatch = message.match(/\((\d+)\/\d+\)/);
+            // Extrahiert Tag-Index und Gesamtanzahl aus dem Fortschritts-Text.
+            const dayMatch = message.match(/\((\d+)\/(\d+)\)/);
             const dayIndex = dayMatch ? parseInt(dayMatch[1], 10) : 0;
-            setProgress(ctx.user.id, message, dayIndex);
+            const totalDays = dayMatch ? parseInt(dayMatch[2], 10) : input.numDays;
+            setProgress(ctx.user.id, message, dayIndex, totalDays);
           },
         }
       );
@@ -273,7 +283,7 @@ export const mealPlansRouter = router({
     .input(
       z.object({
         planId: z.string(),
-        dayIndex: z.number().int().min(0).max(6),
+        dayIndex: z.number().int().min(0).max(30),
         mealIndex: z.number().int().min(0).max(10),
         recipe: z
           .string()
@@ -385,6 +395,6 @@ export const mealPlansRouter = router({
   // Fortschritt einer laufenden Plan-Generierung abrufen
   getProgress: protectedProcedure.query(({ ctx }) => {
     const progress = getProgress(ctx.user.id);
-    return progress || { message: null, dayIndex: 0 };
+    return progress || { message: null, dayIndex: 0, totalDays: 7 };
   }),
 });

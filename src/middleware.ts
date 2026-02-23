@@ -55,6 +55,7 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|public).*)",
+    // Keine Middleware für Next-Assets, API-Routen oder Dateipfade (z.B. .css, .js, .png)
+    "/((?!api|_next|.*\\..*).*)",
   ],
 };

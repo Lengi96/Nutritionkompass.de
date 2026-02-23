@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Loader2,
@@ -35,6 +36,7 @@ export default function MealPlanDetailPage() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [selectedDayTab, setSelectedDayTab] = useState("day-0");
   const [recipeDrafts, setRecipeDrafts] = useState<Record<string, string>>({});
   const [savingRecipeKey, setSavingRecipeKey] = useState<string | null>(null);
 
@@ -96,11 +98,12 @@ export default function MealPlanDetailPage() {
   }
 
   const planData = plan.planJson as unknown as MealPlanData;
+  const totalDays = Math.max(planData.days.length, 1);
   const weekTotalKcal = planData.days.reduce(
     (sum, day) => sum + day.dailyKcal,
     0
   );
-  const avgDailyKcal = Math.round(weekTotalKcal / 7);
+  const avgDailyKcal = Math.round(weekTotalKcal / totalDays);
 
   // Makros für die ganze Woche
   const weekMacros = planData.days.reduce(
@@ -115,9 +118,9 @@ export default function MealPlanDetailPage() {
     { protein: 0, carbs: 0, fat: 0 }
   );
   const avgMacros = {
-    protein: Math.round(weekMacros.protein / 7),
-    carbs: Math.round(weekMacros.carbs / 7),
-    fat: Math.round(weekMacros.fat / 7),
+    protein: Math.round(weekMacros.protein / totalDays),
+    carbs: Math.round(weekMacros.carbs / totalDays),
+    fat: Math.round(weekMacros.fat / totalDays),
   };
 
   function getMealKey(dayIdx: number, mealIdx: number): string {
@@ -223,7 +226,7 @@ export default function MealPlanDetailPage() {
               variant="secondary"
               className="rounded-xl bg-primary/10 text-primary text-base px-4 py-1"
             >
-              {weekTotalKcal.toLocaleString("de-DE")} kcal/Woche
+              {weekTotalKcal.toLocaleString("de-DE")} kcal/Plan
             </Badge>
             <Badge
               variant="secondary"
@@ -280,152 +283,171 @@ export default function MealPlanDetailPage() {
         </CardContent>
       </Card>
 
-      {/* 7-Tage-Grid */}
-      <div className="grid gap-4">
+      <Tabs value={selectedDayTab} onValueChange={setSelectedDayTab} className="space-y-4">
+        <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-xl p-2">
+          {planData.days.map((day, dayIdx) => {
+            const dayDate = getDateByOffset(new Date(plan.weekStart), dayIdx);
+            const shortWeekday = getShortWeekday(dayDate);
+            return (
+              <TabsTrigger
+                key={`day-trigger-${dayIdx}`}
+                value={`day-${dayIdx}`}
+                className="rounded-lg px-3 py-2"
+              >
+                {shortWeekday}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
         {planData.days.map((day, dayIdx) => {
           const dayProtein = Math.round(day.meals.reduce((s, m) => s + (m.protein ?? 0), 0));
           const dayCarbs = Math.round(day.meals.reduce((s, m) => s + (m.carbs ?? 0), 0));
           const dayFat = Math.round(day.meals.reduce((s, m) => s + (m.fat ?? 0), 0));
-          return (
-          <Card key={day.dayName} className="rounded-xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-lg text-text-main">
-                  {day.dayName}
-                </CardTitle>
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge className="rounded-xl bg-primary text-white">
-                    {day.dailyKcal} kcal
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-xl bg-blue-50 text-blue-600 text-xs px-2 py-0.5 flex items-center gap-1">
-                    <Beef className="h-3 w-3" />{dayProtein}g
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
-                    <Wheat className="h-3 w-3" />{dayCarbs}g
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
-                    <Droplets className="h-3 w-3" />{dayFat}g
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {day.meals.map((meal, mealIdx) => {
-                  const mealKey = getMealKey(dayIdx, mealIdx);
-                  const currentRecipe =
-                    (meal as unknown as { recipe?: string }).recipe ?? "";
-                  const draftRecipe = getRecipeDraft(mealKey, currentRecipe);
-                  const recipeSteps = parseRecipeSteps(currentRecipe);
-                  const canSaveRecipe =
-                    draftRecipe.trim().length >= 5 &&
-                    draftRecipe.trim() !== currentRecipe.trim();
+          const dayDate = getDateByOffset(new Date(plan.weekStart), dayIdx);
 
-                  return (
-                  <div
-                    key={mealKey}
-                    className="rounded-xl border p-3 hover:bg-accent/30 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-primary uppercase">
-                        {meal.mealType}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="rounded-xl text-xs"
-                      >
-                        {meal.kcal} kcal
+          return (
+            <TabsContent key={`day-content-${dayIdx}`} value={`day-${dayIdx}`}>
+              <Card className="rounded-xl shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <CardTitle className="text-lg text-text-main">
+                      {day.dayName} - {dayDate.toLocaleDateString("de-DE")}
+                    </CardTitle>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge className="rounded-xl bg-primary text-white">
+                        {day.dailyKcal} kcal
+                      </Badge>
+                      <Badge variant="secondary" className="rounded-xl bg-blue-50 text-blue-600 text-xs px-2 py-0.5 flex items-center gap-1">
+                        <Beef className="h-3 w-3" />{dayProtein}g
+                      </Badge>
+                      <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
+                        <Wheat className="h-3 w-3" />{dayCarbs}g
+                      </Badge>
+                      <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
+                        <Droplets className="h-3 w-3" />{dayFat}g
                       </Badge>
                     </div>
-                    <h4 className="font-medium text-sm text-text-main">
-                      {meal.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {meal.description}
-                    </p>
-                    <p className="mt-2 text-xs text-text-main/80">
-                      <span className="font-medium">Rezept:</span>{" "}
-                      {(recipeSteps[0] ||
-                        "Keine Rezeptschritte vorhanden.")}
-                    </p>
-                    <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
-                      <span>P: {meal.protein}g</span>
-                      <span>K: {meal.carbs}g</span>
-                      <span>F: {meal.fat}g</span>
-                    </div>
-
-                    <details className="mt-3 rounded-lg border bg-white/70 p-2">
-                      <summary className="cursor-pointer text-xs font-medium text-primary">
-                        Rezept anzeigen / bearbeiten
-                      </summary>
-                      <div className="mt-2 space-y-2">
-                        {recipeSteps.length > 0 && (
-                          <ol className="list-decimal space-y-1 pl-4 text-xs text-text-main/80">
-                            {recipeSteps.map((step, idx) => (
-                              <li key={`${mealKey}-step-${idx}`}>{step}</li>
-                            ))}
-                          </ol>
-                        )}
-                        <Textarea
-                          value={draftRecipe}
-                          onChange={(event) =>
-                            setRecipeDrafts((prev) => ({
-                              ...prev,
-                              [mealKey]: event.target.value,
-                            }))
-                          }
-                          rows={5}
-                          className="rounded-lg text-xs"
-                          placeholder="Rezept in kurzen Schritten, z.B. Schritt 1; Schritt 2; Schritt 3"
-                        />
-                        <div className="flex justify-end">
-                          <Button
-                            size="sm"
-                            className="rounded-lg"
-                            disabled={
-                              savingRecipeKey === mealKey ||
-                              updateMealRecipe.isPending ||
-                              !canSaveRecipe
-                            }
-                            onClick={() => {
-                              setInlineFeedback(null);
-                              setSavingRecipeKey(mealKey);
-                              updateMealRecipe.mutate(
-                                {
-                                  planId,
-                                  dayIndex: dayIdx,
-                                  mealIndex: mealIdx,
-                                  recipe: draftRecipe.trim(),
-                                },
-                                {
-                                  onSettled: () => {
-                                    setSavingRecipeKey(null);
-                                  },
-                                }
-                              );
-                            }}
-                          >
-                            {savingRecipeKey === mealKey ? (
-                              <>
-                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                Speichert...
-                              </>
-                            ) : (
-                              "Rezept speichern"
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </details>
                   </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {day.meals.map((meal, mealIdx) => {
+                      const mealKey = getMealKey(dayIdx, mealIdx);
+                      const currentRecipe =
+                        (meal as unknown as { recipe?: string }).recipe ?? "";
+                      const draftRecipe = getRecipeDraft(mealKey, currentRecipe);
+                      const recipeSteps = parseRecipeSteps(currentRecipe);
+                      const canSaveRecipe =
+                        draftRecipe.trim().length >= 5 &&
+                        draftRecipe.trim() !== currentRecipe.trim();
+
+                      return (
+                        <div
+                          key={mealKey}
+                          className="rounded-xl border p-3 hover:bg-accent/30 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-primary uppercase">
+                              {meal.mealType}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="rounded-xl text-xs"
+                            >
+                              {meal.kcal} kcal
+                            </Badge>
+                          </div>
+                          <h4 className="font-medium text-sm text-text-main">
+                            {meal.name}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {meal.description}
+                          </p>
+                          <p className="mt-2 text-xs text-text-main/80">
+                            <span className="font-medium">Rezept:</span>{" "}
+                            {(recipeSteps[0] ||
+                              "Keine Rezeptschritte vorhanden.")}
+                          </p>
+                          <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
+                            <span>P: {meal.protein}g</span>
+                            <span>K: {meal.carbs}g</span>
+                            <span>F: {meal.fat}g</span>
+                          </div>
+
+                          <details className="mt-3 rounded-lg border bg-white/70 p-2">
+                            <summary className="cursor-pointer text-xs font-medium text-primary">
+                              Rezept anzeigen / bearbeiten
+                            </summary>
+                            <div className="mt-2 space-y-2">
+                              {recipeSteps.length > 0 && (
+                                <ol className="list-decimal space-y-1 pl-4 text-xs text-text-main/80">
+                                  {recipeSteps.map((step, idx) => (
+                                    <li key={`${mealKey}-step-${idx}`}>{step}</li>
+                                  ))}
+                                </ol>
+                              )}
+                              <Textarea
+                                value={draftRecipe}
+                                onChange={(event) =>
+                                  setRecipeDrafts((prev) => ({
+                                    ...prev,
+                                    [mealKey]: event.target.value,
+                                  }))
+                                }
+                                rows={5}
+                                className="rounded-lg text-xs"
+                                placeholder="Rezept in kurzen Schritten, z.B. Schritt 1; Schritt 2; Schritt 3"
+                              />
+                              <div className="flex justify-end">
+                                <Button
+                                  size="sm"
+                                  className="rounded-lg"
+                                  disabled={
+                                    savingRecipeKey === mealKey ||
+                                    updateMealRecipe.isPending ||
+                                    !canSaveRecipe
+                                  }
+                                  onClick={() => {
+                                    setInlineFeedback(null);
+                                    setSavingRecipeKey(mealKey);
+                                    updateMealRecipe.mutate(
+                                      {
+                                        planId,
+                                        dayIndex: dayIdx,
+                                        mealIndex: mealIdx,
+                                        recipe: draftRecipe.trim(),
+                                      },
+                                      {
+                                        onSettled: () => {
+                                          setSavingRecipeKey(null);
+                                        },
+                                      }
+                                    );
+                                  }}
+                                >
+                                  {savingRecipeKey === mealKey ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                      Speichert...
+                                    </>
+                                  ) : (
+                                    "Rezept speichern"
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          </details>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           );
         })}
-      </div>
+      </Tabs>
 
       {/* Shopping List Link */}
       {plan.shoppingList && (
@@ -523,6 +545,18 @@ function getWeekNumber(date: Date): number {
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
+function getDateByOffset(startDate: Date, dayOffset: number): Date {
+  const date = new Date(startDate);
+  date.setDate(startDate.getDate() + dayOffset);
+  return date;
+}
+
+function getShortWeekday(date: Date): string {
+  return date
+    .toLocaleDateString("de-DE", { weekday: "short" })
+    .replace(".", "");
 }
 
 function parseRecipeSteps(recipe: string): string[] {

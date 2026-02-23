@@ -146,7 +146,7 @@ export function MealPlanPdfDocument({
   organizationName = "NutriKompass",
 }: MealPlanPdfProps) {
   const totalWeekKcal = plan.days.reduce((sum, day) => sum + day.dailyKcal, 0);
-  const avgDailyKcal = Math.round(totalWeekKcal / 7);
+  const avgDailyKcal = Math.round(totalWeekKcal / Math.max(plan.days.length, 1));
 
   return (
     <Document>
@@ -161,7 +161,7 @@ export function MealPlanPdfDocument({
         </View>
 
         {/* Meta-Informationen */}
-        <Text style={styles.subtitle}>Wochenernährungsplan</Text>
+        <Text style={styles.subtitle}>Ernaehrungsplan</Text>
         <View style={styles.metaRow}>
           <Text style={styles.metaItem}>Patient: {patientPseudonym}</Text>
           <Text style={styles.metaItem}>

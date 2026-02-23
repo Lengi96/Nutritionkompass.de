@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LandingShowcase } from "@/components/landing/LandingShowcase";
 import {
   Compass,
   Sparkles,
@@ -202,7 +203,7 @@ export default function LandingPage() {
               </div>
               <h3 className="mb-2 text-lg font-semibold">KI-Vorschlaege</h3>
               <p className="text-sm text-gray-600">
-                Vorschlaege fuer 7-Tage-Plaene auf Basis Ihrer Eingaben.
+                Vorschlaege fuer 1- bis 14-Tage-Plaene auf Basis Ihrer Eingaben.
               </p>
             </div>
 
@@ -249,6 +250,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <LandingShowcase />
+
       <section className="py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
@@ -268,9 +271,9 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
-              <p className="text-3xl font-extrabold text-[#2D6A4F]">7</p>
+              <p className="text-3xl font-extrabold text-[#2D6A4F]">1-14</p>
               <p className="mt-1 text-sm text-gray-600">
-                Tage pro Plan als strukturierte Standardansicht
+                Tage pro Plan als flexibler Planungszeitraum
               </p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">

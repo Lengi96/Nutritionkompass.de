@@ -20,8 +20,8 @@ const mealSchema = z.object({
   description: z.string(),
   recipe: z
     .string()
-    .min(20, "Rezept ist zu kurz.")
-    .max(5000, "Rezept ist zu lang."),
+    .min(140, "Rezept ist zu kurz.")
+    .max(1200, "Rezept ist zu lang."),
   kcal: z.number(),
   protein: z.number(),
   carbs: z.number(),
@@ -36,7 +36,7 @@ const daySchema = z.object({
 });
 
 export const mealPlanSchema = z.object({
-  days: z.array(daySchema).length(7),
+  days: z.array(daySchema).min(1).max(14),
 });
 
 export type MealPlanData = z.infer<typeof mealPlanSchema>;
@@ -44,6 +44,11 @@ export type MealData = z.infer<typeof mealSchema>;
 export type IngredientData = z.infer<typeof ingredientSchema>;
 
 type DayPlanData = z.infer<typeof daySchema>;
+type PromptMode = "normal" | "compact" | "ultra";
+
+const DAY_REQUEST_TIMEOUT_MS = 25_000;
+const DAY_FALLBACK_TIMEOUT_MS = 45_000;
+const MAX_PARALLEL_DAYS = 3;
 
 interface PatientForPrompt {
   birthYear: number;
@@ -62,6 +67,12 @@ const DAY_NAMES = [
   "Samstag",
   "Sonntag",
 ] as const;
+
+function getDayNameByIndex(index: number): string {
+  const weekday = DAY_NAMES[index % DAY_NAMES.length];
+  const cycle = Math.floor(index / DAY_NAMES.length) + 1;
+  return cycle === 1 ? weekday : `${weekday} (Woche ${cycle})`;
+}
 
 function buildPatientBasePrompt(patient: PatientForPrompt, additionalNotes?: string) {
   const currentYear = new Date().getFullYear();
@@ -83,7 +94,7 @@ function buildDayPrompts(
   patient: PatientForPrompt,
   dayName: string,
   additionalNotes?: string,
-  mode: "normal" | "compact" | "ultra" = "normal",
+  mode: PromptMode = "normal",
   excludedMealNames: string[] = [],
   correctionHint?: string
 ) {
@@ -106,7 +117,7 @@ Format:
       "mealType": "Frühstück" | "Mittagessen" | "Abendessen" | "Snack",
       "name": "string",
       "description": "string",
-      "recipe": "string (kurze Zubereitung in 3-6 Schritten, durch ';' getrennt)",
+      "recipe": "string (Zubereitung in 4-7 klaren Schritten, durch ';' getrennt, insgesamt ca. 320-650 Zeichen)",
       "kcal": number,
       "protein": number,
       "carbs": number,
@@ -131,10 +142,12 @@ Regeln:
 - Jede Mahlzeit des Tages muss sich deutlich unterscheiden (keine Dubletten)
 - Pro Mahlzeit maximal ${maxIngredients} Zutaten
 - Beschreibung kurz halten (max. ${maxDescriptionChars} Zeichen)
-- recipe muss pro Mahlzeit vorhanden sein (3-6 kurze Schritte, mit ';' trennen)
+- recipe muss pro Mahlzeit vorhanden sein (4-7 klare Schritte, mit ';' trennen)
+- recipe soll praxisnah und mittel-lang sein (ca. 320-650 Zeichen, weder zu knapp noch ausschweifend)
 - Nur alltagstaugliche Zutaten in Deutschland
 - Allergien strikt beachten
-- Kein Zusatztext, nur JSON`;
+- Gib AUSSCHLIESSLICH ein valides JSON-Objekt aus
+- KEIN Fließtext, KEINE Erklärungen, KEIN Markdown, KEINE Codeblöcke`;
 
   const userPrompt = `Patientendaten:
 - Alter: ${age}
@@ -149,6 +162,45 @@ ${excludedMealNames.length > 0 ? `WICHTIG: Verwende KEINE der folgenden bereits 
 ${correctionHint ? `KORREKTURHINWEIS: ${correctionHint}` : ""}`;
 
   return { systemPrompt, userPrompt };
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutError: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error(timeoutError)), timeoutMs);
+    promise
+      .then((result) => {
+        clearTimeout(timeout);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timeout);
+        reject(error);
+      });
+  });
+}
+
+async function mapWithConcurrency<TItem, TResult>(
+  items: TItem[],
+  concurrency: number,
+  worker: (item: TItem, index: number) => Promise<TResult>
+): Promise<TResult[]> {
+  const results: TResult[] = new Array(items.length);
+  let nextIndex = 0;
+
+  async function runWorker(): Promise<void> {
+    while (true) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      if (currentIndex >= items.length) {
+        return;
+      }
+      results[currentIndex] = await worker(items[currentIndex], currentIndex);
+    }
+  }
+
+  const workerCount = Math.min(Math.max(concurrency, 1), items.length || 1);
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  return results;
 }
 
 function normalizeText(value: string): string {
@@ -199,12 +251,13 @@ async function generateSingleDayPlan(
   dayName: string,
   additionalNotes?: string,
   fastMode = false,
-  excludedMealNames: string[] = []
+  excludedMealNames: string[] = [],
+  requestTimeoutMs = DAY_REQUEST_TIMEOUT_MS
 ): Promise<DayPlanData> {
-  const attempts: Array<{ mode: "normal" | "compact" | "ultra"; maxTokens: number }> = fastMode
+  const attempts: Array<{ mode: PromptMode; maxTokens: number }> = fastMode
     ? [
         { mode: "compact", maxTokens: 1400 },
-        { mode: "ultra", maxTokens: 1800 },
+        { mode: "ultra", maxTokens: 1600 },
       ]
     : [
         { mode: "normal", maxTokens: 1600 },
@@ -227,16 +280,28 @@ async function generateSingleDayPlan(
         correctionHint
       );
 
-      const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.3,
-        max_tokens: attempt.maxTokens,
-      });
+      let response;
+      try {
+        response = await withTimeout(
+          getOpenAIClient().chat.completions.create({
+            model: "gpt-4o-mini",
+            response_format: { type: "json_object" },
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.2,
+            max_tokens: attempt.maxTokens,
+          }),
+          requestTimeoutMs,
+          `TIMEOUT_${dayName}`
+        );
+      } catch {
+        lastError = "Timeout oder API-Fehler bei der Tagesgenerierung.";
+        correctionHint =
+          "Die letzte Anfrage war zu langsam oder fehlerhaft. Antworte schnell und exakt nur als JSON-Objekt.";
+        continue;
+      }
 
       const choice = response.choices[0];
       const content = choice?.message?.content;
@@ -386,43 +451,120 @@ export async function generateMealPlan(
   patient: PatientForPrompt,
   additionalNotes?: string,
   options?: {
+    numDays?: number;
     fastMode?: boolean;
+    requestTimeoutMs?: number;
     onProgress?: (message: string) => void;
   }
 ): Promise<{ plan: MealPlanData; prompt: string }> {
+  const numDays = Math.min(14, Math.max(1, options?.numDays ?? 7));
   const fastMode = options?.fastMode ?? false;
+  const requestTimeoutMs =
+    options?.requestTimeoutMs ?? (fastMode ? 18_000 : DAY_REQUEST_TIMEOUT_MS);
   const onProgress = options?.onProgress;
+  const dayNames = Array.from({ length: numDays }, (_, index) => getDayNameByIndex(index));
 
-  const days: DayPlanData[] = [];
-  for (let i = 0; i < DAY_NAMES.length; i++) {
-    const dayName = DAY_NAMES[i];
-    const excludedNames = getExcludedNamesFromDays(days);
-    const dayPlan = await generateSingleDayPlan(
-      patient,
-      dayName,
-      additionalNotes,
-      fastMode,
-      excludedNames
+  onProgress?.(`Starte parallele Tagesgenerierung (0/${numDays})...`);
+  let completedDays = 0;
+  const initialResults = await mapWithConcurrency(
+    dayNames,
+    MAX_PARALLEL_DAYS,
+    async (dayName, index) => {
+      try {
+        const dayPlan = await generateSingleDayPlan(
+          patient,
+          dayName,
+          additionalNotes,
+          fastMode,
+          [],
+          requestTimeoutMs
+        );
+        completedDays += 1;
+        onProgress?.(`Tag fertig (${completedDays}/${numDays}): ${dayName}`);
+        return { index, dayPlan, error: null as string | null };
+      } catch (error) {
+        return {
+          index,
+          dayPlan: null as DayPlanData | null,
+          error: error instanceof Error ? error.message : "Unbekannter Fehler",
+        };
+      }
+    }
+  );
+
+  const failedDayIndexes = initialResults
+    .filter((result) => !result.dayPlan)
+    .map((result) => result.index);
+
+  if (failedDayIndexes.length > 0) {
+    onProgress?.(
+      `Wiederhole fehlende Tage (${failedDayIndexes.length}) mit erweitertem Timeout...`
     );
-    days.push(dayPlan);
-    onProgress?.(`Lädt ${dayName} (${i + 1}/7)...`);
+
+    for (const dayIndex of failedDayIndexes) {
+      const dayName = dayNames[dayIndex];
+      try {
+        const fallbackDay = await generateSingleDayPlan(
+          patient,
+          dayName,
+          additionalNotes,
+          false,
+          [],
+          DAY_FALLBACK_TIMEOUT_MS
+        );
+
+        initialResults[dayIndex] = {
+          index: dayIndex,
+          dayPlan: fallbackDay,
+          error: null,
+        };
+        completedDays += 1;
+        onProgress?.(`Tag fertig (${completedDays}/${numDays}): ${dayName}`);
+      } catch {
+        initialResults[dayIndex] = {
+          index: dayIndex,
+          dayPlan: null,
+          error: "Fallback fehlgeschlagen",
+        };
+      }
+    }
   }
 
-  // Nachkorrektur: doppelte Gerichte über die Woche reduzieren
-  for (let pass = 0; pass < 2; pass++) {
-    onProgress?.(`Prüfe Varianz der Mahlzeiten (Durchlauf ${pass + 1}/2)...`);
-    const issues = findVarietyIssues(days);
-    if (issues.length === 0) break;
+  const unresolvedFailures = initialResults.filter((result) => !result.dayPlan);
+  if (unresolvedFailures.length > 0) {
+    throw new Error(
+      "Einige Tage konnten nicht generiert werden. Bitte erneut versuchen."
+    );
+  }
 
-    for (const dayIndex of issues) {
-      const excludedNames = getExcludedNamesFromDays(days, dayIndex);
-      days[dayIndex] = await generateSingleDayPlan(
-        patient,
-        DAY_NAMES[dayIndex],
-        additionalNotes,
-        fastMode,
-        excludedNames
+  const days: DayPlanData[] = initialResults
+    .sort((a, b) => a.index - b.index)
+    .map((result) => result.dayPlan as DayPlanData);
+
+  // Im Stabilmodus einmalige Nachkorrektur gegen doppelte Gerichte.
+  if (!fastMode) {
+    onProgress?.(`Prüfe Varianz der Mahlzeiten (${numDays}/${numDays})...`);
+    const issues = findVarietyIssues(days);
+
+    if (issues.length > 0) {
+      const replacements = await Promise.all(
+        issues.map(async (dayIndex) => {
+          const excludedNames = getExcludedNamesFromDays(days, dayIndex);
+          const replacement = await generateSingleDayPlan(
+            patient,
+            getDayNameByIndex(dayIndex),
+            additionalNotes,
+            false,
+            excludedNames,
+            requestTimeoutMs
+          );
+          return { dayIndex, replacement };
+        })
       );
+
+      for (const entry of replacements) {
+        days[entry.dayIndex] = entry.replacement;
+      }
     }
   }
 
@@ -435,7 +577,7 @@ export async function generateMealPlan(
 
   const result = mealPlanSchema.safeParse({ days });
   if (!result.success) {
-    throw new Error("Der zusammengesetzte Wochenplan ist ungültig.");
+    throw new Error("Der zusammengesetzte Ernaehrungsplan ist ungueltig.");
   }
 
   const { age, allergiesText, notesText, autonomyText } = buildPatientBasePrompt(
@@ -445,6 +587,6 @@ export async function generateMealPlan(
 
   return {
     plan: result.data,
-    prompt: `Tagweise Generierung | Alter: ${age} | Allergien: ${allergiesText} | Hinweise: ${notesText} | Absprachen: ${autonomyText}`,
+    prompt: `Parallele Taggenerierung | Alter: ${age} | Allergien: ${allergiesText} | Hinweise: ${notesText} | Absprachen: ${autonomyText}`,
   };
 }
