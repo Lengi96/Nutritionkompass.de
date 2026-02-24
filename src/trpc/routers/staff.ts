@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { hash } from "bcryptjs";
 import { router, adminProcedure, publicProcedure } from "../init";
 import { sendStaffInvitationEmail } from "@/lib/email";
+import { createOpaqueTokenPair, hashOpaqueToken } from "@/lib/security/tokens";
 
 export const staffRouter = router({
   // ── Alle Mitarbeiter der Organisation abrufen ─────────────────
@@ -60,10 +61,12 @@ export const staffRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const normalizedEmail = input.email.trim().toLowerCase();
+
       // Prüfen ob E-Mail schon in der Organisation existiert
       const existingUser = await ctx.prisma.user.findFirst({
         where: {
-          email: input.email,
+          email: normalizedEmail,
           organizationId: ctx.organizationId,
         },
       });
@@ -81,7 +84,7 @@ export const staffRouter = router({
         where: {
           organizationId_email: {
             organizationId: ctx.organizationId,
-            email: input.email,
+            email: normalizedEmail,
           },
         },
       });
@@ -101,7 +104,10 @@ export const staffRouter = router({
         });
       }
 
-      const token = crypto.randomUUID();
+      const {
+        plainToken: token,
+        storedTokenHash: tokenHash,
+      } = createOpaqueTokenPair();
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // 7 Tage gültig
 
@@ -119,10 +125,10 @@ export const staffRouter = router({
       const invitation = await ctx.prisma.staffInvitation.create({
         data: {
           organizationId: ctx.organizationId,
-          email: input.email,
+          email: normalizedEmail,
           name: input.name,
           role: input.role,
-          token,
+          token: tokenHash,
           expiresAt,
           invitedBy: ctx.user.id,
         },
@@ -131,7 +137,7 @@ export const staffRouter = router({
       // E-Mail senden (best-effort)
       try {
         await sendStaffInvitationEmail(
-          input.email,
+          normalizedEmail,
           input.name,
           organization?.name || "Ihre Einrichtung",
           inviter?.name || "Ein Administrator",
@@ -260,18 +266,24 @@ export const staffRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const invitation = await ctx.prisma.staffInvitation.findUnique({
-        where: { token: input.token },
+        where: { token: hashOpaqueToken(input.token) },
         include: { organization: { select: { name: true } } },
       });
+      const resolvedInvitation =
+        invitation ??
+        (await ctx.prisma.staffInvitation.findUnique({
+          where: { token: input.token },
+          include: { organization: { select: { name: true } } },
+        }));
 
-      if (!invitation) {
+      if (!resolvedInvitation) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Einladung nicht gefunden oder bereits verwendet.",
         });
       }
 
-      if (invitation.expiresAt < new Date()) {
+      if (resolvedInvitation.expiresAt < new Date()) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Diese Einladung ist abgelaufen.",
@@ -279,10 +291,10 @@ export const staffRouter = router({
       }
 
       return {
-        email: invitation.email,
-        name: invitation.name,
-        role: invitation.role,
-        organizationName: invitation.organization.name,
+        email: resolvedInvitation.email,
+        name: resolvedInvitation.name,
+        role: resolvedInvitation.role,
+        organizationName: resolvedInvitation.organization.name,
       };
     }),
 
@@ -298,17 +310,22 @@ export const staffRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const invitation = await ctx.prisma.staffInvitation.findUnique({
-        where: { token: input.token },
+        where: { token: hashOpaqueToken(input.token) },
       });
+      const resolvedInvitation =
+        invitation ??
+        (await ctx.prisma.staffInvitation.findUnique({
+          where: { token: input.token },
+        }));
 
-      if (!invitation) {
+      if (!resolvedInvitation) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Einladung nicht gefunden oder bereits verwendet.",
         });
       }
 
-      if (invitation.expiresAt < new Date()) {
+      if (resolvedInvitation.expiresAt < new Date()) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Diese Einladung ist abgelaufen.",
@@ -317,13 +334,13 @@ export const staffRouter = router({
 
       // Prüfen ob die E-Mail bereits existiert
       const existingUser = await ctx.prisma.user.findUnique({
-        where: { email: invitation.email },
+        where: { email: resolvedInvitation.email.toLowerCase() },
       });
 
       if (existingUser) {
         // Einladung aufräumen
         await ctx.prisma.staffInvitation.delete({
-          where: { id: invitation.id },
+          where: { id: resolvedInvitation.id },
         });
         throw new TRPCError({
           code: "CONFLICT",
@@ -338,21 +355,21 @@ export const staffRouter = router({
       await ctx.prisma.$transaction(async (tx) => {
         await tx.user.create({
           data: {
-            organizationId: invitation.organizationId,
-            email: invitation.email,
-            name: invitation.name,
+            organizationId: resolvedInvitation.organizationId,
+            email: resolvedInvitation.email.toLowerCase(),
+            name: resolvedInvitation.name,
             passwordHash,
-            role: invitation.role,
+            role: resolvedInvitation.role,
             emailVerified: true, // Per Einladung verifiziert
           },
         });
 
         await tx.staffInvitation.delete({
-          where: { id: invitation.id },
+          where: { id: resolvedInvitation.id },
         });
       });
 
-      return { success: true, email: invitation.email };
+      return { success: true, email: resolvedInvitation.email.toLowerCase() };
     }),
 
   // ── DSGVO: Datenexport ────────────────────────────────────────

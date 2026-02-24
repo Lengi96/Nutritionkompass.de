@@ -6,6 +6,7 @@ import {
   sendVerificationEmail,
   sendPasswordResetEmail,
 } from "@/lib/email";
+import { createOpaqueTokenPair, hashOpaqueToken } from "@/lib/security/tokens";
 
 export const authRouter = router({
   // ── Registrierung ──────────────────────────────────────────────
@@ -50,7 +51,10 @@ export const authRouter = router({
       }
 
       const passwordHash = await hash(input.password, 12);
-      const emailVerificationToken = crypto.randomUUID();
+      const {
+        plainToken: emailVerificationToken,
+        storedTokenHash: emailVerificationTokenHash,
+      } = createOpaqueTokenPair();
 
       // Einrichtung + Admin-User in einer Transaktion erstellen
       const result = await ctx.prisma.$transaction(async (tx) => {
@@ -74,7 +78,7 @@ export const authRouter = router({
             passwordHash,
             role: "ADMIN",
             emailVerified: false,
-            emailVerificationToken,
+            emailVerificationToken: emailVerificationTokenHash,
           },
         });
 
@@ -104,9 +108,16 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.prisma.user.findUnique({
-        where: { emailVerificationToken: input.token },
+      const hashedToken = hashOpaqueToken(input.token);
+      let user = await ctx.prisma.user.findUnique({
+        where: { emailVerificationToken: hashedToken },
       });
+      // Legacy compatibility for already issued plaintext links.
+      if (!user) {
+        user = await ctx.prisma.user.findUnique({
+          where: { emailVerificationToken: input.token },
+        });
+      }
 
       if (!user) {
         throw new TRPCError({
@@ -153,11 +164,14 @@ export const authRouter = router({
 
       // Immer Erfolg zurückgeben (Anti-Enumeration)
       if (user && !user.emailVerified) {
-        const emailVerificationToken = crypto.randomUUID();
+        const {
+          plainToken: emailVerificationToken,
+          storedTokenHash: emailVerificationTokenHash,
+        } = createOpaqueTokenPair();
 
         await ctx.prisma.user.update({
           where: { id: user.id },
-          data: { emailVerificationToken },
+          data: { emailVerificationToken: emailVerificationTokenHash },
         });
 
         try {
@@ -203,14 +217,17 @@ export const authRouter = router({
 
       // Immer Erfolg zurückgeben (Anti-Enumeration)
       if (user) {
-        const resetToken = crypto.randomUUID();
+        const {
+          plainToken: resetToken,
+          storedTokenHash: resetTokenHash,
+        } = createOpaqueTokenPair();
         const resetTokenExpiresAt = new Date(
           Date.now() + 60 * 60 * 1000
         ); // 1 Stunde
 
         await ctx.prisma.user.update({
           where: { id: user.id },
-          data: { resetToken, resetTokenExpiresAt },
+          data: { resetToken: resetTokenHash, resetTokenExpiresAt },
         });
 
         try {
@@ -241,9 +258,16 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.prisma.user.findUnique({
-        where: { resetToken: input.token },
+      const hashedToken = hashOpaqueToken(input.token);
+      let user = await ctx.prisma.user.findUnique({
+        where: { resetToken: hashedToken },
       });
+      // Legacy compatibility for already issued plaintext links.
+      if (!user) {
+        user = await ctx.prisma.user.findUnique({
+          where: { resetToken: input.token },
+        });
+      }
 
       if (!user || !user.resetTokenExpiresAt) {
         throw new TRPCError({
