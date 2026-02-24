@@ -119,7 +119,7 @@ function OnboardingEmptyState() {
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🧭</div>
           <h3 className="text-2xl font-bold text-text-main mb-2">
-            Willkommen bei NutriKompass!
+            Willkommen bei mein-nutrikompass.de!
           </h3>
           <p className="text-muted-foreground">
             Legen Sie Ihre erste Bewohnerin an, um loszulegen.

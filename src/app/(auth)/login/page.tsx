@@ -78,7 +78,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-center gap-2 mb-4">
             <Compass className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-text-main">NutriKompass</h1>
+          <h1 className="text-2xl font-bold text-text-main">mein-nutrikompass.de</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Bitte melden Sie sich an
           </p>

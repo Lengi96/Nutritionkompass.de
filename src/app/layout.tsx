@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -9,22 +9,24 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mein-nutrikompass.de"),
   title: {
-    default: "NutriKompass – KI-gestützte Ernährungsplanung",
-    template: "%s | NutriKompass",
+    default: "mein-nutrikompass.de – KI-gestützte Ernährungsplanung",
+    template: "%s | mein-nutrikompass.de",
   },
   description:
-    "NutriKompass ist die KI-gestützte Ernährungsplanung für Einrichtungen: flexible 1- bis 14-Tage-Pläne, detaillierte Rezepte, automatische Einkaufslisten und PDF-Export.",
+    "mein-nutrikompass.de ist die KI-gestützte Ernährungsplanung für Einrichtungen: flexible 1- bis 14-Tage-Pläne, detaillierte Rezepte, automatische Einkaufslisten und PDF-Export.",
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "NutriKompass – KI-gestützte Ernährungsplanung",
+    title: "mein-nutrikompass.de – KI-gestützte Ernährungsplanung",
     description:
       "Für Einrichtungen, die strukturierte Ernährungsplanung brauchen: KI-Planvorschläge, Team-Handover, Einkaufslisten und PDF-Export.",
     type: "website",
     locale: "de_DE",
-    siteName: "NutriKompass",
+    siteName: "mein-nutrikompass.de",
+    url: "https://mein-nutrikompass.de",
   },
 };
 

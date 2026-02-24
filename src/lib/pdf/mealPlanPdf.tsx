@@ -5,32 +5,13 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
 
-// Inter Font registrieren (Google Fonts CDN)
-Font.register({
-  family: "Inter",
-  fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf",
-      fontWeight: 400,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZhrib2Bg-4.ttf",
-      fontWeight: 600,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZhrib2Bg-4.ttf",
-      fontWeight: 700,
-    },
-  ],
-});
-
 const styles = StyleSheet.create({
   page: {
-    fontFamily: "Inter",
+    // Built-in PDF font avoids runtime network fetches in the browser.
+    fontFamily: "Helvetica",
     fontSize: 9,
     padding: 40,
     color: "#1A1A2E",
@@ -143,7 +124,7 @@ export function MealPlanPdfDocument({
   patientPseudonym,
   weekStart,
   createdBy,
-  organizationName = "NutriKompass",
+  organizationName = "mein-nutrikompass.de",
 }: MealPlanPdfProps) {
   const totalWeekKcal = plan.days.reduce((sum, day) => sum + day.dailyKcal, 0);
   const avgDailyKcal = Math.round(totalWeekKcal / Math.max(plan.days.length, 1));
@@ -153,7 +134,7 @@ export function MealPlanPdfDocument({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>NutriKompass</Text>
+          <Text style={styles.logo}>mein-nutrikompass.de</Text>
           <View style={styles.headerInfo}>
             <Text>{organizationName}</Text>
             <Text>Erstellt am: {new Date().toLocaleDateString("de-DE")}</Text>
@@ -195,7 +176,7 @@ export function MealPlanPdfDocument({
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text>Erstellt mit NutriKompass – Nur für internen Gebrauch</Text>
+          <Text>Erstellt mit mein-nutrikompass.de – Nur für internen Gebrauch</Text>
           <Text
             render={({ pageNumber, totalPages }) =>
               `Seite ${pageNumber} / ${totalPages}`

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, ShoppingCart, CalendarDays, List, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Loader2, ShoppingCart, CalendarDays, List, ChevronLeft, ChevronRight, Trash2, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
 
@@ -164,6 +164,83 @@ function getNormalizedItems(
   return rebuildGroupedItemsFromPlan(planJson) ?? grouped;
 }
 type ViewMode = "week" | "all";
+
+async function exportShoppingListPdf(params: {
+  items: Record<string, ShoppingItem[]>;
+  patientPseudonym: string;
+  weekStart: string;
+  filename: string;
+}) {
+  const { pdf } = await import("@react-pdf/renderer");
+  const { ShoppingListPdfDocument } = await import("@/lib/pdf/shoppingListPdf");
+
+  const blob = await pdf(
+    <ShoppingListPdfDocument
+      items={params.items}
+      patientPseudonym={params.patientPseudonym}
+      weekStart={params.weekStart}
+    />
+  ).toBlob();
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = params.filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function ShoppingListPdfExportButton({
+  items,
+  patientPseudonym,
+  weekStart,
+  filename,
+  label = "PDF",
+  size = "sm",
+}: {
+  items: Record<string, ShoppingItem[]>;
+  patientPseudonym: string;
+  weekStart: string;
+  filename: string;
+  label?: string;
+  size?: "sm" | "default";
+}) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  return (
+    <Button
+      variant="outline"
+      size={size}
+      className="rounded-xl"
+      disabled={isExporting}
+      onClick={async () => {
+        setIsExporting(true);
+        try {
+          await exportShoppingListPdf({
+            items,
+            patientPseudonym,
+            weekStart,
+            filename,
+          });
+          toast.success("PDF erfolgreich erstellt.");
+        } catch (err) {
+          const detail = err instanceof Error ? err.message : "Unbekannter Fehler";
+          console.error("[PDF] Export fehlgeschlagen:", err);
+          toast.error(`PDF konnte nicht erstellt werden: ${detail}`);
+        } finally {
+          setIsExporting(false);
+        }
+      }}
+    >
+      {isExporting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <FileDown className="mr-2 h-4 w-4" />
+      )}
+      {label}
+    </Button>
+  );
+}
 
 export default function ShoppingListsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
@@ -387,6 +464,16 @@ export default function ShoppingListsPage() {
                   </p>
                 </div>
 
+                {aggregated && totalAggregatedItems > 0 ? (
+                  <ShoppingListPdfExportButton
+                    items={aggregated}
+                    patientPseudonym={`Aggregiert KW ${selectedKW}`}
+                    weekStart={selectedIso}
+                    filename={`einkaufsliste-kw-${selectedKW}-${selectedMonday.getUTCFullYear()}.pdf`}
+                    label="Aggregiert als PDF"
+                  />
+                ) : null}
+
                 {/* Patienten-Chips */}
                 <div className="flex flex-wrap gap-1">
                   {filteredLists.map((l) => (
@@ -487,7 +574,7 @@ export default function ShoppingListsPage() {
                   <TableRow>
                     <TableHead>Bewohner:in</TableHead>
                     <TableHead>Kalenderwoche</TableHead>
-                    <TableHead>Erstellt von</TableHead>
+                    <TableHead className="hidden sm:table-cell">Erstellt von</TableHead>
                     <TableHead>Erstellt am</TableHead>
                     <TableHead>Aktion</TableHead>
                   </TableRow>
@@ -505,7 +592,7 @@ export default function ShoppingListsPage() {
                           KW {getWeekNumber(new Date(list.mealPlan.weekStart))}
                         </Badge>
                       </TableCell>
-                      <TableCell>{list.mealPlan.createdByUser.name}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{list.mealPlan.createdByUser.name}</TableCell>
                       <TableCell>{new Date(list.createdAt).toLocaleDateString("de-DE")}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -514,6 +601,12 @@ export default function ShoppingListsPage() {
                               Öffnen
                             </Button>
                           </Link>
+                          <ShoppingListPdfExportButton
+                            items={getNormalizedItems(list.itemsJson, list.mealPlan.planJson)}
+                            patientPseudonym={list.mealPlan.patient.pseudonym}
+                            weekStart={new Date(list.mealPlan.weekStart).toISOString()}
+                            filename={`einkaufsliste-${list.mealPlan.patient.pseudonym}.pdf`}
+                          />
                           <Button
                             variant="outline"
                             size="sm"

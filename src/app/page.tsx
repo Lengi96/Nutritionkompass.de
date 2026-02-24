@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { LandingShowcase } from "@/components/landing/LandingShowcase";
 import {
   Compass,
@@ -13,17 +13,18 @@ import {
   Lock,
   BadgeCheck,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 
 export default function LandingPage() {
   const faqs = [
     {
-      question: "Ersetzt NutriKompass medizinische Entscheidungen?",
+      question: "Ersetzt mein-nutrikompass.de medizinische Entscheidungen?",
       answer:
-        "Nein. NutriKompass unterstützt die Planung. Die fachliche Verantwortung bleibt bei Ihrem Team.",
+        "Nein. mein-nutrikompass.de unterstützt die Planung. Die fachliche Verantwortung bleibt bei Ihrem Team.",
     },
     {
-      question: "Verarbeitet NutriKompass Gesundheitsdaten?",
+      question: "Verarbeitet mein-nutrikompass.de Gesundheitsdaten?",
       answer:
         "Je nach Nutzung können Gesundheitsdaten verarbeitet werden. Dafür gelten erhöhte Schutzanforderungen.",
     },
@@ -65,7 +66,7 @@ export default function LandingPage() {
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <Compass className="h-7 w-7 text-[#2D6A4F]" />
-            <span className="text-xl font-bold text-[#2D6A4F]">NutriKompass</span>
+            <span className="text-xl font-bold text-[#2D6A4F]">mein-nutrikompass.de</span>
           </Link>
 
           <div className="hidden items-center gap-6 text-sm font-medium md:flex">
@@ -116,7 +117,7 @@ export default function LandingPage() {
             <span className="text-[#2D6A4F]">klar, schnell, nachvollziehbar</span>
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-gray-600 sm:text-xl">
-            NutriKompass unterstützt Teams in der Betreuung von Jugendlichen mit
+            mein-nutrikompass.de unterstützt Teams in der Betreuung von Jugendlichen mit
             Essstörungen. Die KI erstellt Vorschläge, die fachliche Entscheidung
             bleibt bei Ihrem Team.
           </p>
@@ -191,7 +192,7 @@ export default function LandingPage() {
               Ein klarer Ablauf von Bedarf bis Einkauf
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-gray-600">
-              NutriKompass verbindet strukturierte Datenerfassung, KI-Vorschlag
+              mein-nutrikompass.de verbindet strukturierte Datenerfassung, KI-Vorschlag
               und fachliche Freigabe in einem Prozess.
             </p>
           </div>
@@ -256,7 +257,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">
-              Warum Teams NutriKompass einsetzen
+              Warum Teams mein-nutrikompass.de einsetzen
             </h2>
             <p className="mt-4 text-gray-600">
               Klare Produktgrenzen und nachvollziehbare Prozesse helfen bei einer
@@ -517,10 +518,11 @@ export default function LandingPage() {
             {faqs.map((item) => (
               <details
                 key={item.question}
-                className="rounded-xl border border-gray-200 bg-white p-5"
+                className="group rounded-xl border border-gray-200 bg-white p-5"
               >
-                <summary className="cursor-pointer list-none pr-3 text-base font-semibold">
-                  {item.question}
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-semibold">
+                  <span>{item.question}</span>
+                  <ChevronDown className="h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180" />
                 </summary>
                 <p className="mt-3 text-sm text-gray-600">{item.answer}</p>
               </details>
@@ -536,7 +538,7 @@ export default function LandingPage() {
           </h2>
           <p className="mt-4 text-gray-600">
             Starten Sie mit einem unverbindlichen Test und prüfen Sie, ob
-            NutriKompass zu Ihrem Alltag passt.
+            mein-nutrikompass.de zu Ihrem Alltag passt.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -560,7 +562,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <Link href="/" className="flex items-center gap-2">
               <Compass className="h-6 w-6 text-[#2D6A4F]" />
-              <span className="text-lg font-bold text-[#2D6A4F]">NutriKompass</span>
+              <span className="text-lg font-bold text-[#2D6A4F]">mein-nutrikompass.de</span>
             </Link>
 
             <div className="flex items-center gap-6 text-sm text-gray-600">
@@ -575,7 +577,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <p className="text-sm text-gray-500">&copy; 2026 NutriKompass. Alle Rechte vorbehalten.</p>
+            <p className="text-sm text-gray-500">&copy; 2026 mein-nutrikompass.de. Alle Rechte vorbehalten.</p>
           </div>
         </div>
       </footer>

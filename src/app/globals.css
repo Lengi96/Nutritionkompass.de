@@ -41,3 +41,8 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Hide default details marker in Safari */
+summary::-webkit-details-marker {
+  display: none;
+}

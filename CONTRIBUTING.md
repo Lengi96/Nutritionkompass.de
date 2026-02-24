@@ -1,6 +1,6 @@
 # Contributing Guide
 
-Danke fuer deinen Beitrag zu NutriKompass.
+Danke fuer deinen Beitrag zu mein-nutrikompass.de.
 
 ## Workflow
 

@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/Lengi96/Nutritionkompass.de/issues"
   },
-  "homepage": "https://github.com/Lengi96/Nutritionkompass.de#readme",
+  "homepage": "https://mein-nutrikompass.de",
   "keywords": [
     "nextjs",
     "trpc",
@@ -92,3 +92,4 @@
     "typescript": "^5"
   }
 }
+

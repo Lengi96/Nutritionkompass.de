@@ -122,7 +122,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-6">
         <Compass className="h-7 w-7 text-primary" />
-        <span className="text-xl font-bold text-text-main">NutriKompass</span>
+        <span className="text-xl font-bold text-text-main">mein-nutrikompass.de</span>
       </div>
 
       <Separator className="mb-4" />

@@ -1,6 +1,6 @@
-﻿# NutriKompass
+# mein-nutrikompass.de
 
-NutriKompass ist eine KI-gestützte Ernährungsplanung für Einrichtungen.
+mein-nutrikompass.de ist eine KI-gestützte Ernährungsplanung für Einrichtungen.
 Die Anwendung unterstützt Teams bei der strukturierten Planung, Freigabe und Übergabe von Ernährungsplänen inklusive Einkaufslisten.
 
 ## Aktueller Funktionsumfang

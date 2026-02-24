@@ -1,5 +1,5 @@
 -- ============================================================
--- NutriKompass – Komplettes DB-Setup für Supabase SQL Editor
+-- mein-nutrikompass.de – Komplettes DB-Setup für Supabase SQL Editor
 -- ============================================================
 
 -- 1) Enum für Rollen
@@ -131,14 +131,14 @@ ON CONFLICT ("id") DO NOTHING;
 -- Admin-User (Passwort: Passwort123!)
 -- bcrypt hash mit 12 salt rounds
 INSERT INTO "User" ("id", "organizationId", "email", "passwordHash", "name", "role") VALUES
-  ('admin-user-1', 'demo-org-1', 'admin@nutrikompass.de',
+  ('admin-user-1', 'demo-org-1', 'admin@mein-nutrikompass.de',
    '$2b$12$06qJOA7CQxu2qVeNewY3iu/y8qFhB7IfD43gCxZ/U54Uq6cYT.gPS',
    'Anna Schmidt', 'ADMIN')
 ON CONFLICT ("id") DO NOTHING;
 
 -- Staff-User (Passwort: Passwort123!)
 INSERT INTO "User" ("id", "organizationId", "email", "passwordHash", "name", "role") VALUES
-  ('staff-user-1', 'demo-org-1', 'mitarbeiter@nutrikompass.de',
+  ('staff-user-1', 'demo-org-1', 'mitarbeiter@mein-nutrikompass.de',
    '$2b$12$06qJOA7CQxu2qVeNewY3iu/y8qFhB7IfD43gCxZ/U54Uq6cYT.gPS',
    'Max Weber', 'STAFF')
 ON CONFLICT ("id") DO NOTHING;

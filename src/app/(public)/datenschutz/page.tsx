@@ -44,7 +44,7 @@ export default function DatenschutzPage() {
           </h2>
           <p className="text-gray-700 leading-relaxed">
             Wir verarbeiten personenbezogene Daten ausschlie&szlig;lich im
-            Rahmen der Bereitstellung unseres Dienstes NutriKompass. Die
+            Rahmen der Bereitstellung unseres Dienstes mein-nutrikompass.de. Die
             folgenden Daten k&ouml;nnen verarbeitet werden:
           </p>
           <ul className="mt-3 list-disc list-inside text-gray-700 space-y-1.5">
@@ -136,7 +136,7 @@ export default function DatenschutzPage() {
             6. Cookies &amp; Local Storage
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            NutriKompass verwendet ausschlie&szlig;lich technisch notwendige
+            mein-nutrikompass.de verwendet ausschlie&szlig;lich technisch notwendige
             Cookies und Local-Storage-Eintr&auml;ge, die f&uuml;r den Betrieb
             der Anwendung erforderlich sind (z.&thinsp;B. Session-Token zur
             Authentifizierung). Es werden keine Tracking- oder Werbe-Cookies

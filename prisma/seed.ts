@@ -22,10 +22,10 @@ async function main() {
   const passwordHash = await hash("Passwort123!", 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@nutrikompass.de" },
+    where: { email: "admin@mein-nutrikompass.de" },
     update: {},
     create: {
-      email: "admin@nutrikompass.de",
+      email: "admin@mein-nutrikompass.de",
       name: "Anna Schmidt",
       passwordHash,
       role: "ADMIN",
@@ -37,10 +37,10 @@ async function main() {
 
   // Staff-User erstellen
   const staff = await prisma.user.upsert({
-    where: { email: "mitarbeiter@nutrikompass.de" },
+    where: { email: "mitarbeiter@mein-nutrikompass.de" },
     update: {},
     create: {
-      email: "mitarbeiter@nutrikompass.de",
+      email: "mitarbeiter@mein-nutrikompass.de",
       name: "Max Weber",
       passwordHash,
       role: "STAFF",
@@ -136,8 +136,8 @@ async function main() {
 
   console.log("\nSeeding abgeschlossen!");
   console.log("---");
-  console.log("Admin-Login: admin@nutrikompass.de / Passwort123!");
-  console.log("Staff-Login: mitarbeiter@nutrikompass.de / Passwort123!");
+  console.log("Admin-Login: admin@mein-nutrikompass.de / Passwort123!");
+  console.log("Staff-Login: mitarbeiter@mein-nutrikompass.de / Passwort123!");
 }
 
 main()

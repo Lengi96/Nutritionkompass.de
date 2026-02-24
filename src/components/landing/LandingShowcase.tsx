@@ -36,7 +36,7 @@ export function LandingShowcase() {
             Produkt-Showcase
           </p>
           <h2 className="mt-3 text-3xl font-bold text-[#1A1A2E] sm:text-4xl">
-            So sieht NutriKompass im Alltag aus
+            So sieht mein-nutrikompass.de im Alltag aus
           </h2>
         </div>
 

@@ -46,7 +46,7 @@ export function TrialBanner() {
               <Link href="/billing" className="underline font-semibold hover:no-underline">
                 Jetzt upgraden
               </Link>{" "}
-              um NutriKompass weiter zu nutzen.
+              um mein-nutrikompass.de weiter zu nutzen.
             </p>
           </div>
         </div>

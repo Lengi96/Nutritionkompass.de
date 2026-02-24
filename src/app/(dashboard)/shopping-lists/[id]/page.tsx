@@ -127,11 +127,13 @@ export default function ShoppingListDetailPage() {
         type: "success",
         message: "PDF wurde erfolgreich erstellt.",
       });
-    } catch {
-      toast.error("Fehler beim Erstellen des PDFs.");
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Unbekannter Fehler";
+      console.error("[PDF] Export fehlgeschlagen:", err);
+      toast.error(`Fehler beim Erstellen des PDFs: ${detail}`);
       setInlineFeedback({
         type: "error",
-        message: "PDF konnte nicht erstellt werden.",
+        message: `PDF konnte nicht erstellt werden: ${detail}`,
       });
     } finally {
       setIsExporting(false);

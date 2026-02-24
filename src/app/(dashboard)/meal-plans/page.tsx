@@ -133,10 +133,10 @@ export default function MealPlansPage() {
                 <TableRow>
                   <TableHead>Bewohner:in</TableHead>
                   <TableHead>KW</TableHead>
-                  <TableHead>Kalorien/Woche</TableHead>
-                  <TableHead>Makros/Woche</TableHead>
-                  <TableHead>Erstellt von</TableHead>
-                  <TableHead>Einkaufsliste</TableHead>
+                  <TableHead className="hidden sm:table-cell">Kalorien/Woche</TableHead>
+                  <TableHead className="hidden md:table-cell">Makros/Woche</TableHead>
+                  <TableHead className="hidden sm:table-cell">Erstellt von</TableHead>
+                  <TableHead className="hidden md:table-cell">Einkaufsliste</TableHead>
                   <TableHead>Erstellt am</TableHead>
                   <TableHead className="text-right">Aktion</TableHead>
                 </TableRow>
@@ -156,12 +156,12 @@ export default function MealPlansPage() {
                       )}
                     </TableCell>
                     <TableCell>KW {getWeekNumber(new Date(plan.weekStart))}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant="secondary" className="rounded-xl bg-secondary/20 text-secondary-600">
                         {plan.totalKcal.toLocaleString("de-DE")} kcal
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <div className="flex flex-col gap-1 text-xs">
                         <span className="flex items-center gap-1 text-blue-600">
                           <Beef className="h-3 w-3" />
@@ -177,8 +177,8 @@ export default function MealPlansPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{plan.createdByUser?.name ?? "Unbekannt"}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">{plan.createdByUser?.name ?? "Unbekannt"}</TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {plan.shoppingList ? (
                         <Link href={`/shopping-lists/${plan.shoppingList.id}`}>
                           <Badge className="rounded-xl bg-primary text-white">

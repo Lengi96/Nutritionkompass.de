@@ -23,7 +23,7 @@ export default function AGBPage() {
           <h2 className="text-xl font-semibold mb-3">1. Geltungsbereich</h2>
           <p className="text-gray-700 leading-relaxed">
             Diese Allgemeinen Gesch&auml;ftsbedingungen (AGB) gelten f&uuml;r
-            die Nutzung des webbasierten Dienstes NutriKompass (nachfolgend
+            die Nutzung des webbasierten Dienstes mein-nutrikompass.de (nachfolgend
             &bdquo;Dienst&ldquo;), bereitgestellt von Christoph Lengowski,
             Adreystra&szlig;e 116, 44225 Dortmund (nachfolgend &bdquo;Anbieter&ldquo;).
           </p>
@@ -39,7 +39,7 @@ export default function AGBPage() {
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">2. Vertragsgegenstand</h2>
           <p className="text-gray-700 leading-relaxed">
-            NutriKompass ist ein Software-as-a-Service (SaaS) Tool zur
+            mein-nutrikompass.de ist ein Software-as-a-Service (SaaS) Tool zur
             KI-gest&uuml;tzten Ern&auml;hrungsplanung f&uuml;r Einrichtungen,
             die Menschen mit Essst&ouml;rungen betreuen. Der Dienst
             erm&ouml;glicht insbesondere:
@@ -183,7 +183,7 @@ export default function AGBPage() {
           </h2>
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
             <p className="text-sm text-amber-900 font-medium">
-              Wichtiger Hinweis: NutriKompass stellt{" "}
+              Wichtiger Hinweis: mein-nutrikompass.de stellt{" "}
               <strong>keine medizinische Beratung</strong> dar. Die generierten
               Ern&auml;hrungspl&auml;ne dienen ausschlie&szlig;lich als
               Unterst&uuml;tzung f&uuml;r qualifiziertes Fachpersonal und

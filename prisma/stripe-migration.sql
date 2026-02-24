@@ -1,5 +1,5 @@
 -- ============================================================
--- NutriKompass – Stripe Subscription Migration
+-- mein-nutrikompass.de – Stripe Subscription Migration
 -- Ausführen im Supabase SQL Editor
 -- ============================================================
 

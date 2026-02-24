@@ -115,7 +115,7 @@ export default function BillingPage() {
                 Ihre Testphase ist abgelaufen
               </p>
               <p className="text-sm text-muted-foreground">
-                Bitte wählen Sie einen Plan, um NutriKompass weiter nutzen zu können.
+                Bitte wählen Sie einen Plan, um mein-nutrikompass.de weiter nutzen zu können.
               </p>
             </div>
           </CardContent>
@@ -131,7 +131,7 @@ export default function BillingPage() {
                 {trialDaysLeft} {trialDaysLeft === 1 ? "Tag" : "Tage"} Testphase verbleibend
               </p>
               <p className="text-sm text-yellow-700">
-                Upgraden Sie jetzt, um NutriKompass ohne Einschränkungen zu nutzen.
+                Upgraden Sie jetzt, um mein-nutrikompass.de ohne Einschränkungen zu nutzen.
               </p>
             </div>
           </CardContent>

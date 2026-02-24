@@ -202,7 +202,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `nutrikompass-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `mein-nutrikompass-export-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -616,7 +616,7 @@ export default function SettingsPage() {
                       Datenschutzhinweise
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      NutriKompass speichert ausschließlich pseudonymisierte
+                      mein-nutrikompass.de speichert ausschließlich pseudonymisierte
                       Daten. Es werden keine Klarnamen der Betreuten
                       erfasst. Alle Daten werden verschlüsselt in
                       einer sicheren Datenbank gespeichert und sind nur für
@@ -684,7 +684,7 @@ export default function SettingsPage() {
                 </h4>
                 <p className="text-sm text-muted-foreground mb-3">
                   Gemäß DSGVO Art. 17 haben betroffene Personen das Recht auf
-                  Löschung ihrer Daten. Bewohner:innen werden in NutriKompass
+                  Löschung ihrer Daten. Bewohner:innen werden in mein-nutrikompass.de
                   standardmäßig deaktiviert (Soft-Delete), um die
                   Dokumentationspflicht zu erfüllen.
                 </p>

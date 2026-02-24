@@ -78,7 +78,7 @@ export default function RegisterPage() {
           <div className="flex items-center justify-center gap-2 mb-4">
             <Compass className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-text-main">NutriKompass</h1>
+          <h1 className="text-2xl font-bold text-text-main">mein-nutrikompass.de</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Neues Konto erstellen
           </p>
@@ -152,6 +152,9 @@ export default function RegisterPage() {
                 className="rounded-xl"
                 {...register("password")}
               />
+              <p className="text-xs text-muted-foreground">
+                Mindestens 8 Zeichen erforderlich
+              </p>
               {errors.password && (
                 <p className="text-xs text-destructive">
                   {errors.password.message}

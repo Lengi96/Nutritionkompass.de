@@ -140,7 +140,7 @@ export function ShoppingListPdfDocument({
   items,
   patientPseudonym,
   weekStart,
-  organizationName = "NutriKompass",
+  organizationName = "mein-nutrikompass.de",
 }: ShoppingListPdfProps) {
   const totalItems = Object.values(items).reduce(
     (sum, arr) => sum + arr.length,
@@ -155,7 +155,7 @@ export function ShoppingListPdfDocument({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>NutriKompass</Text>
+          <Text style={styles.logo}>mein-nutrikompass.de</Text>
           <View style={styles.headerInfo}>
             <Text>{organizationName}</Text>
             <Text>Erstellt am: {new Date().toLocaleDateString("de-DE")}</Text>
@@ -206,7 +206,7 @@ export function ShoppingListPdfDocument({
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text>Erstellt mit NutriKompass – Nur für internen Gebrauch</Text>
+          <Text>Erstellt mit mein-nutrikompass.de – Nur für internen Gebrauch</Text>
           <Text
             render={({ pageNumber, totalPages }) =>
               `Seite ${pageNumber} / ${totalPages}`

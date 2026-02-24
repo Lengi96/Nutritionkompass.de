@@ -108,11 +108,11 @@ export default function PatientsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Pseudonym</TableHead>
-                  <TableHead>Alter</TableHead>
+                  <TableHead className="hidden sm:table-cell">Alter</TableHead>
                   <TableHead>Akt. Gewicht</TableHead>
-                  <TableHead>Zielgewicht</TableHead>
-                  <TableHead>Autonomie</TableHead>
-                  <TableHead>Letzter Plan</TableHead>
+                  <TableHead className="hidden md:table-cell">Zielgewicht</TableHead>
+                  <TableHead className="hidden md:table-cell">Autonomie</TableHead>
+                  <TableHead className="hidden sm:table-cell">Letzter Plan</TableHead>
                   <TableHead className="text-right">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
@@ -130,19 +130,19 @@ export default function PatientsPage() {
                         {patient.pseudonym}
                       </Link>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {currentYear - patient.birthYear} Jahre
                     </TableCell>
                     <TableCell>
                       {Number(patient.currentWeight).toFixed(1)} kg
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {Number(patient.targetWeight).toFixed(1)} kg
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <AutonomyBadge agreement={patient.autonomyAgreement} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {patient.mealPlans[0] ? (
                         <Badge
                           variant="secondary"

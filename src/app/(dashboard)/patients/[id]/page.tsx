@@ -140,7 +140,7 @@ export default function PatientDetailPage() {
       {/* Patient Header Card */}
       <Card className="rounded-xl shadow-sm">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="text-2xl text-text-main">
                 {patient.pseudonym}
@@ -152,7 +152,7 @@ export default function PatientDetailPage() {
                   : "Keine bekannt"}
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 className="rounded-xl"
@@ -204,7 +204,7 @@ export default function PatientDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="rounded-xl">
+        <TabsList className="w-full justify-start overflow-x-auto rounded-xl">
           <TabsTrigger value="overview" className="rounded-xl">
             Übersicht
           </TabsTrigger>
