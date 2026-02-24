@@ -25,10 +25,6 @@ export default auth((req) => {
 
   // Öffentliche Routen und API-Routes durchlassen
   if (isPublicRoute(pathname)) {
-    // Eingeloggter User auf Login/Register → Redirect zu Dashboard
-    if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl));
-    }
     return NextResponse.next();
   }
 

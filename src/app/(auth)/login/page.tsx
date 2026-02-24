@@ -67,8 +67,8 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    // Full-page navigation avoids occasional App Router history exceptions after auth redirects.
+    window.location.assign("/dashboard");
   }
 
   return (
