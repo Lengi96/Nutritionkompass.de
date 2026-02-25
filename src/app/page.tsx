@@ -65,7 +65,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
-            <Compass className="h-7 w-7 text-[#2D6A4F]" />
+            <Compass aria-hidden="true" className="h-7 w-7 text-[#2D6A4F]" />
             <span className="text-xl font-bold text-[#2D6A4F]">mein-nutrikompass.de</span>
           </Link>
 
@@ -123,15 +123,15 @@ export default function LandingPage() {
           </p>
           <ul className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-3 text-left sm:grid-cols-3">
             <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
-              <Clock3 className="mb-2 h-5 w-5 text-[#2D6A4F]" />
+              <Clock3 aria-hidden="true" className="mb-2 h-5 w-5 text-[#2D6A4F]" />
               Erste nutzbare Planung in wenigen Minuten
             </li>
             <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
-              <Users className="mb-2 h-5 w-5 text-[#2D6A4F]" />
+              <Users aria-hidden="true" className="mb-2 h-5 w-5 text-[#2D6A4F]" />
               Weniger Abstimmungsaufwand im Team
             </li>
             <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
-              <BadgeCheck className="mb-2 h-5 w-5 text-[#2D6A4F]" />
+              <BadgeCheck aria-hidden="true" className="mb-2 h-5 w-5 text-[#2D6A4F]" />
               Transparente Prozesse für Vertretung
             </li>
           </ul>
@@ -148,6 +148,7 @@ export default function LandingPage() {
             >
               So funktioniert es
             </a>
+
           </div>
           <p className="mt-4 text-xs text-gray-500">
             Kein Heilversprechen. Kein Ersatz für ärztliche Diagnose oder Behandlung.
@@ -160,7 +161,7 @@ export default function LandingPage() {
         />
       </section>
 
-      <section id="problem" className="py-20 sm:py-24">
+      <section id="problem" className="scroll-mt-20 py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">
@@ -185,7 +186,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="loesung" className="bg-white py-20 sm:py-28">
+      <section id="loesung" className="scroll-mt-20 bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">
@@ -200,7 +201,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D6A4F]/10">
-                <Sparkles className="h-6 w-6 text-[#2D6A4F]" />
+                <Sparkles aria-hidden="true" className="h-6 w-6 text-[#2D6A4F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">KI-Vorschläge</h3>
               <p className="text-sm text-gray-600">
@@ -210,7 +211,7 @@ export default function LandingPage() {
 
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D6A4F]/10">
-                <ShoppingCart className="h-6 w-6 text-[#2D6A4F]" />
+                <ShoppingCart aria-hidden="true" className="h-6 w-6 text-[#2D6A4F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">Einkaufslisten</h3>
               <p className="text-sm text-gray-600">
@@ -220,7 +221,7 @@ export default function LandingPage() {
 
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D6A4F]/10">
-                <FileDown className="h-6 w-6 text-[#2D6A4F]" />
+                <FileDown aria-hidden="true" className="h-6 w-6 text-[#2D6A4F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">PDF-Export</h3>
               <p className="text-sm text-gray-600">
@@ -230,7 +231,7 @@ export default function LandingPage() {
 
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D6A4F]/10">
-                <Shield className="h-6 w-6 text-[#2D6A4F]" />
+                <Shield aria-hidden="true" className="h-6 w-6 text-[#2D6A4F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">Sicherheitsfokus</h3>
               <p className="text-sm text-gray-600">
@@ -245,7 +246,7 @@ export default function LandingPage() {
               href="#funktionsweise"
               className="inline-flex items-center gap-2 rounded-xl border border-[#2D6A4F] bg-[#2D6A4F] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#245640]"
             >
-              Prozess ansehen <ArrowRight className="h-4 w-4" />
+              Prozess ansehen <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
         </div>
@@ -287,7 +288,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="funktionsweise" className="bg-white py-20 sm:py-24">
+      <section id="funktionsweise" className="scroll-mt-20 bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">In drei Schritten startklar</h2>
@@ -324,7 +325,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="sicherheit" className="py-20 sm:py-24">
+      <section id="sicherheit" className="scroll-mt-20 py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">
@@ -338,40 +339,40 @@ export default function LandingPage() {
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <p className="mb-4 flex items-center gap-2 text-base font-semibold">
-                <Lock className="h-5 w-5 text-[#2D6A4F]" />
+                <Lock aria-hidden="true" className="h-5 w-5 text-[#2D6A4F]" />
                 Datenschutz und Sicherheit
               </p>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   Rollen- und Rechtekonzept für kontrollierten Zugriff
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   Dokumentierte Prozesse zur Auftragsverarbeitung
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   Hinweise zu Speicherfristen und Ansprechpartnern
                 </li>
               </ul>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <p className="mb-4 flex items-center gap-2 text-base font-semibold">
-                <Bot className="h-5 w-5 text-[#2D6A4F]" />
+                <Bot aria-hidden="true" className="h-5 w-5 text-[#2D6A4F]" />
                 Transparenz zu KI-Funktionen
               </p>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   KI erstellt Vorschläge, keine automatischen Therapieentscheidungen
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
-                  Fachliche Pruefung vor Nutzung ist verpflichtend
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  Fachliche Prüfung vor Nutzung ist verpflichtend
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   Kein Heilversprechen, kein Ersatz für medizinische Betreuung
                 </li>
               </ul>
@@ -380,7 +381,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="preise" className="bg-white py-20 sm:py-28">
+      <section id="preise" className="scroll-mt-20 bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">Transparente Preise</h2>
@@ -399,19 +400,19 @@ export default function LandingPage() {
               <p className="mt-2 text-sm text-gray-600">14 Tage, unverbindlich</p>
               <ul className="mt-8 flex-1 space-y-3">
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   KI-Vorschläge, Einkaufslisten und PDF-Export
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   Maximal 3 Bewohnerinnen und Bewohner
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   10 Pläne pro Monat
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   E-Mail-Support
                 </li>
               </ul>
@@ -432,15 +433,15 @@ export default function LandingPage() {
               <p className="mt-2 text-sm text-gray-600">Für kleinere Einrichtungen</p>
               <ul className="mt-8 flex-1 space-y-3">
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   Bis 15 Bewohnerinnen und Bewohner
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   50 Pläne pro Monat
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
                   E-Mail-Support
                 </li>
               </ul>
@@ -464,15 +465,15 @@ export default function LandingPage() {
               <p className="mt-2 text-sm text-white/80">Für wachsende Einrichtungen</p>
               <ul className="mt-8 flex-1 space-y-3">
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#74C69D]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#74C69D]" />
                   Unbegrenzt Bewohnerinnen und Bewohner
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#74C69D]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#74C69D]" />
                   Unbegrenzt Pläne
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#74C69D]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#74C69D]" />
                   Prioritäts-Support
                 </li>
               </ul>
@@ -509,7 +510,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="faq" className="py-20 sm:py-24">
+      <section id="faq" className="scroll-mt-20 py-20 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold sm:text-4xl">Häufige Fragen</h2>
@@ -522,7 +523,7 @@ export default function LandingPage() {
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-semibold">
                   <span>{item.question}</span>
-                  <ChevronDown className="h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180" />
+                  <ChevronDown aria-hidden="true" className="h-5 w-5 shrink-0 text-gray-400 motion-safe:transition-transform motion-safe:duration-200 group-open:rotate-180" />
                 </summary>
                 <p className="mt-3 text-sm text-gray-600">{item.answer}</p>
               </details>
@@ -561,7 +562,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <Link href="/" className="flex items-center gap-2">
-              <Compass className="h-6 w-6 text-[#2D6A4F]" />
+              <Compass aria-hidden="true" className="h-6 w-6 text-[#2D6A4F]" />
               <span className="text-lg font-bold text-[#2D6A4F]">mein-nutrikompass.de</span>
             </Link>
 
@@ -577,7 +578,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <p className="text-sm text-gray-500">&copy; 2026 mein-nutrikompass.de. Alle Rechte vorbehalten.</p>
+            <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} mein-nutrikompass.de. Alle Rechte vorbehalten.</p>
           </div>
         </div>
       </footer>

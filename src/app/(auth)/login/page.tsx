@@ -86,7 +86,7 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <div aria-live="polite" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -96,8 +96,9 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@einrichtung.de"
+                placeholder="name@einrichtung.de…"
                 autoComplete="email"
+                spellCheck={false}
                 className="rounded-xl"
                 {...register("email")}
               />
@@ -121,7 +122,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Passwort eingeben"
+                placeholder="Passwort eingeben…"
                 autoComplete="current-password"
                 className="rounded-xl"
                 {...register("password")}
@@ -141,7 +142,7 @@ export default function LoginPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Anmeldung...
+                  Anmeldung…
                 </>
               ) : (
                 "Anmelden"

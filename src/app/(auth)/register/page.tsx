@@ -86,7 +86,7 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <div aria-live="polite" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -96,7 +96,7 @@ export default function RegisterPage() {
               <Input
                 id="organizationName"
                 type="text"
-                placeholder="z. B. Pflegeheim Sonnenschein"
+                placeholder="z. B. Pflegeheim Sonnenschein…"
                 autoComplete="organization"
                 className="rounded-xl"
                 {...register("organizationName")}
@@ -113,7 +113,7 @@ export default function RegisterPage() {
               <Input
                 id="name"
                 type="text"
-                placeholder="Max Mustermann"
+                placeholder="Max Mustermann…"
                 autoComplete="name"
                 className="rounded-xl"
                 {...register("name")}
@@ -130,8 +130,9 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@einrichtung.de"
+                placeholder="name@einrichtung.de…"
                 autoComplete="email"
+                spellCheck={false}
                 className="rounded-xl"
                 {...register("email")}
               />
@@ -147,7 +148,7 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Mindestens 8 Zeichen"
+                placeholder="Mindestens 8 Zeichen…"
                 autoComplete="new-password"
                 className="rounded-xl"
                 {...register("password")}
@@ -167,7 +168,7 @@ export default function RegisterPage() {
               <Input
                 id="passwordConfirm"
                 type="password"
-                placeholder="Passwort wiederholen"
+                placeholder="Passwort wiederholen…"
                 autoComplete="new-password"
                 className="rounded-xl"
                 {...register("passwordConfirm")}
@@ -187,7 +188,7 @@ export default function RegisterPage() {
               {registerMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Registrierung...
+                  Registrierung…
                 </>
               ) : (
                 "Konto erstellen"
