@@ -174,6 +174,20 @@ export default function AGBPage() {
             direkt identifizierenden Merkmale (z.&thinsp;B. Klarnamen)
             eingegeben werden.
           </p>
+          <p className="text-gray-700 leading-relaxed mt-2">
+            Soweit der Nutzer im Rahmen des Dienstes personenbezogene
+            Patientendaten verarbeitet, ist der Abschluss eines{" "}
+            <strong>Auftragsverarbeitungsvertrags (AVV)</strong> gem.
+            Art.&thinsp;28 DSGVO erforderlich, bevor Patientendaten eingegeben
+            werden. Der AVV kann per E-Mail bei{" "}
+            <a
+              href="mailto:c.lengowski@yahoo.de?subject=AVV-Anfrage mein-nutrikompass.de"
+              className="text-[#2D6A4F] hover:underline"
+            >
+              c.lengowski@yahoo.de
+            </a>{" "}
+            angefordert werden.
+          </p>
         </section>
 
         {/* ── 8. Haftungsbeschr&auml;nkung ────────────────────── */}
@@ -181,7 +195,7 @@ export default function AGBPage() {
           <h2 className="text-xl font-semibold mb-3">
             8. Haftungsbeschr&auml;nkung
           </h2>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 space-y-2">
             <p className="text-sm text-amber-900 font-medium">
               Wichtiger Hinweis: mein-nutrikompass.de stellt{" "}
               <strong>keine medizinische Beratung</strong> dar. Die generierten
@@ -189,6 +203,19 @@ export default function AGBPage() {
               Unterst&uuml;tzung f&uuml;r qualifiziertes Fachpersonal und
               ersetzen nicht die individuelle fachliche Beurteilung durch
               &Auml;rzte, Ern&auml;hrungsberater oder Therapeuten.
+            </p>
+            <p className="text-sm text-amber-900">
+              <strong>Hinweis zur MDR (EU 2017/745):</strong> Dieses Tool dient
+              ausschlie&szlig;lich der organisatorischen Planung und
+              Dokumentation von Ern&auml;hrungsma&szlig;nahmen. Es stellt{" "}
+              <strong>
+                keine Medizinproduktesoftware im Sinne der Medizinprodukteverordnung
+                (MDR, EU 2017/745) oder des Medizinproduktegesetzes (MPG/MPDG)
+              </strong>{" "}
+              dar und trifft keine eigenst&auml;ndigen therapeutischen
+              Entscheidungen. Die fachliche Verantwortung f&uuml;r die
+              Anwendung aller generierten Inhalte liegt ausschlie&szlig;lich
+              beim eingesetzten Fachpersonal der jeweiligen Einrichtung.
             </p>
           </div>
           <p className="text-gray-700 leading-relaxed">

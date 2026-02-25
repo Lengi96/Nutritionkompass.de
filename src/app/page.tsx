@@ -349,7 +349,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
-                  Dokumentierte Prozesse zur Auftragsverarbeitung
+                  AVV (Auftragsverarbeitungsvertrag) auf Anfrage verfügbar
                 </li>
                 <li className="flex items-start gap-2">
                   <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D6A4F]" />
@@ -580,6 +580,9 @@ export default function LandingPage() {
 
             <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} mein-nutrikompass.de. Alle Rechte vorbehalten.</p>
           </div>
+          <p className="mt-6 text-center text-xs text-gray-400">
+            Dieses Tool dient ausschließlich der organisatorischen Planung. Es stellt keine Medizinproduktesoftware im Sinne der MDR (EU&nbsp;2017/745) dar und trifft keine eigenständigen therapeutischen Entscheidungen.
+          </p>
         </div>
       </footer>
 

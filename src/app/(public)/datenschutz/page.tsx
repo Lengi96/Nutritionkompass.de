@@ -107,10 +107,53 @@ export default function DatenschutzPage() {
           </p>
         </section>
 
-        {/* ── 5. Nutzung von KI-Diensten ──────────────────────── */}
+        {/* ── 5. Auftragsverarbeitung mit Kunden ──────────────── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            5. Nutzung von KI-Diensten
+            5. Auftragsverarbeitung gem. Art.&thinsp;28 DSGVO
+          </h2>
+          <p className="text-gray-700 leading-relaxed">
+            Soweit Einrichtungen (Nutzer des Dienstes) im Rahmen von
+            mein-nutrikompass.de personenbezogene Daten von Patienten
+            verarbeiten, handeln Sie als <strong>Verantwortliche</strong> im
+            Sinne der DSGVO. Christoph Lengowski / mein-nutrikompass.de agiert
+            dabei als <strong>Auftragsverarbeiter</strong> gem. Art.&thinsp;6
+            Abs.&thinsp;4, Art.&thinsp;28 DSGVO.
+          </p>
+          <p className="text-gray-700 leading-relaxed mt-2">
+            Der Abschluss eines Auftragsverarbeitungsvertrags (AVV) ist
+            gesetzlich verpflichtend, bevor Patientendaten in den Dienst
+            eingegeben werden. Ein <strong>AVV kann per E-Mail angefordert
+            werden</strong>:{" "}
+            <a
+              href="mailto:c.lengowski@yahoo.de?subject=AVV-Anfrage mein-nutrikompass.de"
+              className="text-[#2D6A4F] hover:underline"
+            >
+              c.lengowski@yahoo.de
+            </a>
+            . Der AVV wird vor oder mit der Freischaltung des Produktivbetriebs
+            bereitgestellt.
+          </p>
+          <div className="mt-4 rounded-xl border border-[#2D6A4F]/20 bg-[#2D6A4F]/5 p-4 text-sm text-gray-700">
+            <p className="font-semibold text-[#2D6A4F] mb-1">AVV anfordern</p>
+            <p>
+              Senden Sie eine E-Mail an{" "}
+              <a
+                href="mailto:c.lengowski@yahoo.de?subject=AVV-Anfrage mein-nutrikompass.de"
+                className="font-medium text-[#2D6A4F] underline underline-offset-2"
+              >
+                c.lengowski@yahoo.de
+              </a>{" "}
+              mit dem Betreff &bdquo;AVV-Anfrage&ldquo;. Sie erhalten den AVV
+              in der Regel innerhalb von 2 Werktagen.
+            </p>
+          </div>
+        </section>
+
+        {/* ── 6. Nutzung von KI-Diensten ──────────────────────── */}
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold mb-3">
+            6. Nutzung von KI-Diensten
           </h2>
           <p className="text-gray-700 leading-relaxed">
             Zur Erstellung von Ern&auml;hrungspl&auml;nen nutzen wir die API
@@ -130,10 +173,10 @@ export default function DatenschutzPage() {
           </p>
         </section>
 
-        {/* ── 6. Cookies & Local Storage ──────────────────────── */}
+        {/* ── 7. Cookies & Local Storage ──────────────────────── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            6. Cookies &amp; Local Storage
+            7. Cookies &amp; Local Storage
           </h2>
           <p className="text-gray-700 leading-relaxed">
             mein-nutrikompass.de verwendet ausschlie&szlig;lich technisch notwendige
@@ -149,10 +192,10 @@ export default function DatenschutzPage() {
           </p>
         </section>
 
-        {/* ── 7. Kontaktdaten & Anfragen ──────────────────────── */}
+        {/* ── 8. Kontaktdaten & Anfragen ──────────────────────── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            7. Kontaktdaten &amp; Anfragen
+            8. Kontaktdaten &amp; Anfragen
           </h2>
           <p className="text-gray-700 leading-relaxed">
             Wenn Sie uns per E-Mail kontaktieren, speichern wir Ihre Anfrage
@@ -168,10 +211,10 @@ export default function DatenschutzPage() {
           </p>
         </section>
 
-        {/* ── 8. Rechte der betroffenen Personen ──────────────── */}
+        {/* ── 9. Rechte der betroffenen Personen ──────────────── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            8. Rechte der betroffenen Personen
+            9. Rechte der betroffenen Personen
           </h2>
           <p className="text-gray-700 leading-relaxed mb-3">
             Sie haben gegen&uuml;ber uns folgende Rechte hinsichtlich der
@@ -209,10 +252,10 @@ export default function DatenschutzPage() {
           </ul>
         </section>
 
-        {/* ── 9. &Auml;nderung der Datenschutzerkl&auml;rung ─── */}
+        {/* ── 10. &Auml;nderung der Datenschutzerkl&auml;rung ─── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            9. &Auml;nderung der Datenschutzerkl&auml;rung
+            10. &Auml;nderung der Datenschutzerkl&auml;rung
           </h2>
           <p className="text-gray-700 leading-relaxed">
             Wir behalten uns vor, diese Datenschutzerkl&auml;rung anzupassen,
