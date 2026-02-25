@@ -124,7 +124,7 @@ export default function LandingPage() {
             <span className="text-[#2D6A4F]">klar, schnell, nachvollziehbar</span>
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-gray-600 sm:text-xl">
-            mein-nutrikompass.de unterstützt Teams in der Betreuung von Jugendlichen mit
+            mein-nutrikompass.de unterstützt Teams in der Betreuung von Menschen mit
             Essstörungen. Die KI erstellt Vorschläge, die fachliche Entscheidung
             bleibt bei Ihrem Team.
           </p>
