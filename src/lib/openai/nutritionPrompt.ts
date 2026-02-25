@@ -277,6 +277,142 @@ function recipeToString(recipe: string): string {
   return typeof recipe === "string" ? recipe : "";
 }
 
+type FallbackIngredient = {
+  name: string;
+  amount: number;
+  unit: "g" | "ml" | "Stück" | "EL" | "TL";
+  category: "Gemüse & Obst" | "Protein" | "Milchprodukte" | "Kohlenhydrate" | "Sonstiges";
+};
+
+const FALLBACK_INGREDIENTS: Record<
+  "Frühstück" | "Mittagessen" | "Abendessen" | "Snack",
+  FallbackIngredient[][]
+> = {
+  "Frühstück": [
+    [
+      { name: "Haferflocken", amount: 80, unit: "g", category: "Kohlenhydrate" },
+      { name: "Magerquark", amount: 150, unit: "g", category: "Milchprodukte" },
+      { name: "Banane", amount: 120, unit: "g", category: "Gemüse & Obst" },
+      { name: "Rapsöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Vollkornbrot", amount: 100, unit: "g", category: "Kohlenhydrate" },
+      { name: "Schnittkäse", amount: 40, unit: "g", category: "Milchprodukte" },
+      { name: "Tomate", amount: 100, unit: "g", category: "Gemüse & Obst" },
+      { name: "Butter", amount: 10, unit: "g", category: "Sonstiges" },
+    ],
+    [
+      { name: "Eier", amount: 2, unit: "Stück", category: "Protein" },
+      { name: "Vollkornbrot", amount: 80, unit: "g", category: "Kohlenhydrate" },
+      { name: "Gurke", amount: 100, unit: "g", category: "Gemüse & Obst" },
+      { name: "Olivenöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Naturjoghurt", amount: 200, unit: "g", category: "Milchprodukte" },
+      { name: "Müsli", amount: 60, unit: "g", category: "Kohlenhydrate" },
+      { name: "Apfel", amount: 130, unit: "g", category: "Gemüse & Obst" },
+      { name: "Honig", amount: 1, unit: "TL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Rührei", amount: 120, unit: "g", category: "Protein" },
+      { name: "Weißbrot", amount: 80, unit: "g", category: "Kohlenhydrate" },
+      { name: "Paprika", amount: 80, unit: "g", category: "Gemüse & Obst" },
+      { name: "Butter", amount: 10, unit: "g", category: "Sonstiges" },
+    ],
+  ],
+  "Mittagessen": [
+    [
+      { name: "Hühnerbrust", amount: 150, unit: "g", category: "Protein" },
+      { name: "Weißreis", amount: 180, unit: "g", category: "Kohlenhydrate" },
+      { name: "Brokkoli", amount: 200, unit: "g", category: "Gemüse & Obst" },
+      { name: "Olivenöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Lachsfilet", amount: 150, unit: "g", category: "Protein" },
+      { name: "Kartoffeln", amount: 200, unit: "g", category: "Kohlenhydrate" },
+      { name: "Erbsen", amount: 120, unit: "g", category: "Gemüse & Obst" },
+      { name: "Butter", amount: 10, unit: "g", category: "Sonstiges" },
+    ],
+    [
+      { name: "Rinderhackfleisch", amount: 150, unit: "g", category: "Protein" },
+      { name: "Spaghetti", amount: 180, unit: "g", category: "Kohlenhydrate" },
+      { name: "Tomaten", amount: 150, unit: "g", category: "Gemüse & Obst" },
+      { name: "Olivenöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Schweineschnitzel", amount: 150, unit: "g", category: "Protein" },
+      { name: "Kartoffelpüree", amount: 200, unit: "g", category: "Kohlenhydrate" },
+      { name: "Karotten", amount: 150, unit: "g", category: "Gemüse & Obst" },
+      { name: "Butter", amount: 10, unit: "g", category: "Sonstiges" },
+    ],
+    [
+      { name: "Hähnchenkeule", amount: 160, unit: "g", category: "Protein" },
+      { name: "Basmati-Reis", amount: 180, unit: "g", category: "Kohlenhydrate" },
+      { name: "Zucchini", amount: 150, unit: "g", category: "Gemüse & Obst" },
+      { name: "Rapsöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+  ],
+  "Abendessen": [
+    [
+      { name: "Vollkornbrot", amount: 120, unit: "g", category: "Kohlenhydrate" },
+      { name: "Frischkäse", amount: 60, unit: "g", category: "Milchprodukte" },
+      { name: "Paprika", amount: 100, unit: "g", category: "Gemüse & Obst" },
+      { name: "Butter", amount: 10, unit: "g", category: "Sonstiges" },
+    ],
+    [
+      { name: "Thunfisch (Dose)", amount: 130, unit: "g", category: "Protein" },
+      { name: "Vollkornbrot", amount: 100, unit: "g", category: "Kohlenhydrate" },
+      { name: "Salatgurke", amount: 100, unit: "g", category: "Gemüse & Obst" },
+      { name: "Olivenöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Mozzarella", amount: 125, unit: "g", category: "Milchprodukte" },
+      { name: "Vollkornbrot", amount: 100, unit: "g", category: "Kohlenhydrate" },
+      { name: "Tomate", amount: 120, unit: "g", category: "Gemüse & Obst" },
+      { name: "Olivenöl", amount: 1, unit: "EL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Hüttenkäse", amount: 150, unit: "g", category: "Milchprodukte" },
+      { name: "Vollkornknäckebrot", amount: 60, unit: "g", category: "Kohlenhydrate" },
+      { name: "Radieschen", amount: 80, unit: "g", category: "Gemüse & Obst" },
+      { name: "Leinöl", amount: 1, unit: "TL", category: "Sonstiges" },
+    ],
+    [
+      { name: "Eier", amount: 3, unit: "Stück", category: "Protein" },
+      { name: "Gouda", amount: 40, unit: "g", category: "Milchprodukte" },
+      { name: "Vollkornbrot", amount: 80, unit: "g", category: "Kohlenhydrate" },
+      { name: "Butter", amount: 10, unit: "g", category: "Sonstiges" },
+    ],
+  ],
+  "Snack": [
+    [
+      { name: "Magerquark", amount: 150, unit: "g", category: "Milchprodukte" },
+      { name: "Walnüsse", amount: 30, unit: "g", category: "Sonstiges" },
+      { name: "Apfel", amount: 130, unit: "g", category: "Gemüse & Obst" },
+    ],
+    [
+      { name: "Vollkornbrot", amount: 60, unit: "g", category: "Kohlenhydrate" },
+      { name: "Erdnussbutter", amount: 30, unit: "g", category: "Sonstiges" },
+      { name: "Banane", amount: 120, unit: "g", category: "Gemüse & Obst" },
+    ],
+    [
+      { name: "Naturjoghurt", amount: 200, unit: "g", category: "Milchprodukte" },
+      { name: "Müsli", amount: 40, unit: "g", category: "Kohlenhydrate" },
+      { name: "Blaubeeren", amount: 80, unit: "g", category: "Gemüse & Obst" },
+    ],
+    [
+      { name: "Studentenfutter", amount: 50, unit: "g", category: "Sonstiges" },
+      { name: "Apfel", amount: 130, unit: "g", category: "Gemüse & Obst" },
+      { name: "Naturjoghurt", amount: 150, unit: "g", category: "Milchprodukte" },
+    ],
+    [
+      { name: "Knäckebrot", amount: 40, unit: "g", category: "Kohlenhydrate" },
+      { name: "Frischkäse", amount: 50, unit: "g", category: "Milchprodukte" },
+      { name: "Salatgurke", amount: 80, unit: "g", category: "Gemüse & Obst" },
+    ],
+  ],
+};
+
 function createFallbackMeal(
   mealType: "Frühstück" | "Mittagessen" | "Abendessen" | "Snack",
   dayIndex: number
@@ -291,30 +427,19 @@ function createFallbackMeal(
   } as const;
   const kcal = kcalMap[mealType];
 
+  const ingredientVariants = FALLBACK_INGREDIENTS[mealType];
+  const ingredients = ingredientVariants[dayIndex % ingredientVariants.length];
+
   return {
     mealType,
     name: mealName,
     description: "Ausgewogene, alltagstaugliche Mahlzeit mit klarer Zubereitung.",
-    recipe: buildFallbackRecipe({
-      mealType,
-      name: mealName,
-      ingredients: [
-        { name: "Hauptzutat", amount: 180, unit: "g" as const, category: "Kohlenhydrate" as const },
-        { name: "Gemüse", amount: 150, unit: "g" as const, category: "Gemüse & Obst" as const },
-        { name: "Proteinquelle", amount: 120, unit: "g" as const, category: "Protein" as const },
-        { name: "Öl", amount: 1, unit: "EL" as const, category: "Sonstiges" as const },
-      ],
-    }),
+    recipe: buildFallbackRecipe({ mealType, name: mealName, ingredients }),
     kcal,
     protein: Math.round(kcal * 0.2 / 4),
     carbs: Math.round(kcal * 0.5 / 4),
     fat: Math.round(kcal * 0.3 / 9),
-    ingredients: [
-      { name: "Hauptzutat", amount: 180, unit: "g" as const, category: "Kohlenhydrate" as const },
-      { name: "Gemüse", amount: 150, unit: "g" as const, category: "Gemüse & Obst" as const },
-      { name: "Proteinquelle", amount: 120, unit: "g" as const, category: "Protein" as const },
-      { name: "Öl", amount: 1, unit: "EL" as const, category: "Sonstiges" as const },
-    ],
+    ingredients,
   };
 }
 

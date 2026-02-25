@@ -108,38 +108,63 @@ export function GeneratePlanModal({
   const fixedMealTypes = watch("fixedMealTypes");
 
   const additionalNotesExamples = [
-    "Vegetarisch, keine Fischgerichte",
-    "Mittags warm, abends kalt",
-    "Mehr Snacks zwischen den Hauptmahlzeiten",
-    "Laktosearm und keine rohen Zwiebeln",
-    "Einfache Rezepte mit maximal 20 Minuten Zubereitung",
+    "3+2-Tagesstruktur: 3 Hauptmahlzeiten + 2 Zwischenmahlzeiten täglich",
+    "Keine Light-Produkte, vollwertige energiedichte Lebensmittel",
+    "2–3 Angstlebensmittel gezielt in die Woche integrieren",
+    "Vegetarische Woche, pflanzliche Proteinquellen verwenden",
+    "Nur einfache Rezepte, max. 30 Minuten Zubereitungszeit",
   ];
 
   const noteTemplates = [
     {
-      id: "vegetarisch",
-      label: "Vegetarische Woche",
-      text: "Vegetarische Woche, keine Fisch- oder Fleischgerichte.",
+      id: "3plus2",
+      label: "3+2-Tagesstruktur",
+      text: "Strukturierte 3+2-Tagesstruktur: 3 Hauptmahlzeiten und 2 verbindliche Zwischenmahlzeiten täglich einplanen. Fördert Regelmäßigkeit und verhindert Mahlzeiten-Auslassen.",
     },
     {
-      id: "schnell",
-      label: "Schnelle Rezepte",
-      text: "Bitte nur einfache Rezepte mit maximal 20 Minuten Zubereitungszeit.",
+      id: "energiedichte",
+      label: "Energiedichte stabilisieren",
+      text: "Keine Light-Produkte und keine kalorienreduzierten Varianten verwenden. Vollwertige, energiedichte Lebensmittel bevorzugen.",
+    },
+    {
+      id: "exposition",
+      label: "Exposition Angstlebensmittel",
+      text: "2–3 therapeutisch relevante Angstlebensmittel gezielt und strukturiert in die Woche integrieren. Konfrontation statt Vermeidung.",
+    },
+    {
+      id: "makros",
+      label: "Ausgewogene Makronährstoffe",
+      text: "Jede Hauptmahlzeit enthält Kohlenhydrate, Protein und Fett. Keine einseitigen oder einseitig 'sicheren' Mahlzeiten.",
     },
     {
       id: "snacks",
-      label: "Mehr Snacks",
-      text: "Mehr Zwischenmahlzeiten und energiereiche Snacks einplanen.",
+      label: "Mehr Nachmittags-Snacks",
+      text: "Mehr Zwischenmahlzeiten, besonders am Nachmittag. Energiereiche Snacks einplanen, besonders bei Untergewicht oder Gewichtsstagnation.",
     },
     {
-      id: "unvertraeglichkeiten",
+      id: "vegetarisch",
+      label: "Vegetarische Woche",
+      text: "Vegetarische Woche, keine Fisch- oder Fleischgerichte. Pflanzliche Proteinquellen verwenden.",
+    },
+    {
+      id: "laktosearm",
       label: "Laktosearm",
-      text: "Laktosearme Planung, bitte ohne offensichtliche Milchprodukte.",
+      text: "Laktosearme Planung. Keine offensichtlichen Milchprodukte – laktosefreie Alternativen bevorzugen. Nicht als Diätoption, sondern bei Intoleranz.",
     },
     {
-      id: "struktur",
-      label: "Tagesstruktur",
-      text: "Mittags warm, abends kalt; klare, wiederkehrende Tagesstruktur.",
+      id: "einfach",
+      label: "Einfache Rezepte (≤ 30 min)",
+      text: "Nur einfache Rezepte mit maximal 30 Minuten Zubereitungszeit. Geringe Komplexität, entlastet Personal.",
+    },
+    {
+      id: "kochen",
+      label: "Gemeinsames Kochen",
+      text: "1–2 Gerichte pro Woche als Gruppenaktivität einplanen. Fördert Autonomie, Alltagskompetenz und therapeutisches Setting.",
+    },
+    {
+      id: "wochenende",
+      label: "Wochenendstruktur",
+      text: "Wochenende ohne Ausnahmecharakter planen. Gleiche Mahlzeitenstruktur wie werktags, um Rückfälle durch fehlende Struktur zu verhindern.",
     },
   ] as const;
 

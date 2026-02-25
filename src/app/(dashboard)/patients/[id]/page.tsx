@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { trpc } from "@/trpc/client";
 import {
   Card,
@@ -24,12 +25,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Plus,
   Loader2,
   ArrowLeft,
   ClipboardList,
   TrendingUp,
   Pencil,
+  Trash2,
   CalendarDays,
   Handshake,
 } from "lucide-react";
@@ -49,10 +59,21 @@ import { AutonomyTab } from "@/components/autonomy/AutonomyTab";
 
 export default function PatientDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
   const patientIdParam = params.id;
   const patientId = Array.isArray(patientIdParam) ? patientIdParam[0] : patientIdParam;
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const isAdmin = session?.user?.role === "ADMIN";
+
+  const deletePatient = trpc.patients.delete.useMutation({
+    onSuccess: () => {
+      router.push("/patients");
+    },
+  });
 
   const {
     data: patient,
@@ -161,6 +182,16 @@ export default function PatientDetailPage() {
                 <Pencil className="mr-2 h-4 w-4" />
                 Bearbeiten
               </Button>
+              {isAdmin && (
+                <Button
+                  variant="destructive"
+                  className="rounded-xl"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Löschen
+                </Button>
+              )}
               {patient.mealPlans[0] ? (
                 <Link href={`/meal-plans/${patient.mealPlans[0].id}`}>
                   <Button variant="outline" className="rounded-xl">
@@ -491,6 +522,43 @@ export default function PatientDetailPage() {
           refetch();
         }}
       />
+
+      {/* Delete Confirm Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Patient löschen?</DialogTitle>
+            <DialogDescription>
+              Der Patient <strong>{patient.pseudonym}</strong> wird deaktiviert
+              und ist nicht mehr in der Übersicht sichtbar. Alle Pläne bleiben
+              erhalten.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              className="rounded-xl"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deletePatient.isPending}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              variant="destructive"
+              className="rounded-xl"
+              disabled={deletePatient.isPending}
+              onClick={() => {
+                if (patientId) deletePatient.mutate({ id: patientId });
+              }}
+            >
+              {deletePatient.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Löschen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
