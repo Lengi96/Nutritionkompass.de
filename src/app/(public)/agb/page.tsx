@@ -179,14 +179,19 @@ export default function AGBPage() {
             Patientendaten verarbeitet, ist der Abschluss eines{" "}
             <strong>Auftragsverarbeitungsvertrags (AVV)</strong> gem.
             Art.&thinsp;28 DSGVO erforderlich, bevor Patientendaten eingegeben
-            werden. Der AVV kann per E-Mail bei{" "}
+            werden. Den vollst&auml;ndigen AVV-Text (inkl. Anlage
+            Unterauftragnehmer und TOMs) finden Sie unter{" "}
+            <Link href="/avv" className="text-[#2D6A4F] hover:underline">
+              mein-nutrikompass.de/avv
+            </Link>
+            . Zur rechtsverbindlichen Unterzeichnung wenden Sie sich an{" "}
             <a
-              href="mailto:c.lengowski@yahoo.de?subject=AVV-Anfrage mein-nutrikompass.de"
+              href="mailto:c.lengowski@yahoo.de?subject=AVV-Abschluss mein-nutrikompass.de"
               className="text-[#2D6A4F] hover:underline"
             >
               c.lengowski@yahoo.de
-            </a>{" "}
-            angefordert werden.
+            </a>
+            .
           </p>
         </section>
 
@@ -272,6 +277,9 @@ export default function AGBPage() {
           </Link>
           <Link href="/datenschutz" className="hover:text-[#2D6A4F] transition-colors">
             Datenschutzerkl&auml;rung
+          </Link>
+          <Link href="/avv" className="hover:text-[#2D6A4F] transition-colors">
+            AVV
           </Link>
         </div>
       </div>

@@ -134,18 +134,31 @@ export default function DatenschutzPage() {
             . Der AVV wird vor oder mit der Freischaltung des Produktivbetriebs
             bereitgestellt.
           </p>
-          <div className="mt-4 rounded-xl border border-[#2D6A4F]/20 bg-[#2D6A4F]/5 p-4 text-sm text-gray-700">
-            <p className="font-semibold text-[#2D6A4F] mb-1">AVV anfordern</p>
+          <div className="mt-4 rounded-xl border border-[#2D6A4F]/20 bg-[#2D6A4F]/5 p-4 text-sm text-gray-700 space-y-3">
+            <p className="font-semibold text-[#2D6A4F]">AVV online einsehen &amp; anfordern</p>
             <p>
-              Senden Sie eine E-Mail an{" "}
+              Den vollst&auml;ndigen Auftragsverarbeitungsvertrag (inkl.
+              Anlage&thinsp;1 Unterauftragnehmer und Anlage&thinsp;2 TOMs)
+              k&ouml;nnen Sie direkt hier einsehen:
+            </p>
+            <Link
+              href="/avv"
+              className="inline-flex items-center gap-1.5 font-medium text-[#2D6A4F] underline underline-offset-2"
+            >
+              AVV lesen &rarr; mein-nutrikompass.de/avv
+            </Link>
+            <p>
+              Um den AVV rechtsverbindlich zu unterzeichnen, senden Sie eine
+              E-Mail an{" "}
               <a
-                href="mailto:c.lengowski@yahoo.de?subject=AVV-Anfrage mein-nutrikompass.de"
+                href="mailto:c.lengowski@yahoo.de?subject=AVV-Abschluss mein-nutrikompass.de"
                 className="font-medium text-[#2D6A4F] underline underline-offset-2"
               >
                 c.lengowski@yahoo.de
               </a>{" "}
-              mit dem Betreff &bdquo;AVV-Anfrage&ldquo;. Sie erhalten den AVV
-              in der Regel innerhalb von 2 Werktagen.
+              mit dem Betreff &bdquo;AVV-Abschluss&ldquo;. Sie erhalten eine
+              gegengezeichnete Ausfertigung in der Regel innerhalb von
+              2&nbsp;Werktagen.
             </p>
           </div>
         </section>
@@ -276,6 +289,9 @@ export default function DatenschutzPage() {
           </Link>
           <Link href="/agb" className="hover:text-[#2D6A4F] transition-colors">
             AGB
+          </Link>
+          <Link href="/avv" className="hover:text-[#2D6A4F] transition-colors">
+            AVV
           </Link>
         </div>
       </div>
