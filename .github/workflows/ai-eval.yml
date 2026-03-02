@@ -62,3 +62,28 @@ jobs:
           path: |
             /tmp/nutri-benchmark-*.log
           retention-days: 7
+
+  promptfoo:
+    name: promptfoo Eval
+    runs-on: ubuntu-latest
+    # Non-blocking: Ergebnisse sichtbar ohne Merge zu blockieren
+    continue-on-error: true
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run promptfoo Eval
+        run: npm run test:promptfoo
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
