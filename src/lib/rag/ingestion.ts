@@ -291,46 +291,61 @@ export async function ingestGenericJson(
  * Die erste Zeile wird als Spaltenüberschriften interpretiert.
  * Jede Datenzeile wird als eigenständiger Text-Chunk gespeichert.
  * Leere Zellen werden übersprungen.
+ *
+ * Nutzt exceljs statt SheetJS (xlsx) — kein Prototype-Pollution-Risiko.
  */
 export async function ingestExcelFile(
   filePath: string,
   source: string,
   sheetName?: string
 ): Promise<IngestResult> {
-  // Dynamischer Import damit xlsx nur für Ingestion-Scripts geladen wird
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const XLSX = require("xlsx") as typeof import("xlsx");
+  const ExcelJS = require("exceljs") as typeof import("exceljs");
 
-  const workbook = XLSX.readFile(filePath);
-  const targetSheet = sheetName ?? workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[targetSheet];
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filePath);
+
+  const worksheet = sheetName
+    ? workbook.getWorksheet(sheetName)
+    : workbook.worksheets[0];
 
   if (!worksheet) {
+    const names = workbook.worksheets.map((s) => s.name).join(", ");
     throw new Error(
-      `Sheet "${targetSheet}" nicht gefunden. Verfügbare Sheets: ${workbook.SheetNames.join(", ")}`
+      `Sheet "${sheetName}" nicht gefunden. Verfügbare Sheets: ${names}`
     );
   }
 
-  // Zeilen als Objekte (erste Zeile = Header)
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
-    defval: "",
-    raw: false, // Alle Werte als Strings
+  // Erste Zeile = Spaltenüberschriften
+  const headers: string[] = [];
+  worksheet.getRow(1).eachCell((cell) => {
+    headers.push(String(cell.value ?? "").trim());
   });
 
-  if (rows.length === 0) {
+  // Datenzeilen → lesbarer Text: "Spalte1: Wert1 | Spalte2: Wert2 | ..."
+  const rowTexts: string[] = [];
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const parts: string[] = [];
+    row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+      const header = headers[colNumber - 1];
+      const value = String(cell.value ?? "").trim();
+      if (header && value) parts.push(`${header}: ${value}`);
+    });
+    const text = parts.join(" | ");
+    if (text.length > 20) rowTexts.push(text);
+  });
+
+  if (rowTexts.length === 0) {
     return { source, chunksProcessed: 0, chunksSkipped: 0 };
   }
 
-  // Jede Zeile → lesbarer Text: "Spalte1: Wert1 | Spalte2: Wert2 | ..."
-  const rowTexts = rows.map((row) => {
-    return Object.entries(row)
-      .filter(([, val]) => String(val).trim().length > 0)
-      .map(([key, val]) => `${key}: ${String(val).trim()}`)
-      .join(" | ");
-  }).filter((text) => text.length > 20);
-
   const combinedText = rowTexts.join("\n\n");
-  return ingestText(combinedText, source, { format: "excel", sheet: targetSheet, rowCount: rows.length });
+  return ingestText(combinedText, source, {
+    format: "excel",
+    sheet: worksheet.name,
+    rowCount: rowTexts.length,
+  });
 }
 
 /**
