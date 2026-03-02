@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { router, protectedProcedure } from "../init";
 import { generateMealPlan } from "@/lib/openai/nutritionPrompt";
 import { PLAN_LIMITS } from "@/lib/stripe";
+import { validateInput } from "@/lib/ai-security/guardrails";
 
 const MEAL_TYPE_VALUES = [
   "Frühstück",
@@ -78,7 +79,7 @@ export const mealPlansRouter = router({
         weekStart: z.string().transform((val) => new Date(val)),
         numDays: z.number().int().min(1).max(14).default(7),
         fixedMealTypes: z.array(z.enum(MEAL_TYPE_VALUES)).default([]),
-        additionalNotes: z.string().optional(),
+        additionalNotes: z.string().max(2000).optional(),
         basedOnPreviousPlan: z.boolean().default(false),
         fastMode: z.boolean().default(true),
       })
@@ -171,6 +172,19 @@ export const mealPlansRouter = router({
 
       // Fallback auf Legacy-Feld wenn kein Agreement
       const effectiveAutonomyNotes = autonomyText || patient.autonomyNotes;
+
+      // Security: Prompt-Injection-Check auf Freitext-Eingabe
+      if (input.additionalNotes) {
+        const validation = await validateInput(input.additionalNotes);
+        if (!validation.safe) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            // Bewusst vage: kein Feedback welches Muster getroffen wurde
+            message:
+              "Ihre Anfrage konnte nicht verarbeitet werden. Bitte überprüfen Sie Ihre Eingabe.",
+          });
+        }
+      }
 
       // KI-Plan generieren mit Progress-Tracking
       setProgress(ctx.user.id, "Wird vorbereitet...", 0, input.numDays);

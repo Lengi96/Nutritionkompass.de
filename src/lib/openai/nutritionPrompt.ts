@@ -1,5 +1,6 @@
 ﻿import { z } from "zod";
 import { getOpenAIClient } from "./client";
+import { getNutriContext } from "@/lib/rag/getNutriContext";
 
 const ingredientSchema = z.object({
   name: z.string(),
@@ -528,8 +529,22 @@ export async function generateMealPlan(
 
   onProgress?.(`Erstelle Gesamtplan (${numDays} Tage)...`);
 
+  // RAG: Relevanten Kontext aus der Wissensbasis abrufen
+  // Query kombiniert Allergien + Zielgewicht für gezielte Suche
+  const ragQuery = [
+    patient.allergies.length > 0
+      ? `Allergie: ${patient.allergies.join(", ")}`
+      : "",
+    additionalNotes ?? "",
+    `Gewichtsziel: ${patient.targetWeight} kg`,
+  ]
+    .filter(Boolean)
+    .join(". ");
+  const ragContext = ragQuery ? await getNutriContext(ragQuery) : "";
+
   const systemPrompt = `Du bist ein spezialisierter Ernährungsplaner.
 Gib AUSSCHLIESSLICH ein valides JSON-Objekt zurück.
+${ragContext ? `\n${ragContext}` : ""}
 
 Format:
 {

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nutritionkompass.de | Wartungsmodus</title>
+    <style>
+      :root {
+        --bg: #f4f6f8;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #4b5563;
+        --accent: #0f766e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top, #e7f4f2 0%, var(--bg) 45%);
+        color: var(--text);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        line-height: 1.5;
+      }
+
+      main {
+        width: min(92vw, 640px);
+        background: var(--card);
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: clamp(1.45rem, 1.15rem + 1.1vw, 2rem);
+      }
+
+      p {
+        margin: 0.45rem 0;
+        color: var(--muted);
+      }
+
+      .badge {
+        display: inline-block;
+        margin-bottom: 1rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        background: #ccfbf1;
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="badge">Temporär offline</span>
+      <h1>Wir führen gerade Wartungsarbeiten durch</h1>
+      <p>Nutritionkompass.de ist aktuell vorübergehend nicht verfügbar.</p>
+      <p>
+        Wir arbeiten an Verbesserungen und sind in Kürze wieder online.
+      </p>
+      <p>Vielen Dank für dein Verständnis.</p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+name: AI Evaluation
+
+# Feuert bei jedem Pull Request auf main
+# Blockiert das Merge/Deployment wenn Quality Gate fehlschlägt
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  # Supabase-Datenbank mit pgvector (für RAG + Prisma)
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+  # OpenAI (Mahlzeitgenerierung + Embeddings + Judge)
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  # NextAuth Platzhalter (für Prisma-Client-Build nötig)
+  NEXTAUTH_SECRET: ci-eval-placeholder
+  NEXTAUTH_URL: http://localhost:3000
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+  # Stripe/Resend Platzhalter (validate-env.ts Anforderung)
+  STRIPE_SECRET_KEY: sk_test_ci_placeholder
+  STRIPE_WEBHOOK_SECRET: whsec_ci_placeholder
+  STRIPE_PRICE_ID_BASIC: price_ci_basic
+  STRIPE_PRICE_ID_PROFESSIONAL: price_ci_professional
+  RESEND_API_KEY: re_ci_placeholder
+  EMAIL_FROM: test@example.invalid
+
+jobs:
+  ai-eval:
+    name: AI Quality Gate
+    runs-on: ubuntu-latest
+    # Timeout: 5 Szenarien × max 30s + Judge-Calls ≈ 5 Minuten
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run AI Benchmark
+        run: npm run test:ai-eval
+        # Exit Code 1 bei:
+        #   - accuracy < 90% (mehr als 1 Szenario fehlgeschlagen)
+        #   - hardConstraint-Verletzung (z.B. Nuss-Allergen gefunden)
+        # → GitHub blockiert automatisch den PR-Merge
+
+      - name: Upload benchmark results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-eval-failure-log
+          path: |
+            /tmp/nutri-benchmark-*.log
+          retention-days: 7
