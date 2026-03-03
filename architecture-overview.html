@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Nutrikompass – Architektur</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  body { margin: 0; background: #fff; font-family: 'Segoe UI', sans-serif; }
+  .page { width: 1400px; padding: 32px; box-sizing: border-box; }
+  h1 { font-size: 22px; color: #1a1a2e; margin-bottom: 4px; }
+  p  { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .mermaid { background: #fff; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Nutrikompass — System-Architektur</h1>
+  <p>Next.js 15 · tRPC v11 · Prisma v6 · NextAuth v5 · OpenAI · Vercel · Supabase · Stripe · Sentry · Resend</p>
+  <div class="mermaid">
+graph TB
+    subgraph Browser["🖥️ Browser"]
+        UI["Next.js React\nApp Router / RSC"]
+    end
+
+    subgraph Vercel["☁️ Vercel Edge + Serverless"]
+        MW["Middleware\nAuth-Guard · Route Protection\nSecurity Headers · CSP / HSTS"]
+        TRPC["tRPC API\n8 Router · 40+ Procedures\nprotectedProcedure / adminProcedure"]
+        CHAT["Demo Chat API\nAI Guards · Rate Limit 20/15min"]
+        STRIPE_WH["Stripe Webhook\nHMAC-verifiziert"]
+        AUTH_RT["NextAuth v5\nJWT · Session · Middleware"]
+    end
+
+    subgraph KI["🤖 KI-Schicht"]
+        GUARD["AI Security Guards\nRegex → LLM-Classifier\nFail-Safe: Timeout → reject"]
+        GEN["generateMealPlan()\ngpt-4o-mini\nZod-validierter Output"]
+        RAG["RAG Pipeline\ntext-embedding-3-small\n1536d · HNSW · Cosine"]
+    end
+
+    subgraph DB["🗄️ Supabase PostgreSQL"]
+        PG["Postgres\nPort 5432 direkt\nPort 6543 PgBouncer"]
+        VEC["pgvector\nnutri_knowledge\nWissens-Embeddings"]
+    end
+
+    subgraph Ext["🔌 Externe Services"]
+        OPENAI["OpenAI API"]
+        STRIPE["Stripe\nAbo · Checkout · Portal"]
+        RESEND["Resend\nTransaktionale E-Mails"]
+        SENTRY["Sentry\nErrors + Traces\nPII-gefiltert"]
+    end
+
+    UI -->|HTTPS| MW
+    MW --> TRPC & CHAT & AUTH_RT
+    STRIPE --> STRIPE_WH
+
+    TRPC --> GUARD
+    CHAT --> GUARD
+    GUARD --> GEN --> RAG
+    RAG --> VEC
+    GEN --> OPENAI
+    RAG --> OPENAI
+
+    TRPC & STRIPE_WH & AUTH_RT --> PG
+    TRPC --> STRIPE & RESEND
+    TRPC & CHAT --> SENTRY
+
+    style GUARD fill:#e74c3c,stroke:#c0392b,color:#fff
+    style GEN fill:#27ae60,stroke:#1e8449,color:#fff
+    style RAG fill:#27ae60,stroke:#1e8449,color:#fff
+    style MW fill:#8e44ad,stroke:#7d3c98,color:#fff
+    style TRPC fill:#2980b9,stroke:#2471a3,color:#fff
+    style UI fill:#2c3e50,stroke:#1a252f,color:#fff
+  </div>
+</div>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { curve: 'basis', padding: 20 } });
+</script>
+</body>
+</html>

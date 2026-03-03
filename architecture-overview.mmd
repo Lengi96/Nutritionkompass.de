@@ -1,0 +1,50 @@
+graph TB
+    subgraph Browser["🖥️ Browser"]
+        UI["Next.js React\nApp Router / RSC"]
+    end
+
+    subgraph Vercel["☁️ Vercel Edge + Serverless"]
+        MW["Middleware\nAuth-Guard · Route Protection\nSecurity Headers · CSP / HSTS"]
+        TRPC["tRPC API\n8 Router · 40+ Procedures\nprotectedProcedure / adminProcedure"]
+        CHAT["Demo Chat API\nAI Guards · Rate Limit 20/15min"]
+        STRIPE_WH["Stripe Webhook\nHMAC-verifiziert"]
+        AUTH_RT["NextAuth v5\nJWT · Session · Middleware"]
+    end
+
+    subgraph KI["🤖 KI-Schicht"]
+        GUARD["AI Security Guards\nRegex ➜ LLM-Classifier\nFail-Safe: Timeout → reject"]
+        GEN["generateMealPlan()\ngpt-4o-mini\nZod-validierter Output"]
+        RAG["RAG Pipeline\ntext-embedding-3-small\n1536d · HNSW · Cosine"]
+    end
+
+    subgraph DB["🗄️ Supabase PostgreSQL"]
+        PG["Postgres\nPort 5432 direkt\nPort 6543 PgBouncer"]
+        VEC["pgvector\nnutri_knowledge\n(Wissens-Embeddings)"]
+    end
+
+    subgraph Ext["🔌 Externe Services"]
+        OPENAI["OpenAI API"]
+        STRIPE["Stripe\nAbo · Checkout · Portal"]
+        RESEND["Resend\nTransaktionale E-Mails"]
+        SENTRY["Sentry\nErrors + Traces\nPII-gefiltert"]
+    end
+
+    UI -->|HTTPS| MW
+    MW --> TRPC & CHAT & AUTH_RT
+    STRIPE --> STRIPE_WH
+
+    TRPC --> GUARD
+    CHAT --> GUARD
+    GUARD --> GEN --> RAG
+    RAG --> VEC
+    GEN --> OPENAI
+    RAG --> OPENAI
+
+    TRPC & STRIPE_WH & AUTH_RT --> PG
+    TRPC --> STRIPE & RESEND
+    TRPC & CHAT --> SENTRY
+
+    style GUARD fill:#f96,stroke:#c53,color:#fff
+    style GEN fill:#4a9,stroke:#396,color:#fff
+    style RAG fill:#4a9,stroke:#396,color:#fff
+    style MW fill:#57a,stroke:#459,color:#fff
