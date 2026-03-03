@@ -16,10 +16,11 @@ test.describe('Smoke Tests - Nutrikompass', () => {
   });
 
   test('should have login page accessible', async ({ page }) => {
-    await page.goto('/auth/signin');
+    await page.goto('/login');
 
-    // Check page loads without error (status 200)
-    const response = await page.waitForLoadState('networkidle');
-    expect(page.url()).toContain('signin');
+    // Check login form is visible
+    await expect(page.locator('#email')).toBeVisible();
+    await expect(page.locator('#password')).toBeVisible();
+    await expect(page.locator('button:has-text("Anmelden")')).toBeVisible();
   });
 });
