@@ -19,6 +19,30 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { validateInput, sanitizeOutput } from "@/lib/ai-security/guardrails";
 
+// Rate Limiting: max 20 Chat-Requests pro User pro 15 Minuten
+// Hinweis: In-Memory-Map; auf Vercel Serverless nicht persistent über Instanzen.
+// Für Production-Scale → Upstash Redis / Vercel KV migrieren (Backlog M-02).
+const chatRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const CHAT_RATE_LIMIT = 20;
+const CHAT_RATE_WINDOW_MS = 15 * 60 * 1000; // 15 Minuten
+
+function checkChatRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = chatRateLimitMap.get(userId);
+
+  if (!entry || now > entry.resetAt) {
+    chatRateLimitMap.set(userId, { count: 1, resetAt: now + CHAT_RATE_WINDOW_MS });
+    return true;
+  }
+
+  if (entry.count >= CHAT_RATE_LIMIT) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
 const openaiProvider = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -39,7 +63,15 @@ export async function POST(req: Request) {
     );
   }
 
-  // 2. Request parsen
+  // 2. Rate Limiting prüfen
+  if (!checkChatRateLimit(session.user.id)) {
+    return NextResponse.json(
+      { error: "Zu viele Anfragen. Bitte versuchen Sie es später erneut." },
+      { status: 429 }
+    );
+  }
+
+  // 3. Request parsen
   let messages: Array<{ role: string; content: string }>;
   try {
     const body = (await req.json()) as { messages?: unknown };
@@ -57,7 +89,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 3. Letzten User-Input extrahieren und validieren
+  // 4. Letzten User-Input extrahieren und validieren
   const lastUserMessage = messages.findLast((m) => m.role === "user")?.content ?? "";
 
   if (!lastUserMessage) {
@@ -67,7 +99,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 4. SECURITY LAYER: Prompt-Injection-Check
+  // 5. SECURITY LAYER: Prompt-Injection-Check
   //    Zweistufig: Regex (~0ms) → LLM Classifier (~300ms)
   //    Fail-Safe: Bei Fehler im Classifier → Anfrage ablehnen
   const validation = await validateInput(lastUserMessage);
@@ -79,7 +111,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 5. LLM-Antwort generieren (Vercel AI SDK — streamText für Streaming-Support)
+  // 6. LLM-Antwort generieren (Vercel AI SDK — streamText für Streaming-Support)
   try {
     const result = streamText({
       model: openaiProvider("gpt-4o-mini"),
@@ -92,7 +124,7 @@ export async function POST(req: Request) {
       maxTokens: 800,
     });
 
-    // 6. Stream zurückgeben (Vercel AI SDK Data Stream Protocol)
+    // 7. Stream zurückgeben (Vercel AI SDK Data Stream Protocol)
     return result.toDataStreamResponse();
   } catch {
     return NextResponse.json(

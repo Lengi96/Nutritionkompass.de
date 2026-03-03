@@ -8,7 +8,7 @@ on:
 env:
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
   DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres
-  NEXTAUTH_SECRET: ci-nextauth-secret-please-change-123456
+  NEXTAUTH_SECRET: ci-only-not-for-production-do-not-copy
   NEXTAUTH_URL: http://127.0.0.1:3000
   NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
   OPENAI_API_KEY: sk-ci-placeholder

@@ -171,7 +171,20 @@ export const mealPlansRouter = router({
       }
 
       // Fallback auf Legacy-Feld wenn kein Agreement
-      const effectiveAutonomyNotes = autonomyText || patient.autonomyNotes;
+      let effectiveAutonomyNotes = autonomyText || patient.autonomyNotes;
+
+      // Security: Stored Prompt Injection – DB-Felder auf Injection-Muster prüfen.
+      // Stille Redaktion (nicht ablehnen), da Felder admin-kontrolliert sind.
+      if (effectiveAutonomyNotes) {
+        const autonomyValidation = await validateInput(effectiveAutonomyNotes);
+        if (!autonomyValidation.safe) {
+          console.warn(
+            "[mealPlans.generate] effectiveAutonomyNotes enthält verdächtigen Inhalt – wird ignoriert",
+            { patientId: input.patientId }
+          );
+          effectiveAutonomyNotes = null;
+        }
+      }
 
       // Security: Prompt-Injection-Check auf Freitext-Eingabe
       if (input.additionalNotes) {
@@ -190,7 +203,6 @@ export const mealPlansRouter = router({
       setProgress(ctx.user.id, "Wird vorbereitet...", 0, input.numDays);
 
       let plan: Awaited<ReturnType<typeof generateMealPlan>>["plan"];
-      let prompt: string;
       try {
         const generated = await generateMealPlan(
           {
@@ -215,7 +227,6 @@ export const mealPlansRouter = router({
           }
         );
         plan = generated.plan;
-        prompt = generated.prompt;
       } catch (error) {
         const rawMessage =
           error instanceof Error ? error.message : "Unbekannter Generierungsfehler";
@@ -235,13 +246,16 @@ export const mealPlansRouter = router({
       );
 
       // Plan in DB speichern
+      // Sicherheitshinweis: promptUsed speichert nur Metadaten (kein PII).
+      // Der vollständige Prompt wird nicht persistiert (DSGVO Datensparsamkeit).
+      const promptMetadata = `model=gpt-4o-mini numDays=${input.numDays} fastMode=${input.fastMode} hasNotes=${!!input.additionalNotes} hasAutonomy=${!!effectiveAutonomyNotes}`;
       const mealPlan = await ctx.prisma.mealPlan.create({
         data: {
           patientId: input.patientId,
           weekStart: input.weekStart,
           planJson: plan as unknown as Prisma.InputJsonValue,
           totalKcal,
-          promptUsed: prompt,
+          promptUsed: promptMetadata,
           createdBy: ctx.user.id,
         },
       });

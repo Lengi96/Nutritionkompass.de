@@ -125,9 +125,11 @@ export async function sendVerificationEmail(
   const verifyUrl = `${getAppUrl()}/verify-email/confirm?token=${token}`;
 
   if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+    const tokenPrefix = token.substring(0, 8);
     console.log("\n========================================");
-    console.log("[DEV] Verifizierungs-Link für", email);
-    console.log(verifyUrl);
+    console.log("[DEV] Verifizierungs-Link für", maskedEmail);
+    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollständig nur in DB)`);
     console.log("========================================\n");
     return;
   }
@@ -150,9 +152,11 @@ export async function sendPasswordResetEmail(
   const resetUrl = `${getAppUrl()}/reset-password?token=${token}`;
 
   if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+    const tokenPrefix = token.substring(0, 8);
     console.log("\n========================================");
-    console.log("[DEV] Passwort-Reset-Link für", email);
-    console.log(resetUrl);
+    console.log("[DEV] Passwort-Reset-Link für", maskedEmail);
+    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollständig nur in DB)`);
     console.log("========================================\n");
     return;
   }
@@ -178,9 +182,11 @@ export async function sendStaffInvitationEmail(
   const inviteUrl = `${getAppUrl()}/invite?token=${token}`;
 
   if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+    const tokenPrefix = token.substring(0, 8);
     console.log("\n========================================");
-    console.log("[DEV] Einladungs-Link für", email);
-    console.log(inviteUrl);
+    console.log("[DEV] Einladungs-Link für", maskedEmail);
+    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollständig nur in DB)`);
     console.log("========================================\n");
     return;
   }

@@ -6,4 +6,12 @@ Sentry.init({
   tracesSampleRate: 0.1,
 
   debug: false,
+
+  beforeSend(event) {
+    // Request-Body nicht an Sentry senden (enthält Patientendaten)
+    if (event.request?.data) {
+      event.request.data = "[REDACTED]";
+    }
+    return event;
+  },
 });

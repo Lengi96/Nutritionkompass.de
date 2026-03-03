@@ -25,10 +25,12 @@ export const authRouter = router({
           .max(100),
         email: z
           .string()
-          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein."),
+          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein.")
+          .max(254, "E-Mail-Adresse darf maximal 254 Zeichen lang sein."),
         password: z
           .string()
-          .min(8, "Das Passwort muss mindestens 8 Zeichen lang sein."),
+          .min(8, "Das Passwort muss mindestens 8 Zeichen lang sein.")
+          .max(128, "Das Passwort darf maximal 128 Zeichen lang sein."),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -201,7 +203,8 @@ export const authRouter = router({
       z.object({
         email: z
           .string()
-          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein."),
+          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein.")
+          .max(254, "E-Mail-Adresse darf maximal 254 Zeichen lang sein."),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -308,7 +311,7 @@ export const authRouter = router({
   checkVerificationStatus: publicProcedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: z.string().email().max(254),
       })
     )
     .query(async ({ ctx, input }) => {

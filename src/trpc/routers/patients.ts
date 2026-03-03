@@ -26,9 +26,9 @@ export const patientsRouter = router({
           .min(30, "Zielgewicht muss mindestens 30 kg betragen.")
           .max(200, "Zielgewicht darf maximal 200 kg betragen."),
         targetDate: z.coerce.date().optional().nullable(),
-        allergies: z.array(z.string()),
-        notes: z.string().optional(),
-        autonomyNotes: z.string().optional(),
+        allergies: z.array(z.string().max(100)).max(30),
+        notes: z.string().max(2000).optional(),
+        autonomyNotes: z.string().max(1000).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
