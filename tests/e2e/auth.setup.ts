@@ -1,5 +1,8 @@
 import { test as setup, expect } from '@playwright/test';
 import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const authFile = path.join(process.cwd(), '.playwright/auth/user.json');
 
