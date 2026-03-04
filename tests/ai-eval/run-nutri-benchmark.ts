@@ -97,7 +97,14 @@ async function runJudge(
       prompt: JUDGE_USER_PROMPT_TEMPLATE(scenarioName, patientContext, planSummary),
       temperature: 0,
     });
-    return object;
+    return object as {
+      medicalScore: number;
+      complianceScore: number;
+      toneScore: number;
+      overallScore: number;
+      reasoning: string;
+      concerns: string[];
+    };
   } catch (err) {
     console.error(`  [Judge] Fehler: ${String(err)}`);
     return null;

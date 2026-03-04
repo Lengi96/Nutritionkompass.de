@@ -76,6 +76,6 @@ export default defineConfig({
   reporter: [
     ['html'],
     ['list'],
-    ...(process.env.CI ? [['junit', { outputFile: 'test-results/junit.xml' }]] : []),
+    ...(process.env.CI ? [['junit', { outputFile: 'test-results/junit.xml' }] as const] : []),
   ],
 });
