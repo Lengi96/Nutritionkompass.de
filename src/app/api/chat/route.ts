@@ -16,7 +16,7 @@
 import { streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { auth } from "@/server/auth";
 import { validateInput, sanitizeOutput } from "@/lib/ai-security/guardrails";
 
 // Rate Limiting: max 20 Chat-Requests pro User pro 15 Minuten
