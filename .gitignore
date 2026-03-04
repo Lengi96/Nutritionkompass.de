@@ -25,6 +25,8 @@
 .claude/
 .npm-cache/
 .npm-cache-promptfoo/
+.promptfoo/
+redteam.yaml
 
 # debug
 npm-debug.log*
