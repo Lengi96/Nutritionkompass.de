@@ -73,29 +73,29 @@ export default function LandingPage() {
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <LogoIcon className="h-9 w-9" />
-            <span className="text-xl font-bold text-[#2D5FA6]">mein-nutrikompass.de</span>
+            <span className="text-xl font-bold text-[#2E6F8F]">mein-nutrikompass.de</span>
           </Link>
 
           <div className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <a href="#problem" className="transition-colors hover:text-[#2D5FA6]">
+            <a href="#problem" className="transition-colors hover:text-[#2E6F8F]">
               Problem
             </a>
-            <a href="#loesung" className="transition-colors hover:text-[#2D5FA6]">
+            <a href="#loesung" className="transition-colors hover:text-[#2E6F8F]">
               Lösung
             </a>
-            <a href="#sicherheit" className="transition-colors hover:text-[#2D5FA6]">
+            <a href="#sicherheit" className="transition-colors hover:text-[#2E6F8F]">
               Sicherheit
             </a>
-            <a href="#preise" className="transition-colors hover:text-[#2D5FA6]">
+            <a href="#preise" className="transition-colors hover:text-[#2E6F8F]">
               Preise
             </a>
-            <a href="#faq" className="transition-colors hover:text-[#2D5FA6]">
+            <a href="#faq" className="transition-colors hover:text-[#2E6F8F]">
               FAQ
             </a>
-            <Link href="/impressum" className="transition-colors hover:text-[#2D5FA6]">
+            <Link href="/impressum" className="transition-colors hover:text-[#2E6F8F]">
               Impressum
             </Link>
-            <Link href="/datenschutz" className="transition-colors hover:text-[#2D5FA6]">
+            <Link href="/datenschutz" className="transition-colors hover:text-[#2E6F8F]">
               Datenschutz
             </Link>
           </div>
@@ -103,13 +103,13 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="hidden items-center rounded-xl px-4 py-2 text-sm font-medium text-[#2D5FA6] transition-colors hover:bg-[#2D5FA6]/5 sm:inline-flex"
+              className="hidden items-center rounded-xl px-4 py-2 text-sm font-medium text-[#2E6F8F] transition-colors hover:bg-[#2E6F8F]/5 sm:inline-flex"
             >
               Anmelden
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center rounded-xl bg-[#2D5FA6] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1F4580]"
+              className="inline-flex items-center rounded-xl bg-[#2E6F8F] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1F5870]"
             >
               14 Tage testen
             </Link>
@@ -117,11 +117,11 @@ export default function LandingPage() {
         </nav>
       </header>
 
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#EAF4FA]/60 via-transparent to-transparent">
         <div className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 sm:py-32 lg:px-8">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             Ernährungsplanung für Einrichtungen{" "}
-            <span className="text-[#2D5FA6]">klar, schnell, nachvollziehbar</span>
+            <span className="text-[#2E6F8F]">klar, schnell, nachvollziehbar</span>
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-gray-600 sm:text-xl">
             mein-nutrikompass.de unterstützt Teams in der Betreuung von Menschen mit
@@ -129,29 +129,29 @@ export default function LandingPage() {
             bleibt bei Ihrem Team.
           </p>
           <ul className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-3 text-left sm:grid-cols-3">
-            <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
-              <Clock3 aria-hidden="true" className="mb-2 h-5 w-5 text-[#2D5FA6]" />
+            <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
+              <Clock3 aria-hidden="true" className="mb-2 h-5 w-5 text-[#2E6F8F]" />
               Erste nutzbare Planung in wenigen Minuten
             </li>
-            <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
-              <Users aria-hidden="true" className="mb-2 h-5 w-5 text-[#2D5FA6]" />
+            <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
+              <Users aria-hidden="true" className="mb-2 h-5 w-5 text-[#2E6F8F]" />
               Weniger Abstimmungsaufwand im Team
             </li>
-            <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
-              <BadgeCheck aria-hidden="true" className="mb-2 h-5 w-5 text-[#2D5FA6]" />
+            <li className="rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
+              <BadgeCheck aria-hidden="true" className="mb-2 h-5 w-5 text-[#2E6F8F]" />
               Transparente Prozesse für Vertretung
             </li>
           </ul>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/register"
-              className="inline-flex items-center rounded-xl bg-[#2D5FA6] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#2D5FA6]/20 transition-colors hover:bg-[#1F4580]"
+              className="inline-flex items-center rounded-xl bg-gradient-to-r from-[#2E6F8F] to-[#3F8FB5] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[#2E6F8F]/25 transition-all hover:brightness-110 hover:shadow-xl"
             >
               14 Tage unverbindlich testen
             </Link>
             <a
               href={legalMailto(LEGAL.mailSubjects.demoRequest)}
-              className="inline-flex items-center rounded-xl border border-[#2D5FA6] bg-white px-8 py-3.5 text-base font-semibold text-[#2D5FA6] transition-colors hover:bg-[#2D5FA6]/5"
+              className="inline-flex items-center rounded-xl border border-[#2E6F8F] bg-white px-8 py-3.5 text-base font-semibold text-[#2E6F8F] transition-colors hover:bg-[#2E6F8F]/5"
             >
               Demo anfordern
             </a>
@@ -163,7 +163,11 @@ export default function LandingPage() {
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#5B94CC]/20 blur-3xl"
+          className="pointer-events-none absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#3F8FB5]/15 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-40 -bottom-20 h-[400px] w-[400px] rounded-full bg-[#2E6F8F]/10 blur-3xl"
         />
       </section>
 
@@ -206,8 +210,8 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D5FA6]/10">
-                <Sparkles aria-hidden="true" className="h-6 w-6 text-[#2D5FA6]" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E6F8F]/10">
+                <Sparkles aria-hidden="true" className="h-6 w-6 text-[#2E6F8F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">KI-Vorschläge</h3>
               <p className="text-sm text-gray-600">
@@ -216,8 +220,8 @@ export default function LandingPage() {
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D5FA6]/10">
-                <ShoppingCart aria-hidden="true" className="h-6 w-6 text-[#2D5FA6]" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E6F8F]/10">
+                <ShoppingCart aria-hidden="true" className="h-6 w-6 text-[#2E6F8F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">Einkaufslisten</h3>
               <p className="text-sm text-gray-600">
@@ -226,8 +230,8 @@ export default function LandingPage() {
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D5FA6]/10">
-                <FileDown aria-hidden="true" className="h-6 w-6 text-[#2D5FA6]" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E6F8F]/10">
+                <FileDown aria-hidden="true" className="h-6 w-6 text-[#2E6F8F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">PDF-Export</h3>
               <p className="text-sm text-gray-600">
@@ -236,8 +240,8 @@ export default function LandingPage() {
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2D5FA6]/10">
-                <Shield aria-hidden="true" className="h-6 w-6 text-[#2D5FA6]" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E6F8F]/10">
+                <Shield aria-hidden="true" className="h-6 w-6 text-[#2E6F8F]" />
               </div>
               <h3 className="mb-2 text-lg font-semibold">Sicherheitsfokus</h3>
               <p className="text-sm text-gray-600">
@@ -250,7 +254,7 @@ export default function LandingPage() {
           <div className="mt-10 text-center">
             <a
               href="#funktionsweise"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#2D5FA6] bg-[#2D5FA6] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1F4580]"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#2E6F8F] bg-[#2E6F8F] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1F5870]"
             >
               Prozess ansehen <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </a>
@@ -272,20 +276,20 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
-              <p className="text-3xl font-extrabold text-[#2D5FA6]">3</p>
+            <div className="rounded-xl border border-[#B8D8E8] bg-gradient-to-br from-white to-[#EAF4FA] p-6 text-center shadow-sm">
+              <p className="text-3xl font-extrabold text-[#2E6F8F]">3</p>
               <p className="mt-1 text-sm text-gray-600">
                 Stufen im Planmodell (Test, Basis, Professional)
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
-              <p className="text-3xl font-extrabold text-[#2D5FA6]">1-14</p>
+            <div className="rounded-xl border border-[#B8D8E8] bg-gradient-to-br from-white to-[#EAF4FA] p-6 text-center shadow-sm">
+              <p className="text-3xl font-extrabold text-[#2E6F8F]">1-14</p>
               <p className="mt-1 text-sm text-gray-600">
                 Tage pro Plan als flexibler Planungszeitraum
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
-              <p className="text-3xl font-extrabold text-[#2D5FA6]">3 / 10</p>
+            <div className="rounded-xl border border-[#B8D8E8] bg-gradient-to-br from-white to-[#EAF4FA] p-6 text-center shadow-sm">
+              <p className="text-3xl font-extrabold text-[#2E6F8F]">3 / 10</p>
               <p className="mt-1 text-sm text-gray-600">
                 Test-Limits: aktive Patienten / Pläne pro Monat
               </p>
@@ -300,8 +304,9 @@ export default function LandingPage() {
             <h2 className="text-3xl font-bold sm:text-4xl">In drei Schritten startklar</h2>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="rounded-xl border border-gray-200 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#2D5FA6]">
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <span aria-hidden="true" className="pointer-events-none select-none absolute right-3 top-1 text-8xl font-extrabold text-[#2E6F8F]/6">1</span>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#2E6F8F]">
                 Schritt 1
               </p>
               <p className="mt-2 text-base font-semibold">Konto erstellen</p>
@@ -309,8 +314,9 @@ export default function LandingPage() {
                 Teamzugang anlegen und relevante Profilangaben strukturiert erfassen.
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#2D5FA6]">
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <span aria-hidden="true" className="pointer-events-none select-none absolute right-3 top-1 text-8xl font-extrabold text-[#2E6F8F]/6">2</span>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#2E6F8F]">
                 Schritt 2
               </p>
               <p className="mt-2 text-base font-semibold">Vorschlag prüfen</p>
@@ -318,8 +324,9 @@ export default function LandingPage() {
                 KI-Vorschläge fachlich kontrollieren und bei Bedarf anpassen.
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#2D5FA6]">
+            <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <span aria-hidden="true" className="pointer-events-none select-none absolute right-3 top-1 text-8xl font-extrabold text-[#2E6F8F]/6">3</span>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#2E6F8F]">
                 Schritt 3
               </p>
               <p className="mt-2 text-base font-semibold">Freigeben und exportieren</p>
@@ -345,40 +352,40 @@ export default function LandingPage() {
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <p className="mb-4 flex items-center gap-2 text-base font-semibold">
-                <Lock aria-hidden="true" className="h-5 w-5 text-[#2D5FA6]" />
+                <Lock aria-hidden="true" className="h-5 w-5 text-[#2E6F8F]" />
                 Datenschutz und Sicherheit
               </p>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   Rollen- und Rechtekonzept für kontrollierten Zugriff
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   AVV (Auftragsverarbeitungsvertrag) auf Anfrage verfügbar
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   Hinweise zu Speicherfristen und Ansprechpartnern
                 </li>
               </ul>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <p className="mb-4 flex items-center gap-2 text-base font-semibold">
-                <Bot aria-hidden="true" className="h-5 w-5 text-[#2D5FA6]" />
+                <Bot aria-hidden="true" className="h-5 w-5 text-[#2E6F8F]" />
                 Transparenz zu KI-Funktionen
               </p>
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   KI erstellt Vorschläge, keine automatischen Therapieentscheidungen
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   Fachliche Prüfung vor Nutzung ist verpflichtend
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   Kein Heilversprechen, kein Ersatz für medizinische Betreuung
                 </li>
               </ul>
@@ -406,25 +413,25 @@ export default function LandingPage() {
               <p className="mt-2 text-sm text-gray-600">14 Tage, unverbindlich</p>
               <ul className="mt-8 flex-1 space-y-3">
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   KI-Vorschläge, Einkaufslisten und PDF-Export
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   Maximal 3 Bewohnerinnen und Bewohner
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   10 Pläne pro Monat
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   E-Mail-Support
                 </li>
               </ul>
               <Link
                 href="/register"
-                className="mt-8 inline-flex items-center justify-center rounded-xl border border-[#2D5FA6] bg-white px-6 py-3 text-sm font-semibold text-[#2D5FA6] transition-colors hover:bg-[#2D5FA6]/5"
+                className="mt-8 inline-flex items-center justify-center rounded-xl border border-[#2E6F8F] bg-white px-6 py-3 text-sm font-semibold text-[#2E6F8F] transition-colors hover:bg-[#2E6F8F]/5"
               >
                 Test starten
               </Link>
@@ -439,28 +446,28 @@ export default function LandingPage() {
               <p className="mt-2 text-sm text-gray-600">Für kleinere Einrichtungen</p>
               <ul className="mt-8 flex-1 space-y-3">
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   Bis 15 Bewohnerinnen und Bewohner
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   50 Pläne pro Monat
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2D5FA6]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#2E6F8F]" />
                   E-Mail-Support
                 </li>
               </ul>
               <Link
                 href="/register?plan=basic"
-                className="mt-8 inline-flex items-center justify-center rounded-xl border border-[#2D5FA6] bg-white px-6 py-3 text-sm font-semibold text-[#2D5FA6] transition-colors hover:bg-[#2D5FA6]/5"
+                className="mt-8 inline-flex items-center justify-center rounded-xl border border-[#2E6F8F] bg-white px-6 py-3 text-sm font-semibold text-[#2E6F8F] transition-colors hover:bg-[#2E6F8F]/5"
               >
                 Basis wählen
               </Link>
             </div>
 
-            <div className="relative flex flex-col rounded-xl border-2 border-[#2D5FA6] bg-[#2D5FA6] p-8 text-white shadow-xl">
-              <div className="absolute -top-3 right-6 rounded-full bg-[#5B94CC] px-3 py-1 text-xs font-bold text-[#1A1A2E]">
+            <div className="relative flex flex-col rounded-xl border-2 border-[#2E6F8F] bg-[#2E6F8F] p-8 text-white shadow-xl">
+              <div className="absolute -top-3 right-6 rounded-full bg-[#3F8FB5] px-3 py-1 text-xs font-bold text-[#1A1A2E]">
                 Beliebt
               </div>
               <h3 className="text-lg font-semibold">Professional</h3>
@@ -471,21 +478,21 @@ export default function LandingPage() {
               <p className="mt-2 text-sm text-white/80">Für wachsende Einrichtungen</p>
               <ul className="mt-8 flex-1 space-y-3">
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#5B94CC]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#3F8FB5]" />
                   Unbegrenzt Bewohnerinnen und Bewohner
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#5B94CC]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#3F8FB5]" />
                   Unbegrenzt Pläne
                 </li>
                 <li className="flex items-start gap-2 text-sm">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#5B94CC]" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#3F8FB5]" />
                   Prioritäts-Support
                 </li>
               </ul>
               <Link
                 href="/register?plan=professional"
-                className="mt-8 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#2D5FA6] transition-colors hover:bg-gray-100"
+                className="mt-8 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#2E6F8F] transition-colors hover:bg-gray-100"
               >
                 Professional wählen
               </Link>
@@ -502,13 +509,13 @@ export default function LandingPage() {
               <li>Zahlungsabwicklung erfolgt im Checkout über Stripe.</li>
               <li>
                 Rechtliche Details:{" "}
-                <Link href="/agb" className="underline underline-offset-2 hover:text-[#2D5FA6]">
+                <Link href="/agb" className="underline underline-offset-2 hover:text-[#2E6F8F]">
                   AGB
                 </Link>{" "}
                 und{" "}
                 <Link
                   href="/datenschutz"
-                  className="underline underline-offset-2 hover:text-[#2D5FA6]"
+                  className="underline underline-offset-2 hover:text-[#2E6F8F]"
                 >
                   Datenschutz
                 </Link>
@@ -546,7 +553,7 @@ export default function LandingPage() {
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2D5FA6]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2E6F8F]">
               Vertrauen im Alltag
             </p>
             <h2
@@ -565,11 +572,11 @@ export default function LandingPage() {
             {testimonials.map((quote, index) => (
               <figure
                 key={index}
-                className="flex h-full w-[88%] shrink-0 snap-start flex-col rounded-2xl border border-gray-200 bg-[#F8F9FA] p-6 shadow-sm sm:w-auto sm:shrink"
+                className="flex h-full w-[88%] shrink-0 snap-start flex-col rounded-2xl border border-[#B8D8E8] bg-white p-6 shadow-sm sm:w-auto sm:shrink"
               >
-                <div className="mb-4 h-px w-14 bg-[#2D5FA6]/30" />
-                <blockquote className="text-sm leading-7 text-gray-700">
-                  &bdquo;{quote}&ldquo;
+                <div className="mb-2 font-serif text-5xl font-bold leading-none text-[#2E6F8F]/20 select-none">&ldquo;</div>
+                <blockquote className="flex-1 text-sm italic leading-7 text-gray-700">
+                  {quote}
                 </blockquote>
               </figure>
             ))}
@@ -577,7 +584,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-gray-200 bg-white py-20">
+      <section className="border-y border-gray-200 bg-gradient-to-br from-[#EAF4FA]/50 via-white to-[#EAF4FA]/50 py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold sm:text-4xl">
             Bereit für strukturierte Ernährungsplanung?
@@ -589,13 +596,13 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-xl bg-[#2D5FA6] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#2D5FA6]/20 transition-colors hover:bg-[#1F4580]"
+              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#2E6F8F] to-[#3F8FB5] px-8 py-3 text-sm font-semibold text-white shadow-md shadow-[#2E6F8F]/20 transition-all hover:brightness-110"
             >
               14 Tage kostenlos testen
             </Link>
             <a
               href={legalMailto(LEGAL.mailSubjects.demoRequest)}
-              className="inline-flex items-center justify-center rounded-xl border border-[#2D5FA6] bg-white px-8 py-3 text-sm font-semibold text-[#2D5FA6] transition-colors hover:bg-[#2D5FA6]/5"
+              className="inline-flex items-center justify-center rounded-xl border border-[#2E6F8F] bg-white px-8 py-3 text-sm font-semibold text-[#2E6F8F] transition-colors hover:bg-[#2E6F8F]/5"
             >
               Demo anfordern
             </a>
@@ -611,20 +618,20 @@ export default function LandingPage() {
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
             <Link href="/" className="flex items-center gap-2">
               <LogoIcon className="h-7 w-7" />
-              <span className="text-lg font-bold text-[#2D5FA6]">mein-nutrikompass.de</span>
+              <span className="text-lg font-bold text-[#2E6F8F]">mein-nutrikompass.de</span>
             </Link>
 
             <div className="flex items-center gap-6 text-sm text-gray-600">
-              <Link href="/impressum" className="transition-colors hover:text-[#2D5FA6]">
+              <Link href="/impressum" className="transition-colors hover:text-[#2E6F8F]">
                 Impressum
               </Link>
-              <Link href="/datenschutz" className="transition-colors hover:text-[#2D5FA6]">
+              <Link href="/datenschutz" className="transition-colors hover:text-[#2E6F8F]">
                 Datenschutz
               </Link>
-              <Link href="/agb" className="transition-colors hover:text-[#2D5FA6]">
+              <Link href="/agb" className="transition-colors hover:text-[#2E6F8F]">
                 AGB
               </Link>
-              <Link href="/avv" className="transition-colors hover:text-[#2D5FA6]">
+              <Link href="/avv" className="transition-colors hover:text-[#2E6F8F]">
                 AVV
               </Link>
             </div>
@@ -640,7 +647,7 @@ export default function LandingPage() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 p-3 backdrop-blur md:hidden">
         <Link
           href="/register"
-          className="inline-flex w-full items-center justify-center rounded-xl bg-[#2D5FA6] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1F4580]"
+          className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#2E6F8F] to-[#3F8FB5] px-5 py-3 text-sm font-semibold text-white transition-all hover:brightness-110"
         >
           14 Tage unverbindlich testen
         </Link>
