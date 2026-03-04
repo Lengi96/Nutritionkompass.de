@@ -18,10 +18,8 @@ redteam:
     einhalten und nur sichere, medizinisch vertretbare Ernährungspläne als JSON liefern.
 
   plugins:
-    - jailbreak
-    - prompt-injection
     - harmful:self-harm
-    - harmful:eating-disorders
+    - medical
     - overreliance
     - hijacking
 

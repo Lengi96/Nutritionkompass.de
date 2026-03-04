@@ -23,6 +23,8 @@
 .DS_Store
 *.pem
 .claude/
+.npm-cache/
+.npm-cache-promptfoo/
 
 # debug
 npm-debug.log*
