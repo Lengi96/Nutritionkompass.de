@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Compass, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,10 +76,16 @@ export default function LoginPage() {
     <div className="w-full max-w-md px-4">
       <Card className="shadow-sm rounded-xl">
         <CardHeader className="text-center pb-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Compass className="h-10 w-10 text-primary" />
+          <div className="flex items-center justify-center mb-4">
+            <Image
+              src="/logo.png"
+              alt="Mein NutriKompass"
+              width={220}
+              height={50}
+              className="h-12 w-auto"
+              priority
+            />
           </div>
-          <h1 className="text-2xl font-bold text-text-main">mein-nutrikompass.de</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Bitte melden Sie sich an
           </p>

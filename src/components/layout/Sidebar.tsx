@@ -13,8 +13,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  Compass,
 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -120,9 +120,15 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-6">
-        <Compass className="h-7 w-7 text-primary" />
-        <span className="text-xl font-bold text-text-main">mein-nutrikompass.de</span>
+      <div className="flex items-center px-4 py-5">
+        <Image
+          src="/logo.png"
+          alt="Mein NutriKompass"
+          width={180}
+          height={41}
+          className="h-10 w-auto"
+          priority
+        />
       </div>
 
       <Separator className="mb-4" />
