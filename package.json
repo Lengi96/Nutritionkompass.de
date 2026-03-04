@@ -98,7 +98,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "ai": "^4.3.16",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.3.1",
     "eslint": "^8",
     "eslint-config-next": "^15.5.10",
     "exceljs": "^4.4.0",
