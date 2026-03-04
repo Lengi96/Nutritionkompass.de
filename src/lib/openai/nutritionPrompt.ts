@@ -51,6 +51,7 @@ interface PatientForPrompt {
   currentWeight: number;
   targetWeight: number;
   allergies: string[];
+  fearFoods?: string[] | null;
   autonomyNotes?: string | null;
 }
 
@@ -102,12 +103,17 @@ function buildPatientBasePrompt(patient: PatientForPrompt, additionalNotes?: str
   const age = currentYear - patient.birthYear;
   const allergiesText =
     patient.allergies.length > 0 ? patient.allergies.join(", ") : "Keine bekannt";
+  const fearFoodsText =
+    patient.fearFoods && patient.fearFoods.length > 0
+      ? patient.fearFoods.join(", ")
+      : null;
   const notesText = additionalNotes || "Keine besonderen Hinweise";
   const autonomyText = patient.autonomyNotes || "Keine Absprachen";
 
   return {
     age,
     allergiesText,
+    fearFoodsText,
     notesText,
     autonomyText,
   };
@@ -522,7 +528,7 @@ export async function generateMealPlan(
   const fixedMealTypes = options?.fixedMealTypes ?? [];
   const onProgress = options?.onProgress;
   const dayNames = Array.from({ length: numDays }, (_, index) => getDayNameByIndex(index));
-  const { age, allergiesText, notesText, autonomyText } = buildPatientBasePrompt(
+  const { age, allergiesText, fearFoodsText, notesText, autonomyText } = buildPatientBasePrompt(
     patient,
     additionalNotes
   );
@@ -594,7 +600,7 @@ Regeln:
 - Alter: ${age}
 - Aktuelles Gewicht: ${patient.currentWeight} kg
 - Zielgewicht: ${patient.targetWeight} kg
-- Allergien/Unverträglichkeiten: ${allergiesText}
+- Allergien/Unverträglichkeiten: ${allergiesText}${fearFoodsText ? `\n- Angst-/Triggerlebensmittel (UNBEDINGT VERMEIDEN): ${fearFoodsText}` : ""}
 - Besondere Hinweise: ${notesText}
 - Selbstständigkeit/Absprachen: ${autonomyText}
 ${fixedMealTypes.length > 0 ? `- Feste Mahlzeiten (täglich gleich): ${fixedMealTypes.join(", ")}` : ""}

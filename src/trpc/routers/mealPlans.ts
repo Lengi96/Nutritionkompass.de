@@ -210,6 +210,7 @@ export const mealPlansRouter = router({
             currentWeight: Number(patient.currentWeight),
             targetWeight: Number(patient.targetWeight),
             allergies: patient.allergies,
+            fearFoods: patient.fearFoods,
             autonomyNotes: effectiveAutonomyNotes,
           },
           notes || undefined,

@@ -84,6 +84,7 @@ model Patient {
   targetWeight   Decimal       @db.Decimal(5, 2)
   targetDate     DateTime?     // Optionales Zieldatum für Gewichtsziel
   allergies      String[]
+  fearFoods      String[]      // Angst-/Triggerlebensmittel (Essstörungstherapie)
   notes          String?
   autonomyNotes  String?       // Legacy – wird durch AutonomyAgreement ersetzt
   isActive       Boolean       @default(true)

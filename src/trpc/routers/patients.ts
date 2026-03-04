@@ -27,6 +27,7 @@ export const patientsRouter = router({
           .max(200, "Zielgewicht darf maximal 200 kg betragen."),
         targetDate: z.coerce.date().optional().nullable(),
         allergies: z.array(z.string().max(100)).max(30),
+        fearFoods: z.array(z.string().max(100)).max(50).optional(),
         notes: z.string().max(2000).optional(),
         autonomyNotes: z.string().max(1000).optional(),
       })
@@ -159,6 +160,7 @@ export const patientsRouter = router({
         targetWeight: z.number().min(30).max(200).optional(),
         targetDate: z.coerce.date().optional().nullable(),
         allergies: z.array(z.string()).optional(),
+        fearFoods: z.array(z.string().max(100)).max(50).optional(),
         notes: z.string().optional(),
         autonomyNotes: z.string().optional().nullable(),
       })

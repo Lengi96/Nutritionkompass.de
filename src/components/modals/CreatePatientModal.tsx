@@ -63,6 +63,7 @@ const createPatientSchema = z
       .max(200, "Zielgewicht darf maximal 200 kg betragen."),
     targetDate: z.string().optional(),
     allergies: z.array(z.string()),
+    fearFoodsText: z.string().optional(),
     notes: z.string().optional(),
   })
   .refine(
@@ -114,6 +115,7 @@ export function CreatePatientModal({
     defaultValues: {
       pseudonym: "",
       allergies: [],
+      fearFoodsText: "",
       notes: "",
     },
   });
@@ -139,8 +141,13 @@ export function CreatePatientModal({
 
   function onSubmit(data: CreatePatientFormData) {
     setInlineFeedback(null);
+    const { fearFoodsText, ...rest } = data;
+    const fearFoods = fearFoodsText
+      ? fearFoodsText.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
     createPatient.mutate({
-      ...data,
+      ...rest,
+      fearFoods,
       targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
     });
   }
@@ -303,6 +310,23 @@ export function CreatePatientModal({
                 </div>
               )}
             />
+          </div>
+
+          {/* Angst-/Triggerlebensmittel */}
+          <div className="space-y-2">
+            <Label htmlFor="fearFoods">
+              Angst-/Triggerlebensmittel (optional)
+            </Label>
+            <Textarea
+              id="fearFoods"
+              className="rounded-xl"
+              placeholder="z.B. Käse, Butter, Sahne (kommagetrennt)"
+              rows={2}
+              {...register("fearFoodsText")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Diese Lebensmittel werden bei der Plan-Generierung automatisch ausgeschlossen.
+            </p>
           </div>
 
           {/* Notizen */}

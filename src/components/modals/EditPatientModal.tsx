@@ -41,6 +41,7 @@ const editPatientSchema = z.object({
     .max(200, "Zielgewicht darf maximal 200 kg betragen."),
   targetDate: z.string().optional(),
   allergies: z.array(z.string()),
+  fearFoodsText: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -53,6 +54,7 @@ interface PatientData {
   targetWeight: number | string;
   targetDate?: string | Date | null;
   allergies: string[];
+  fearFoods?: string[] | null;
   notes?: string | null;
 }
 
@@ -89,6 +91,7 @@ export function EditPatientModal({
         ? new Date(patient.targetDate).toISOString().slice(0, 10)
         : "",
       allergies: patient.allergies,
+      fearFoodsText: patient.fearFoods?.join(", ") ?? "",
       notes: patient.notes || "",
     },
   });
@@ -103,6 +106,7 @@ export function EditPatientModal({
           ? new Date(patient.targetDate).toISOString().slice(0, 10)
           : "",
         allergies: patient.allergies,
+        fearFoodsText: patient.fearFoods?.join(", ") ?? "",
         notes: patient.notes || "",
       });
       setInlineFeedback(null);
@@ -125,12 +129,16 @@ export function EditPatientModal({
 
   function onSubmit(data: EditPatientFormData) {
     setInlineFeedback(null);
+    const fearFoods = data.fearFoodsText
+      ? data.fearFoodsText.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
     updatePatient.mutate({
       id: patient.id,
       currentWeight: data.currentWeight,
       targetWeight: data.targetWeight,
       targetDate: data.targetDate ? new Date(data.targetDate) : null,
       allergies: data.allergies,
+      fearFoods,
       notes: data.notes || "",
     });
   }
@@ -236,6 +244,23 @@ export function EditPatientModal({
                 </div>
               )}
             />
+          </div>
+
+          {/* Angst-/Triggerlebensmittel */}
+          <div className="space-y-2">
+            <Label htmlFor="editFearFoods">
+              Angst-/Triggerlebensmittel (optional)
+            </Label>
+            <Textarea
+              id="editFearFoods"
+              className="rounded-xl"
+              placeholder="z.B. Käse, Butter, Sahne (kommagetrennt)"
+              rows={2}
+              {...register("fearFoodsText")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Diese Lebensmittel werden bei der Plan-Generierung automatisch ausgeschlossen.
+            </p>
           </div>
 
           {/* Notizen */}

@@ -317,6 +317,28 @@ export default function PatientDetailPage() {
               </CardContent>
             </Card>
 
+            {patient.fearFoods && patient.fearFoods.length > 0 && (
+              <Card className="rounded-xl shadow-sm border-amber-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-amber-700">
+                    Angst-/Triggerlebensmittel
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-1">
+                    {patient.fearFoods.map((food) => (
+                      <span
+                        key={food}
+                        className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800"
+                      >
+                        {food}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="rounded-xl shadow-sm">
               <CardHeader>
                 <CardTitle className="text-sm text-muted-foreground">
@@ -515,6 +537,7 @@ export default function PatientDetailPage() {
           targetWeight: Number(patient.targetWeight),
           targetDate: patient.targetDate,
           allergies: patient.allergies,
+          fearFoods: patient.fearFoods,
           notes: patient.notes,
         }}
         onSuccess={() => {
