@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { LogoIcon } from "@/components/ui/LogoIcon";
 import { LandingShowcase } from "@/components/landing/LandingShowcase";
 import { LEGAL, legalMailto } from "@/config/legal";
 import {
@@ -71,8 +71,9 @@ export default function LandingPage() {
 
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur">
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center">
-            <Image src="/logo.png" alt="Mein NutriKompass" width={160} height={36} className="h-9 w-auto" priority />
+          <Link href="/" className="flex items-center gap-2">
+            <LogoIcon className="h-9 w-9" />
+            <span className="text-xl font-bold text-[#2D5FA6]">mein-nutrikompass.de</span>
           </Link>
 
           <div className="hidden items-center gap-6 text-sm font-medium md:flex">
@@ -608,8 +609,9 @@ export default function LandingPage() {
       <footer className="border-t border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <Link href="/" className="flex items-center">
-              <Image src="/logo.png" alt="Mein NutriKompass" width={130} height={30} className="h-8 w-auto" />
+            <Link href="/" className="flex items-center gap-2">
+              <LogoIcon className="h-7 w-7" />
+              <span className="text-lg font-bold text-[#2D5FA6]">mein-nutrikompass.de</span>
             </Link>
 
             <div className="flex items-center gap-6 text-sm text-gray-600">

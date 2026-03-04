@@ -14,7 +14,7 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
-import Image from "next/image";
+import { LogoIcon } from "@/components/ui/LogoIcon";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -120,15 +120,9 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex items-center px-4 py-5">
-        <Image
-          src="/logo.png"
-          alt="Mein NutriKompass"
-          width={180}
-          height={41}
-          className="h-10 w-auto"
-          priority
-        />
+      <div className="flex items-center gap-2 px-4 py-5">
+        <LogoIcon className="h-9 w-9 shrink-0" />
+        <span className="text-base font-bold text-text-main">mein-nutrikompass.de</span>
       </div>
 
       <Separator className="mb-4" />
