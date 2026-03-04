@@ -99,7 +99,7 @@
     "@types/react-dom": "^18",
     "ai": "^4.3.16",
     "dotenv": "^16.4.5",
-    "eslint": "^8",
+    "eslint": "^10",
     "eslint-config-next": "^15.5.10",
     "exceljs": "^4.4.0",
     "pdf-parse": "^2.4.5",
