@@ -19,7 +19,7 @@ export default function AVVPage() {
           className="inline-flex items-center gap-1.5 text-sm text-[#2D6A4F] hover:underline mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          Zur&uuml;ck zur Datenschutzerkl&auml;rung
+          Zurück zur Datenschutzerklärung
         </Link>
 
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2D6A4F] mb-2">
@@ -29,7 +29,7 @@ export default function AVVPage() {
           Auftragsverarbeitungsvertrag
         </h1>
         <p className="text-gray-600 mb-10">
-          gem&auml;&szlig; Art.&thinsp;28 DS-GVO
+          gemäß Art.&thinsp;28 DS-GVO
         </p>
 
         {/* Info box */}
@@ -40,11 +40,11 @@ export default function AVVPage() {
           <p>
             Dieser Auftragsverarbeitungsvertrag (AVV) regelt die Verarbeitung
             personenbezogener Daten durch mein-nutrikompass.de im Auftrag
-            Ihrer Einrichtung. Er ist gem&auml;&szlig; Art.&thinsp;28 DSGVO
+            Ihrer Einrichtung. Er ist gemäß Art.&thinsp;28 DSGVO
             verpflichtend, bevor Patientendaten in den Dienst eingegeben werden.
           </p>
           <p>
-            Bitte senden Sie eine ausgef&uuml;llte und unterzeichnete Version
+            Bitte senden Sie eine ausgefüllte und unterzeichnete Version
             an{" "}
             <a
               href={legalMailto(LEGAL.mailSubjects.avvExecution)}
@@ -109,8 +109,8 @@ export default function AVVPage() {
           </div>
 
           <p className="text-sm text-gray-700 leading-relaxed mt-4">
-            Auftraggeber und Auftragnehmer schlie&szlig;en folgenden
-            Auftragsverarbeitungsvertrag (AVV) gem&auml;&szlig;
+            Auftraggeber und Auftragnehmer schließen folgenden
+            Auftragsverarbeitungsvertrag (AVV) gemäß
             Art.&thinsp;28 DS-GVO ab (nachfolgend &bdquo;Vertrag&ldquo;):
           </p>
         </section>
@@ -124,16 +124,16 @@ export default function AVVPage() {
             (1) Der Auftragnehmer verarbeitet personenbezogene Daten im
             Auftrag des Auftraggebers im Rahmen der Bereitstellung und
             Nutzung des webbasierten SaaS-Dienstes mein-nutrikompass.de
-            (nachfolgend &bdquo;Dienst&ldquo;) gem&auml;&szlig; den
-            zugrunde liegenden Allgemeinen Gesch&auml;ftsbedingungen (AGB)
+            (nachfolgend &bdquo;Dienst&ldquo;) gemäß den
+            zugrunde liegenden Allgemeinen Geschäftsbedingungen (AGB)
             sowie den vertraglichen Vereinbarungen zwischen den Parteien.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (2) Die Laufzeit dieses Vertrages entspricht der Laufzeit des
-            Hauptvertrages (&uuml;ber die Nutzung des Dienstes). Er endet
+            Hauptvertrages (über die Nutzung des Dienstes). Er endet
             automatisch mit Beendigung des Hauptvertrages, es sei denn, die
-            Parteien haben eine gesonderte Regelung zur Datenl&ouml;schung
-            oder &ndash;r&uuml;ckgabe vereinbart.
+            Parteien haben eine gesonderte Regelung zur Datenlöschung
+            oder &ndash;rückgabe vereinbart.
           </p>
         </section>
 
@@ -144,19 +144,19 @@ export default function AVVPage() {
           </h2>
           <p className="text-gray-700 leading-relaxed">
             (1) <strong>Art der Verarbeitung:</strong> Erhebung, Speicherung,
-            Verarbeitung, &Uuml;bermittlung an KI-Dienste (pseudonymisiert),
-            Strukturierung und L&ouml;schung personenbezogener Daten.
+            Verarbeitung, Übermittlung an KI-Dienste (pseudonymisiert),
+            Strukturierung und Löschung personenbezogener Daten.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
-            (2) <strong>Zweck:</strong> KI-gest&uuml;tzte Erstellung von
-            Ern&auml;hrungspl&auml;nen, Generierung von Einkaufslisten,
+            (2) <strong>Zweck:</strong> KI-gestützte Erstellung von
+            Ernährungsplänen, Generierung von Einkaufslisten,
             PDF-Export sowie Handover-Dokumentation im Rahmen der Betreuung
-            von Personen mit Essst&ouml;rungen in der jeweiligen Einrichtung
+            von Personen mit Essstörungen in der jeweiligen Einrichtung
             des Auftraggebers.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (3) <strong>Kategorien betroffener Personen:</strong> Patienten
-            und Bewohner der Einrichtung des Auftraggebers (ausschlie&szlig;lich
+            und Bewohner der Einrichtung des Auftraggebers (ausschließlich
             in pseudonymisierter Form ohne Klarnamen).
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
@@ -164,37 +164,37 @@ export default function AVVPage() {
           </p>
           <ul className="mt-2 list-disc list-inside text-gray-700 space-y-1.5 ml-4">
             <li>
-              Pseudonyme/K&uuml;rzel (keine Klarnamen), Alter, Geschlecht
+              Pseudonyme/Kürzel (keine Klarnamen), Alter, Geschlecht
             </li>
             <li>
-              Diagnose-K&uuml;rzel und Ern&auml;hrungsdiagnosen
-              (z.&thinsp;B. Essst&ouml;rungstyp)
+              Diagnose-Kürzel und Ernährungsdiagnosen
+              (z.&thinsp;B. Essstörungstyp)
             </li>
             <li>
-              Ern&auml;hrungspr&auml;ferenzen, Unvertr&auml;glichkeiten,
+              Ernährungspräferenzen, Unverträglichkeiten,
               Allergien
             </li>
             <li>
-              K&ouml;rpergewicht, Zielgewicht, Energiebedarf (kkal)
+              Körpergewicht, Zielgewicht, Energiebedarf (kkal)
             </li>
             <li>
-              Erstellte Ern&auml;hrungspl&auml;ne und Einkaufslisten
+              Erstellte Ernährungspläne und Einkaufslisten
             </li>
             <li>
               Nutzungsdaten der Mitarbeiter des Auftraggebers (Login-Zeiten,
-              bearbeitete Datens&auml;tze)
+              bearbeitete Datensätze)
             </li>
           </ul>
           <p className="text-gray-700 leading-relaxed mt-3">
             (5) <strong>Besondere Kategorien (Art.&thinsp;9 DSGVO):</strong>{" "}
-            Die verarbeiteten Diagnosedaten k&ouml;nnen Gesundheitsdaten im
+            Die verarbeiteten Diagnosedaten können Gesundheitsdaten im
             Sinne von Art.&thinsp;9 Abs.&thinsp;1 DSGVO darstellen. Der
             Auftraggeber ist verpflichtet, sicherzustellen, dass die
             Verarbeitung dieser Daten auf einer geeigneten Rechtsgrundlage
-            gem&auml;&szlig; Art.&thinsp;9 Abs.&thinsp;2 DSGVO beruht.
+            gemäß Art.&thinsp;9 Abs.&thinsp;2 DSGVO beruht.
             <strong>
               {" "}
-              Es d&uuml;rfen ausschlie&szlig;lich pseudonymisierte Daten
+              Es dürfen ausschließlich pseudonymisierte Daten
               ohne direkte Identifizierungsmerkmale eingegeben werden.
             </strong>
           </p>
@@ -207,26 +207,26 @@ export default function AVVPage() {
           </h2>
           <p className="text-gray-700 leading-relaxed">
             (1) Der Auftragnehmer verarbeitet die personenbezogenen Daten
-            ausschlie&szlig;lich auf dokumentierte Weisung des Auftraggebers
-            &ndash; auch in Bezug auf die &Uuml;bermittlung
+            ausschließlich auf dokumentierte Weisung des Auftraggebers
+            &ndash; auch in Bezug auf die Übermittlung
             personenbezogener Daten an ein Drittland oder eine internationale
             Organisation &ndash;, es sei denn, er ist durch das Recht der
             Union oder der Mitgliedstaaten, dem der Auftragnehmer
             unterliegt, zur Verarbeitung verpflichtet.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
-            (2) Weisungen erteilt der Auftraggeber grunds&auml;tzlich
-            schriftlich. In dringenden F&auml;llen k&ouml;nnen Weisungen
-            m&uuml;ndlich erteilt werden; diese sind unverz&uuml;glich
-            schriftlich zu best&auml;tigen.
+            (2) Weisungen erteilt der Auftraggeber grundsätzlich
+            schriftlich. In dringenden Fällen können Weisungen
+            mündlich erteilt werden; diese sind unverzüglich
+            schriftlich zu bestätigen.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (3) Der Auftragnehmer informiert den Auftraggeber
-            unverz&uuml;glich, wenn er der Auffassung ist, eine Weisung
-            verst&ouml;&szlig;t gegen datenschutzrechtliche Bestimmungen.
-            Der Auftragnehmer ist berechtigt, die Ausf&uuml;hrung der
+            unverzüglich, wenn er der Auffassung ist, eine Weisung
+            verstößt gegen datenschutzrechtliche Bestimmungen.
+            Der Auftragnehmer ist berechtigt, die Ausführung der
             betreffenden Weisung so lange auszusetzen, bis der Auftraggeber
-            sie best&auml;tigt oder ge&auml;ndert hat.
+            sie bestätigt oder geändert hat.
           </p>
         </section>
 
@@ -240,7 +240,7 @@ export default function AVVPage() {
             Vertraulichkeit
           </h3>
           <p className="text-gray-700 leading-relaxed">
-            (1) Der Auftragnehmer gew&auml;hrleistet, dass alle Personen,
+            (1) Der Auftragnehmer gewährleistet, dass alle Personen,
             die mit der Verarbeitung der personenbezogenen Daten des
             Auftraggebers betraut sind, zur Vertraulichkeit verpflichtet
             wurden oder einer angemessenen gesetzlichen
@@ -248,57 +248,57 @@ export default function AVVPage() {
           </p>
 
           <h3 className="font-semibold text-[#1A1A2E] mt-4 mb-2">
-            Technische und organisatorische Ma&szlig;nahmen (TOMs)
+            Technische und organisatorische Maßnahmen (TOMs)
           </h3>
           <p className="text-gray-700 leading-relaxed">
             (2) Der Auftragnehmer trifft alle nach Art.&thinsp;32 DSGVO
-            erforderlichen Ma&szlig;nahmen zur Sicherung der Verarbeitung.
+            erforderlichen Maßnahmen zur Sicherung der Verarbeitung.
             Die zum Zeitpunkt des Vertragsschlusses implementierten TOMs
             sind in <strong>Anlage&thinsp;2</strong> dieses Vertrages
-            aufgef&uuml;hrt. Der Auftragnehmer ist berechtigt, die
-            Ma&szlig;nahmen fortzuschreiben und anzupassen, sofern das
+            aufgeführt. Der Auftragnehmer ist berechtigt, die
+            Maßnahmen fortzuschreiben und anzupassen, sofern das
             Sicherheitsniveau nicht unterschritten wird.
           </p>
 
           <h3 className="font-semibold text-[#1A1A2E] mt-4 mb-2">
-            Unterst&uuml;tzung bei Betroffenenrechten
+            Unterstützung bei Betroffenenrechten
           </h3>
           <p className="text-gray-700 leading-relaxed">
-            (3) Der Auftragnehmer unterst&uuml;tzt den Auftraggeber unter
-            Ber&uuml;cksichtigung der Art der Verarbeitung durch geeignete
-            technische und organisatorische Ma&szlig;nahmen dabei, seinen
-            Verpflichtungen zur Beantwortung von Antr&auml;gen auf
+            (3) Der Auftragnehmer unterstützt den Auftraggeber unter
+            Berücksichtigung der Art der Verarbeitung durch geeignete
+            technische und organisatorische Maßnahmen dabei, seinen
+            Verpflichtungen zur Beantwortung von Anträgen auf
             Wahrnehmung der Rechte der betroffenen Personen
             nachzukommen.
           </p>
 
           <h3 className="font-semibold text-[#1A1A2E] mt-4 mb-2">
-            Unterst&uuml;tzung bei Datenschutzpflichten
+            Unterstützung bei Datenschutzpflichten
           </h3>
           <p className="text-gray-700 leading-relaxed">
-            (4) Der Auftragnehmer unterst&uuml;tzt den Auftraggeber
+            (4) Der Auftragnehmer unterstützt den Auftraggeber
             bei der Einhaltung der in den Art.&thinsp;32 bis 36 DSGVO
             genannten Pflichten (Datensicherheit, Meldung von
-            Datenpannen, Datenschutz-Folgenabsch&auml;tzung und
+            Datenpannen, Datenschutz-Folgenabschätzung und
             vorherige Konsultation).
           </p>
 
           <h3 className="font-semibold text-[#1A1A2E] mt-4 mb-2">
-            R&uuml;ckgabe und L&ouml;schung
+            Rückgabe und Löschung
           </h3>
           <p className="text-gray-700 leading-relaxed">
             (5) Nach Abschluss der Erbringung der Verarbeitungsleistungen
-            l&ouml;scht oder gibt der Auftragnehmer nach Wahl des
-            Auftraggebers alle personenbezogenen Daten zur&uuml;ck und
-            l&ouml;scht vorhandene Kopien, sofern nicht nach dem Recht
+            löscht oder gibt der Auftragnehmer nach Wahl des
+            Auftraggebers alle personenbezogenen Daten zurück und
+            löscht vorhandene Kopien, sofern nicht nach dem Recht
             der Union oder der Mitgliedstaaten eine Verpflichtung zur
             Speicherung der personenbezogenen Daten besteht.
           </p>
           <p className="text-gray-700 leading-relaxed mt-2">
             Der Auftraggeber hat nach Vertragsbeendigung
-            30&nbsp;Tage Zeit, seine Daten &uuml;ber die
+            30&nbsp;Tage Zeit, seine Daten über die
             Export-Funktion des Dienstes selbst zu exportieren.
-            Danach werden alle Daten unwiderruflich gel&ouml;scht.
+            Danach werden alle Daten unwiderruflich gelöscht.
           </p>
 
           <h3 className="font-semibold text-[#1A1A2E] mt-4 mb-2">
@@ -306,12 +306,12 @@ export default function AVVPage() {
           </h3>
           <p className="text-gray-700 leading-relaxed">
             (6) Der Auftragnehmer stellt dem Auftraggeber alle
-            Informationen zur Verf&uuml;gung, die zur Nachweisf&uuml;hrung
+            Informationen zur Verfügung, die zur Nachweisführung
             der Einhaltung der in Art.&thinsp;28 DSGVO niedergelegten
-            Pflichten erforderlich sind, und erm&ouml;glicht Audits
-            einschlie&szlig;lich Inspektionen, die vom Auftraggeber oder
-            einem anderen vom Auftraggeber beauftragten Pr&uuml;fer
-            durchgef&uuml;hrt werden, und tr&auml;gt zu diesen bei.
+            Pflichten erforderlich sind, und ermöglicht Audits
+            einschließlich Inspektionen, die vom Auftraggeber oder
+            einem anderen vom Auftraggeber beauftragten Prüfer
+            durchgeführt werden, und trägt zu diesen bei.
           </p>
         </section>
 
@@ -321,25 +321,25 @@ export default function AVVPage() {
             &sect;&thinsp;5 &ndash; Pflichten des Auftraggebers
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            (1) Der Auftraggeber ist im Verh&auml;ltnis zum Auftragnehmer
-            allein Verantwortlicher f&uuml;r die Rechtm&auml;&szlig;igkeit
+            (1) Der Auftraggeber ist im Verhältnis zum Auftragnehmer
+            allein Verantwortlicher für die Rechtmäßigkeit
             der Verarbeitung der personenbezogenen Daten,
-            insbesondere f&uuml;r die Beurteilung der Zul&auml;ssigkeit
+            insbesondere für die Beurteilung der Zulässigkeit
             der Datenverarbeitung und die Wahrung der Rechte der
             betroffenen Personen.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
-            (2) Der Auftraggeber ist verpflichtet, ausschlie&szlig;lich
+            (2) Der Auftraggeber ist verpflichtet, ausschließlich
             pseudonymisierte Daten ohne Klarnamen in den Dienst
-            einzugeben. Die fachliche Verantwortung f&uuml;r alle
-            generierten Ern&auml;hrungspl&auml;ne liegt beim qualifizierten
+            einzugeben. Die fachliche Verantwortung für alle
+            generierten Ernährungspläne liegt beim qualifizierten
             Fachpersonal des Auftraggebers.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (3) Der Auftraggeber informiert den Auftragnehmer
-            unverz&uuml;glich und vollst&auml;ndig, wenn er bei der
-            Pr&uuml;fung der Auftragsergebnisse Fehler oder
-            Unregelm&auml;&szlig;igkeiten bez&uuml;glich
+            unverzüglich und vollständig, wenn er bei der
+            Prüfung der Auftragsergebnisse Fehler oder
+            Unregelmäßigkeiten bezüglich
             datenschutzrechtlicher Bestimmungen feststellt.
           </p>
         </section>
@@ -351,32 +351,32 @@ export default function AVVPage() {
             Datenschutzverletzungen
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            (1) Der Auftragnehmer unterst&uuml;tzt den Auftraggeber bei
-            der Einhaltung seiner Meldepflichten gem&auml;&szlig;
+            (1) Der Auftragnehmer unterstützt den Auftraggeber bei
+            der Einhaltung seiner Meldepflichten gemäß
             Art.&thinsp;33 und 34 DSGVO. Er meldet dem Auftraggeber
             Verletzungen des Schutzes personenbezogener Daten
-            unverz&uuml;glich, sobald er davon Kenntnis erh&auml;lt,
-            sp&auml;testens jedoch innerhalb von
+            unverzüglich, sobald er davon Kenntnis erhält,
+            spätestens jedoch innerhalb von
             <strong> 72&nbsp;Stunden</strong>.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (2) Die Meldung erfolgt per E-Mail an die vom Auftraggeber
-            hinterlegte Kontaktadresse und enth&auml;lt mindestens:
+            hinterlegte Kontaktadresse und enthält mindestens:
           </p>
           <ul className="mt-2 list-disc list-inside text-gray-700 space-y-1 ml-4">
-            <li>Art der Verletzung (soweit m&ouml;glich)</li>
+            <li>Art der Verletzung (soweit möglich)</li>
             <li>
-              Kategorien und ungef&auml;hre Anzahl betroffener Personen
+              Kategorien und ungefähre Anzahl betroffener Personen
             </li>
             <li>
-              Kategorien und ungef&auml;hre Anzahl betroffener
-              Datens&auml;tze
+              Kategorien und ungefähre Anzahl betroffener
+              Datensätze
             </li>
             <li>
               Wahrscheinliche Folgen der Datenschutzverletzung
             </li>
             <li>
-              Ergriffene oder vorgeschlagene Ma&szlig;nahmen zur Behebung
+              Ergriffene oder vorgeschlagene Maßnahmen zur Behebung
             </li>
           </ul>
         </section>
@@ -384,17 +384,17 @@ export default function AVVPage() {
         {/* ── § 7 Unterauftragnehmer ───────────────────────── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            &sect;&thinsp;7 &ndash; Unterauftragsverh&auml;ltnisse
+            &sect;&thinsp;7 &ndash; Unterauftragsverhältnisse
           </h2>
           <p className="text-gray-700 leading-relaxed">
             (1) Der Auftraggeber erteilt dem Auftragnehmer hiermit die
             allgemeine Genehmigung zur Hinzuziehung der in{" "}
-            <strong>Anlage&thinsp;1</strong> aufgef&uuml;hrten weiteren
+            <strong>Anlage&thinsp;1</strong> aufgeführten weiteren
             Auftragsverarbeiter (Unterauftragnehmer). Der Auftragnehmer
-            informiert den Auftraggeber rechtzeitig &uuml;ber beabsichtigte
-            &Auml;nderungen in Bezug auf die Hinzuziehung oder Ersetzung
+            informiert den Auftraggeber rechtzeitig über beabsichtigte
+            Änderungen in Bezug auf die Hinzuziehung oder Ersetzung
             weiterer Auftragsverarbeiter, damit der Auftraggeber die
-            M&ouml;glichkeit hat, Einw&auml;nde zu erheben.
+            Möglichkeit hat, Einwände zu erheben.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (2) Der Auftragnehmer legt seinen Unterauftragnehmern
@@ -402,7 +402,7 @@ export default function AVVPage() {
             wie sie in diesem Vertrag enthalten sind.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
-            (3) Werden Daten in Drittl&auml;nder &uuml;bermittelt
+            (3) Werden Daten in Drittländer übermittelt
             (insbesondere an OpenAI, USA), erfolgt dies auf Grundlage
             der EU-Standardvertragsklauseln (Art.&thinsp;46 Abs.&thinsp;2
             lit.&thinsp;c DSGVO) oder anderer geeigneter Garantien.
@@ -412,26 +412,26 @@ export default function AVVPage() {
         {/* ── § 8 Kontrollrechte ───────────────────────────── */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
-            &sect;&thinsp;8 &ndash; Kontroll- und Pr&uuml;fungsrechte
+            &sect;&thinsp;8 &ndash; Kontroll- und Prüfungsrechte
           </h2>
           <p className="text-gray-700 leading-relaxed">
             (1) Der Auftraggeber ist berechtigt, die Einhaltung der
-            Vorschriften &uuml;ber den Datenschutz und der vertraglichen
+            Vorschriften über den Datenschutz und der vertraglichen
             Vereinbarungen beim Auftragnehmer in angemessenem Umfang zu
             kontrollieren oder durch im Einzelfall zu benennende
-            Pr&uuml;fer kontrollieren zu lassen.
+            Prüfer kontrollieren zu lassen.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (2) Der Auftragnehmer kann als gleichwertigen Nachweis
             aktuelle Zertifizierungen, Auditberichte oder
-            Eigenausk&uuml;nfte vorlegen. Umfassendere Vor-Ort-Pr&uuml;fungen
-            sind nach vorheriger Ank&uuml;ndigung von mindestens
-            14&nbsp;Tagen m&ouml;glich und d&uuml;rfen den
-            Gesch&auml;ftsbetrieb nicht unzumutbar beeintr&auml;chtigen.
+            Eigenauskünfte vorlegen. Umfassendere Vor-Ort-Prüfungen
+            sind nach vorheriger Ankündigung von mindestens
+            14&nbsp;Tagen möglich und dürfen den
+            Geschäftsbetrieb nicht unzumutbar beeinträchtigen.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
-            (3) Kosten einer Pr&uuml;fung tr&auml;gt der Auftraggeber,
-            es sei denn, die Pr&uuml;fung ergibt wesentliche
+            (3) Kosten einer Prüfung trägt der Auftraggeber,
+            es sei denn, die Prüfung ergibt wesentliche
             Pflichtverletzungen des Auftragnehmers.
           </p>
         </section>
@@ -443,20 +443,20 @@ export default function AVVPage() {
           </h2>
           <p className="text-gray-700 leading-relaxed">
             (1) Dieser Vertrag unterliegt dem Recht der Bundesrepublik
-            Deutschland. Erf&uuml;llungsort und Gerichtsstand ist, soweit
-            gesetzlich zul&auml;ssig, Dortmund.
+            Deutschland. Erfüllungsort und Gerichtsstand ist, soweit
+            gesetzlich zulässig, Dortmund.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
-            (2) &Auml;nderungen und Erg&auml;nzungen dieses Vertrages
-            bed&uuml;rfen der Schriftform oder einer gleichwertigen
-            elektronischen Form. Dies gilt auch f&uuml;r das Abweichen
+            (2) Änderungen und Ergänzungen dieses Vertrages
+            bedürfen der Schriftform oder einer gleichwertigen
+            elektronischen Form. Dies gilt auch für das Abweichen
             vom Schriftformerfordernis selbst.
           </p>
           <p className="text-gray-700 leading-relaxed mt-3">
             (3) Sollten einzelne Bestimmungen dieses Vertrages ganz oder
-            teilweise unwirksam oder undurchf&uuml;hrbar sein oder
-            werden, ber&uuml;hrt dies die G&uuml;ltigkeit der
-            &uuml;brigen Bestimmungen nicht.
+            teilweise unwirksam oder undurchführbar sein oder
+            werden, berührt dies die Gültigkeit der
+            übrigen Bestimmungen nicht.
           </p>
         </section>
 
@@ -495,7 +495,7 @@ export default function AVVPage() {
           </h2>
           <p className="text-sm text-gray-500 mb-8">
             Stand: Februar&nbsp;2026 &ndash; Der Auftragnehmer wird den
-            Auftraggeber &uuml;ber &Auml;nderungen informieren.
+            Auftraggeber über Änderungen informieren.
           </p>
 
           <div className="space-y-4">
@@ -546,8 +546,8 @@ export default function AVVPage() {
                 </span>
               </div>
               <p className="text-sm text-gray-700 mt-3">
-                <strong>Zweck:</strong> KI-gest&uuml;tzte Generierung von
-                Ern&auml;hrungspl&auml;nen via API (GPT-4)
+                <strong>Zweck:</strong> KI-gestützte Generierung von
+                Ernährungsplänen via API (GPT-4)
               </p>
               <p className="text-sm text-gray-700 mt-1">
                 <strong>Serverstandort:</strong> USA
@@ -556,15 +556,15 @@ export default function AVVPage() {
                 <strong>Rechtsgrundlage:</strong>{" "}
                 EU-Standardvertragsklauseln gem. Art.&thinsp;46
                 Abs.&thinsp;2 lit.&thinsp;c DSGVO; OpenAI verpflichtet
-                sich, API-Daten nicht f&uuml;r Modelltraining zu verwenden
+                sich, API-Daten nicht für Modelltraining zu verwenden
               </p>
               <p className="text-sm text-gray-700 mt-1">
                 <strong>Datenkategorien:</strong>{" "}
                 <strong>
-                  Ausschlie&szlig;lich pseudonymisierte Daten
+                  Ausschließlich pseudonymisierte Daten
                 </strong>{" "}
-                (Alter, Geschlecht, Diagnose-K&uuml;rzel,
-                Ern&auml;hrungspr&auml;ferenzen). Keine Klarnamen, keine
+                (Alter, Geschlecht, Diagnose-Kürzel,
+                Ernährungspräferenzen). Keine Klarnamen, keine
                 direkten Identifikationsmerkmale.
               </p>
             </div>
@@ -643,7 +643,7 @@ export default function AVVPage() {
               </div>
               <p className="text-sm text-gray-700 mt-3">
                 <strong>Zweck:</strong> Abonnementverwaltung und
-                Zahlungsabwicklung (Kreditkarte, SEPA) f&uuml;r den SaaS-Dienst
+                Zahlungsabwicklung (Kreditkarte, SEPA) für den SaaS-Dienst
               </p>
               <p className="text-sm text-gray-700 mt-1">
                 <strong>Serverstandort:</strong> EU (Irland) und USA
@@ -651,7 +651,7 @@ export default function AVVPage() {
               <p className="text-sm text-gray-700 mt-1">
                 <strong>Rechtsgrundlage:</strong>{" "}
                 Art.&thinsp;6 Abs.&thinsp;1 lit.&thinsp;b DSGVO
-                (Vertragserf&uuml;llung); EU-Standardvertragsklauseln gem.
+                (Vertragserfüllung); EU-Standardvertragsklauseln gem.
                 Art.&thinsp;46 Abs.&thinsp;2 lit.&thinsp;c DSGVO;
                 Stripe DPA (Data Processing Agreement) abgeschlossen
               </p>
@@ -671,10 +671,10 @@ export default function AVVPage() {
             Anlage 2
           </p>
           <h2 className="text-2xl font-bold mb-2">
-            Technische und organisatorische Ma&szlig;nahmen (TOMs)
+            Technische und organisatorische Maßnahmen (TOMs)
           </h2>
           <p className="text-sm text-gray-500 mb-8">
-            gem&auml;&szlig; Art.&thinsp;32 DSGVO &ndash; Stand:
+            gemäß Art.&thinsp;32 DSGVO &ndash; Stand:
             Februar&nbsp;2026
           </p>
 
@@ -686,20 +686,20 @@ export default function AVVPage() {
               </p>
               <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside ml-2">
                 <li>
-                  HTTPS/TLS-Verschl&uuml;sselung f&uuml;r alle
-                  Daten&uuml;bertragungen (TLS 1.2/1.3)
+                  HTTPS/TLS-Verschlüsselung für alle
+                  Datenübertragungen (TLS 1.2/1.3)
                 </li>
                 <li>
-                  Passwortgesch&uuml;tzte Benutzerkonten mit
+                  Passwortgeschützte Benutzerkonten mit
                   Mindestanforderungen (8 Zeichen)
                 </li>
                 <li>
                   Optional: Zwei-Faktor-Authentifizierung
-                  (2FA) f&uuml;r Nutzerkonten
+                  (2FA) für Nutzerkonten
                 </li>
                 <li>
                   Automatischer Session-Timeout nach
-                  Inaktivit&auml;t
+                  Inaktivität
                 </li>
                 <li>
                   Sichere Passwort-Reset-Prozesse mit
@@ -723,7 +723,7 @@ export default function AVVPage() {
                   jeder Nutzer sieht nur eigene Organisations-Daten
                 </li>
                 <li>
-                  Mandantenf&auml;higkeit: strikte Datentrennung
+                  Mandantenfähigkeit: strikte Datentrennung
                   zwischen verschiedenen Einrichtungen
                 </li>
                 <li>
@@ -736,17 +736,17 @@ export default function AVVPage() {
             {/* Weitergabekontrolle */}
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <p className="font-semibold text-[#1A1A2E] mb-2">
-                3. Weitergabekontrolle (Unbefugte &Uuml;bermittlung verhindern)
+                3. Weitergabekontrolle (Unbefugte Übermittlung verhindern)
               </p>
               <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside ml-2">
                 <li>
-                  Verschl&uuml;sselter Datentransport (HTTPS/TLS)
-                  f&uuml;r alle API-Kommunikation
+                  Verschlüsselter Datentransport (HTTPS/TLS)
+                  für alle API-Kommunikation
                 </li>
                 <li>
                   An KI-Dienste (OpenAI) werden{" "}
-                  <strong>ausschlie&szlig;lich pseudonymisierte</strong>{" "}
-                  Daten &uuml;bermittelt
+                  <strong>ausschließlich pseudonymisierte</strong>{" "}
+                  Daten übermittelt
                 </li>
                 <li>
                   Keine Weitergabe von Patientendaten an Dritte
@@ -765,16 +765,16 @@ export default function AVVPage() {
               </p>
               <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside ml-2">
                 <li>
-                  Aktivit&auml;tslogs: Wer hat wann welchen Datensatz
-                  erstellt, ge&auml;ndert oder gel&ouml;scht
+                  Aktivitätslogs: Wer hat wann welchen Datensatz
+                  erstellt, geändert oder gelöscht
                 </li>
                 <li>
-                  Versionierung von Ern&auml;hrungspl&auml;nen
+                  Versionierung von Ernährungsplänen
                   (Handover-Dokumentation)
                 </li>
                 <li>
                   Datenbankebene: atomare Transaktionen,
-                  keine unbemerkten Daten&auml;nderungen
+                  keine unbemerkten Datenänderungen
                 </li>
               </ul>
             </div>
@@ -782,18 +782,18 @@ export default function AVVPage() {
             {/* Verfügbarkeitskontrolle */}
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <p className="font-semibold text-[#1A1A2E] mb-2">
-                5. Verf&uuml;gbarkeitskontrolle (Datensicherung)
+                5. Verfügbarkeitskontrolle (Datensicherung)
               </p>
               <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside ml-2">
                 <li>
-                  Automatische t&auml;gliche Backups durch Supabase
+                  Automatische tägliche Backups durch Supabase
                   (Point-in-Time Recovery, PITR)
                 </li>
                 <li>
-                  Redundante Infrastruktur &uuml;ber AWS (Frankfurt)
+                  Redundante Infrastruktur über AWS (Frankfurt)
                 </li>
                 <li>
-                  Monitoring der Systemverf&uuml;gbarkeit
+                  Monitoring der Systemverfügbarkeit
                 </li>
                 <li>
                   Daten werden nicht lokal beim Auftragnehmer gespeichert
@@ -809,15 +809,15 @@ export default function AVVPage() {
               <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside ml-2">
                 <li>
                   Technisches Design: das System fordert keine Klarnamen
-                  f&uuml;r Patienten (nur K&uuml;rzel/IDs)
+                  für Patienten (nur Kürzel/IDs)
                 </li>
                 <li>
-                  Datensparsamkeit: es werden nur die f&uuml;r die
-                  Ern&auml;hrungsplanung notwendigen Datenfelder
+                  Datensparsamkeit: es werden nur die für die
+                  Ernährungsplanung notwendigen Datenfelder
                   bereitgestellt
                 </li>
                 <li>
-                  UI-Hinweise f&uuml;r Mitarbeiter zur Pseudonymisierungspflicht
+                  UI-Hinweise für Mitarbeiter zur Pseudonymisierungspflicht
                 </li>
               </ul>
             </div>
@@ -846,7 +846,7 @@ export default function AVVPage() {
             {/* Organisatorische Maßnahmen */}
             <div className="rounded-xl border border-gray-200 bg-white p-5">
               <p className="font-semibold text-[#1A1A2E] mb-2">
-                8. Organisatorische Ma&szlig;nahmen
+                8. Organisatorische Maßnahmen
               </p>
               <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside ml-2">
                 <li>
@@ -858,12 +858,12 @@ export default function AVVPage() {
                   DSGVO-Compliance verpflichtet (AVVs abgeschlossen)
                 </li>
                 <li>
-                  Incident-Response-Prozess f&uuml;r
+                  Incident-Response-Prozess für
                   Datenschutzverletzungen (72h-Meldepflicht)
                 </li>
                 <li>
-                  Regelm&auml;&szlig;ige &Uuml;berpr&uuml;fung und
-                  Aktualisierung der Sicherheitsma&szlig;nahmen
+                  Regelmäßige Überprüfung und
+                  Aktualisierung der Sicherheitsmaßnahmen
                 </li>
               </ul>
             </div>
@@ -888,7 +888,7 @@ export default function AVVPage() {
             href="/datenschutz"
             className="hover:text-[#2D6A4F] transition-colors"
           >
-            Datenschutzerkl&auml;rung
+            Datenschutzerklärung
           </Link>
           <Link href="/agb" className="hover:text-[#2D6A4F] transition-colors">
             AGB
