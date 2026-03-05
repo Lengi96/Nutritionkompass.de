@@ -518,7 +518,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header mit Greeting + CTA */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-text-main">
             {greeting}, {firstName}

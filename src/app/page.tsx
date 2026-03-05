@@ -699,13 +699,21 @@ export default function LandingPage() {
 
       {/* Mobile sticky CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-100 bg-white/95 p-3 backdrop-blur-md md:hidden">
-        <Link
-          href="/register"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-surface-hover"
-        >
-          14 Tage unverbindlich testen
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 shrink-0"
+          >
+            Anmelden
+          </Link>
+          <Link
+            href="/register"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-surface-hover"
+          >
+            14 Tage testen
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </div>
   );
