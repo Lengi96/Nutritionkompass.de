@@ -66,6 +66,16 @@ export const billingRouter = router({
       });
 
       let customerId = org.stripeCustomerId;
+      if (customerId) {
+        try {
+          await stripe.customers.retrieve(customerId);
+        } catch {
+          // Customer-ID kann aus einem anderen Stripe-Modus (test/live) stammen.
+          // In diesem Fall neue Customer erstellen und lokal speichern.
+          customerId = null;
+        }
+      }
+
       if (!customerId) {
         const customer = await stripe.customers.create({
           email: ctx.session.user.email!,
@@ -109,10 +119,26 @@ export const billingRouter = router({
       });
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: org.stripeCustomerId,
-      return_url: `${process.env.NEXTAUTH_URL}/billing`,
-    });
+    let session;
+    try {
+      session = await stripe.billingPortal.sessions.create({
+        customer: org.stripeCustomerId,
+        return_url: `${process.env.NEXTAUTH_URL}/billing`,
+      });
+    } catch (error) {
+      // Typischer Fall nach Wechsel zwischen Test- und Live-Schlüsseln.
+      await ctx.prisma.organization.update({
+        where: { id: org.id },
+        data: { stripeCustomerId: null, stripeSubscriptionId: null },
+      });
+
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          "Stripe-Kundendaten wurden zurückgesetzt. Bitte starten Sie den Checkout erneut.",
+        cause: error,
+      });
+    }
 
     return { url: session.url };
   }),
