@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+﻿import { Resend } from "resend";
 
 let resendClient: Resend | null = null;
 
@@ -17,19 +17,25 @@ function getResendClient(): Resend {
 }
 
 function getFromAddress(): string {
-  return process.env.EMAIL_FROM || "mein-nutrikompass.de <onboarding@resend.dev>";
+  return process.env.EMAIL_FROM || "mein-nutrikompass.de <noreply@mein-nutrikompass.de>";
+}
+
+function getReplyToAddress(): string | undefined {
+  return process.env.EMAIL_REPLY_TO || undefined;
 }
 
 function getAppUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
-// ── Shared Email Wrapper ──────────────────────────────────────────
-function emailWrapper(content: string): string {
+function emailWrapper(preheader: string, content: string): string {
   return `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background-color:#F8F9FA;font-family:Inter,system-ui,-apple-system,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    ${preheader}
+  </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F8F9FA;padding:40px 20px;">
     <tr><td align="center">
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
@@ -55,20 +61,19 @@ function ctaButton(url: string, text: string): string {
   return `<a href="${url}" style="display:inline-block;background-color:#2D6A4F;color:#FFFFFF;font-weight:600;font-size:15px;padding:12px 32px;border-radius:8px;text-decoration:none;">${text}</a>`;
 }
 
-// ── Verification Email (= Welcome Email) ──────────────────────────
 function buildVerificationEmailHtml(name: string, verifyUrl: string): string {
-  return emailWrapper(`
+  return emailWrapper("Bitte bestaetigen Sie Ihre E-Mail-Adresse fuer mein-nutrikompass.de.", `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
       Willkommen bei mein-nutrikompass.de, ${name}!
     </h2>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
-      Vielen Dank f&uuml;r Ihre Registrierung. Sie haben eine <strong>14-t&auml;gige kostenlose Testphase</strong> mit vollem Zugang zu allen Funktionen.
+      Vielen Dank fuer Ihre Registrierung. Sie haben eine <strong>14-taegige kostenlose Testphase</strong> mit vollem Zugang zu allen Funktionen.
     </p>
     <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
-      Bitte best&auml;tigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren:
+      Bitte bestaetigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren:
     </p>
     <div style="text-align:center;margin:0 0 24px;">
-      ${ctaButton(verifyUrl, "E-Mail best&auml;tigen")}
+      ${ctaButton(verifyUrl, "E-Mail bestaetigen")}
     </div>
     <p style="margin:0 0 8px;font-size:13px;color:#6B7280;">
       Oder kopieren Sie diesen Link in Ihren Browser:
@@ -77,22 +82,18 @@ function buildVerificationEmailHtml(name: string, verifyUrl: string): string {
       ${verifyUrl}
     </p>
     <p style="margin:0;font-size:13px;color:#9CA3AF;">
-      Falls Sie sich nicht bei mein-nutrikompass.de registriert haben, k&ouml;nnen Sie diese E-Mail ignorieren.
+      Falls Sie sich nicht bei mein-nutrikompass.de registriert haben, koennen Sie diese E-Mail ignorieren.
     </p>
   `);
 }
 
-// ── Password Reset Email ──────────────────────────────────────────
-function buildPasswordResetEmailHtml(
-  name: string,
-  resetUrl: string
-): string {
-  return emailWrapper(`
+function buildPasswordResetEmailHtml(name: string, resetUrl: string): string {
+  return emailWrapper("Setzen Sie jetzt Ihr Passwort fuer mein-nutrikompass.de zurueck.", `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
-      Passwort zur&uuml;cksetzen
+      Passwort zuruecksetzen
     </h2>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
-      Hallo ${name}, wir haben eine Anfrage zum Zur&uuml;cksetzen Ihres Passworts erhalten.
+      Hallo ${name}, wir haben eine Anfrage zum Zuruecksetzen Ihres Passworts erhalten.
     </p>
     <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
       Klicken Sie auf den folgenden Button, um ein neues Passwort zu setzen:
@@ -107,102 +108,12 @@ function buildPasswordResetEmailHtml(
       ${resetUrl}
     </p>
     <p style="margin:0 0 8px;font-size:13px;color:#EF4444;font-weight:600;">
-      Dieser Link ist 1 Stunde g&uuml;ltig.
+      Dieser Link ist 1 Stunde gueltig.
     </p>
     <p style="margin:0;font-size:13px;color:#9CA3AF;">
-      Falls Sie diese Anfrage nicht gestellt haben, k&ouml;nnen Sie diese E-Mail ignorieren. Ihr Passwort bleibt unver&auml;ndert.
+      Falls Sie diese Anfrage nicht gestellt haben, koennen Sie diese E-Mail ignorieren. Ihr Passwort bleibt unveraendert.
     </p>
   `);
-}
-
-// ── Public Email Functions ────────────────────────────────────────
-
-export async function sendVerificationEmail(
-  email: string,
-  name: string,
-  token: string
-): Promise<void> {
-  const verifyUrl = `${getAppUrl()}/verify-email/confirm?token=${token}`;
-
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
-    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
-    const tokenPrefix = token.substring(0, 8);
-    console.log("\n========================================");
-    console.log("[DEV] Verifizierungs-Link für", maskedEmail);
-    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollständig nur in DB)`);
-    console.log("========================================\n");
-    return;
-  }
-
-  const resend = getResendClient();
-  await resend.emails.send({
-    from: getFromAddress(),
-    to: email,
-    subject:
-      "Willkommen bei mein-nutrikompass.de – Bitte bestätigen Sie Ihre E-Mail",
-    html: buildVerificationEmailHtml(name, verifyUrl),
-  });
-}
-
-export async function sendPasswordResetEmail(
-  email: string,
-  name: string,
-  token: string
-): Promise<void> {
-  const resetUrl = `${getAppUrl()}/reset-password?token=${token}`;
-
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
-    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
-    const tokenPrefix = token.substring(0, 8);
-    console.log("\n========================================");
-    console.log("[DEV] Passwort-Reset-Link für", maskedEmail);
-    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollständig nur in DB)`);
-    console.log("========================================\n");
-    return;
-  }
-
-  const resend = getResendClient();
-  await resend.emails.send({
-    from: getFromAddress(),
-    to: email,
-    subject: "mein-nutrikompass.de – Passwort zurücksetzen",
-    html: buildPasswordResetEmailHtml(name, resetUrl),
-  });
-}
-
-// ── Staff Invitation Email ────────────────────────────────────────
-
-export async function sendStaffInvitationEmail(
-  email: string,
-  inviteeName: string,
-  organizationName: string,
-  inviterName: string,
-  token: string
-): Promise<void> {
-  const inviteUrl = `${getAppUrl()}/invite?token=${token}`;
-
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
-    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
-    const tokenPrefix = token.substring(0, 8);
-    console.log("\n========================================");
-    console.log("[DEV] Einladungs-Link für", maskedEmail);
-    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollständig nur in DB)`);
-    console.log("========================================\n");
-    return;
-  }
-
-  const resend = getResendClient();
-  await resend.emails.send({
-    from: getFromAddress(),
-    to: email,
-    subject: `mein-nutrikompass.de – Einladung zu ${organizationName}`,
-    html: buildStaffInvitationEmailHtml(
-      inviteeName,
-      organizationName,
-      inviterName,
-      inviteUrl
-    ),
-  });
 }
 
 function buildStaffInvitationEmailHtml(
@@ -211,7 +122,7 @@ function buildStaffInvitationEmailHtml(
   inviterName: string,
   inviteUrl: string
 ): string {
-  return emailWrapper(`
+  return emailWrapper(`Einladung zu ${orgName} auf mein-nutrikompass.de.`, `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
       Einladung zu ${orgName}
     </h2>
@@ -231,10 +142,148 @@ function buildStaffInvitationEmailHtml(
       ${inviteUrl}
     </p>
     <p style="margin:0 0 8px;font-size:13px;color:#EF4444;font-weight:600;">
-      Diese Einladung ist 7 Tage g&uuml;ltig.
+      Diese Einladung ist 7 Tage gueltig.
     </p>
     <p style="margin:0;font-size:13px;color:#9CA3AF;">
-      Falls Sie diese Einladung nicht erwartet haben, k&ouml;nnen Sie diese E-Mail ignorieren.
+      Falls Sie diese Einladung nicht erwartet haben, koennen Sie diese E-Mail ignorieren.
     </p>
   `);
+}
+
+function buildVerificationEmailText(name: string, verifyUrl: string): string {
+  return [
+    `Willkommen bei mein-nutrikompass.de, ${name}!`,
+    "",
+    "Bitte bestaetigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren:",
+    verifyUrl,
+    "",
+    "Falls Sie sich nicht registriert haben, ignorieren Sie diese Nachricht.",
+  ].join("\n");
+}
+
+function buildPasswordResetEmailText(name: string, resetUrl: string): string {
+  return [
+    `Hallo ${name},`,
+    "",
+    "wir haben eine Anfrage zum Zuruecksetzen Ihres Passworts erhalten.",
+    "Nutzen Sie dafuer diesen Link:",
+    resetUrl,
+    "",
+    "Der Link ist 1 Stunde gueltig.",
+    "Falls die Anfrage nicht von Ihnen stammt, ignorieren Sie diese Nachricht.",
+  ].join("\n");
+}
+
+function buildStaffInvitationEmailText(
+  name: string,
+  orgName: string,
+  inviterName: string,
+  inviteUrl: string
+): string {
+  return [
+    `Hallo ${name},`,
+    "",
+    `${inviterName} hat Sie zu ${orgName} auf mein-nutrikompass.de eingeladen.`,
+    "Einladung annehmen:",
+    inviteUrl,
+    "",
+    "Die Einladung ist 7 Tage gueltig.",
+    "Falls Sie diese Einladung nicht erwartet haben, ignorieren Sie diese Nachricht.",
+  ].join("\n");
+}
+
+export async function sendVerificationEmail(
+  email: string,
+  name: string,
+  token: string
+): Promise<void> {
+  const verifyUrl = `${getAppUrl()}/verify-email/confirm?token=${token}`;
+
+  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+    const tokenPrefix = token.substring(0, 8);
+    console.log("\n========================================");
+    console.log("[DEV] Verifizierungs-Link fuer", maskedEmail);
+    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollstaendig nur in DB)`);
+    console.log("========================================\n");
+    return;
+  }
+
+  const resend = getResendClient();
+  await resend.emails.send({
+    from: getFromAddress(),
+    to: email,
+    replyTo: getReplyToAddress(),
+    subject: "Willkommen bei mein-nutrikompass.de - Bitte bestaetigen Sie Ihre E-Mail",
+    html: buildVerificationEmailHtml(name, verifyUrl),
+    text: buildVerificationEmailText(name, verifyUrl),
+  });
+}
+
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  token: string
+): Promise<void> {
+  const resetUrl = `${getAppUrl()}/reset-password?token=${token}`;
+
+  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+    const tokenPrefix = token.substring(0, 8);
+    console.log("\n========================================");
+    console.log("[DEV] Passwort-Reset-Link fuer", maskedEmail);
+    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollstaendig nur in DB)`);
+    console.log("========================================\n");
+    return;
+  }
+
+  const resend = getResendClient();
+  await resend.emails.send({
+    from: getFromAddress(),
+    to: email,
+    replyTo: getReplyToAddress(),
+    subject: "mein-nutrikompass.de - Passwort zuruecksetzen",
+    html: buildPasswordResetEmailHtml(name, resetUrl),
+    text: buildPasswordResetEmailText(name, resetUrl),
+  });
+}
+
+export async function sendStaffInvitationEmail(
+  email: string,
+  inviteeName: string,
+  organizationName: string,
+  inviterName: string,
+  token: string
+): Promise<void> {
+  const inviteUrl = `${getAppUrl()}/invite?token=${token}`;
+
+  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+    const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1***$2");
+    const tokenPrefix = token.substring(0, 8);
+    console.log("\n========================================");
+    console.log("[DEV] Einladungs-Link fuer", maskedEmail);
+    console.log(`[DEV] Token-Prefix: ${tokenPrefix}... (vollstaendig nur in DB)`);
+    console.log("========================================\n");
+    return;
+  }
+
+  const resend = getResendClient();
+  await resend.emails.send({
+    from: getFromAddress(),
+    to: email,
+    replyTo: getReplyToAddress(),
+    subject: `mein-nutrikompass.de - Einladung zu ${organizationName}`,
+    html: buildStaffInvitationEmailHtml(
+      inviteeName,
+      organizationName,
+      inviterName,
+      inviteUrl
+    ),
+    text: buildStaffInvitationEmailText(
+      inviteeName,
+      organizationName,
+      inviterName,
+      inviteUrl
+    ),
+  });
 }
