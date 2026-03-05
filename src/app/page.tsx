@@ -161,7 +161,7 @@ export default function LandingPage() {
                 className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 sm:p-10 transition-shadow hover:shadow-md"
               >
                 <div className="absolute left-0 top-6 bottom-6 w-[3px] rounded-full bg-primary/20" />
-                <span className="pointer-events-none absolute right-3 top-0 select-none text-8xl font-extrabold leading-none text-gray-100">
+                <span className="pointer-events-none absolute bottom-3 right-4 select-none text-7xl font-extrabold leading-none text-gray-200">
                   {n}
                 </span>
                 <p className="text-base font-bold text-surface-dark">{title}</p>
