@@ -31,6 +31,10 @@ jobs:
     name: Build
     needs: lint
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nutrikompass_ci
+      NEXTAUTH_SECRET: ci-placeholder-secret-at-least-24-chars
+      NEXTAUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v6
 

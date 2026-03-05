@@ -71,7 +71,7 @@ export function TopBar({ user }: TopBarProps) {
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-surface pl-14 pr-3 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-surface pl-14 pr-3 sm:pr-6 lg:px-6">
       <div className="min-w-0">
         <h1 className="truncate text-base font-semibold text-text-main sm:text-lg">{title}</h1>
         {breadcrumbs.length > 1 && (

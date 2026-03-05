@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LogoIcon } from "@/components/ui/LogoIcon";
 import { LandingShowcase } from "@/components/landing/LandingShowcase";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { MobileNav } from "@/components/landing/MobileNav";
 import { LEGAL, legalMailto } from "@/config/legal";
 import {
   Sparkles,
@@ -62,7 +63,7 @@ export default function LandingPage() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-white pb-20 text-surface-dark md:pb-0">
+    <div className="min-h-screen overflow-x-hidden bg-white pb-20 text-surface-dark md:pb-0">
       {/* Skip link (a11y) */}
       <a
         href="#main-content"
@@ -84,10 +85,10 @@ export default function LandingPage() {
 
       {/* Navigation */}
       <header className="sticky top-0 z-50 border-b border-gray-100/80 bg-white/80 backdrop-blur-md">
-        <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
+        <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
             <LogoIcon className="h-8 w-8" />
-            <span className="text-base font-bold text-surface-dark">
+            <span className="whitespace-nowrap text-sm font-bold text-surface-dark sm:text-base">
               mein-nutrikompass.de
             </span>
           </Link>
@@ -103,16 +104,17 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="hidden items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 sm:inline-flex"
+              className="hidden items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 md:inline-flex"
             >
               Anmelden
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center rounded-xl bg-surface-dark px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2"
+              className="hidden items-center rounded-xl bg-surface-dark px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 md:inline-flex"
             >
               14 Tage testen
             </Link>
+            <MobileNav />
           </div>
         </nav>
       </header>
@@ -158,10 +160,10 @@ export default function LandingPage() {
             ].map(({ n, title, desc }) => (
               <div
                 key={n}
-                className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 sm:p-10 transition-shadow hover:shadow-md"
+                className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 pb-14 sm:p-10 sm:pb-10 transition-shadow hover:shadow-md"
               >
                 <div className="absolute left-0 top-6 bottom-6 w-[3px] rounded-full bg-primary/20" />
-                <span className="pointer-events-none absolute bottom-3 right-4 select-none text-7xl font-extrabold leading-none text-gray-200">
+                <span className="pointer-events-none absolute bottom-3 right-4 select-none text-5xl sm:text-7xl font-extrabold leading-none text-gray-200">
                   {n}
                 </span>
                 <p className="text-base font-bold text-surface-dark">{title}</p>
@@ -591,7 +593,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section aria-labelledby="testimonials-heading" className="bg-surface-light py-20 sm:py-24">
+      <section aria-labelledby="testimonials-heading" className="overflow-hidden bg-surface-light py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -673,9 +675,9 @@ export default function LandingPage() {
       <footer className="border-t border-gray-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex shrink-0 items-center gap-2">
               <LogoIcon className="h-7 w-7" />
-              <span className="text-sm font-bold text-surface-dark">
+              <span className="whitespace-nowrap text-sm font-bold text-surface-dark">
                 mein-nutrikompass.de
               </span>
             </Link>
@@ -699,13 +701,21 @@ export default function LandingPage() {
 
       {/* Mobile sticky CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-100 bg-white/95 p-3 backdrop-blur-md md:hidden">
-        <Link
-          href="/register"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-surface-hover"
-        >
-          14 Tage unverbindlich testen
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 shrink-0"
+          >
+            Anmelden
+          </Link>
+          <Link
+            href="/register"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-surface-hover"
+          >
+            14 Tage testen
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </div>
   );
