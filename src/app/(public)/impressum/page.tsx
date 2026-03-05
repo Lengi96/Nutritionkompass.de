@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { LEGAL } from "@/config/legal";
+import { LEGAL, LEGAL_ENTITY } from "@/config/legal";
 
 export default function ImpressumPage() {
   return (
@@ -21,7 +21,9 @@ export default function ImpressumPage() {
             Angaben gem&auml;&szlig; &sect; 5 TMG
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            {LEGAL.operator.name}
+            {LEGAL.companyName}
+            <br />
+            Inhaber: {LEGAL.operator.name}
             <br />
             {LEGAL.operator.addressLine1}
             <br />
@@ -57,7 +59,7 @@ export default function ImpressumPage() {
             Verantwortlich f&uuml;r den Inhalt nach &sect; 55 Abs. 2 MStV
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            {LEGAL.operator.name}
+            {LEGAL_ENTITY}
             <br />
             {LEGAL.operator.addressLine1}
             <br />

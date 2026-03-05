@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { LEGAL, legalMailto } from "@/config/legal";
+import { LEGAL, LEGAL_ENTITY, legalMailto } from "@/config/legal";
 
 export default function AGBPage() {
   return (
@@ -25,7 +25,7 @@ export default function AGBPage() {
           <p className="text-gray-700 leading-relaxed">
             Diese Allgemeinen Gesch&auml;ftsbedingungen (AGB) gelten f&uuml;r
             die Nutzung des webbasierten Dienstes mein-nutrikompass.de (nachfolgend
-            &bdquo;Dienst&ldquo;), bereitgestellt von {LEGAL.operator.name},{" "}
+            &bdquo;Dienst&ldquo;), bereitgestellt von {LEGAL_ENTITY},{" "}
             {LEGAL.operator.addressLine1}, {LEGAL.operator.postalCode} {LEGAL.operator.city}{" "}
             (nachfolgend &bdquo;Anbieter&ldquo;).
           </p>

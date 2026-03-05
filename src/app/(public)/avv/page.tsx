@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import { LEGAL, legalMailto } from "@/config/legal";
+import { LEGAL, LEGAL_ENTITY, legalMailto } from "@/config/legal";
 
 export const metadata: Metadata = {
   title: "Auftragsverarbeitungsvertrag (AVV)",
@@ -91,7 +91,9 @@ export default function AVVPage() {
                 Auftragnehmer (Auftragsverarbeiter)
               </p>
               <p className="text-sm text-gray-700 leading-relaxed">
-                {LEGAL.operator.name}
+                {LEGAL.companyName}
+                <br />
+                Inhaber: {LEGAL.operator.name}
                 <br />
                 {LEGAL.operator.addressLine1}
                 <br />
@@ -871,7 +873,7 @@ export default function AVVPage() {
         {/* ── Stand ───────────────────────────────────────── */}
         <p className="text-sm text-gray-500 mt-12">
           Stand: Februar 2026 &middot; mein-nutrikompass.de &middot;
-          {LEGAL.operator.name}, {LEGAL.operator.city}
+          {LEGAL_ENTITY}, {LEGAL.operator.city}
         </p>
 
         {/* ── Footer-Links ────────────────────────────────── */}

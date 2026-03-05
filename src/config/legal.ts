@@ -1,6 +1,7 @@
 export const LEGAL = {
   brandName: "mein-nutrikompass.de",
   domain: "mein-nutrikompass.de",
+  companyName: "LengAI – Digitale Lösungen",
   operator: {
     name: "Christoph Lengowski",
     addressLine1: "Adreystraße 116",
@@ -25,6 +26,8 @@ export const LEGAL = {
     avvExecution: "AVV-Abschluss mein-nutrikompass.de",
   },
 } as const;
+
+export const LEGAL_ENTITY = `${LEGAL.companyName} (Inhaber: ${LEGAL.operator.name})`;
 
 export function legalMailto(subject: string): string {
   return `mailto:${LEGAL.operator.email}?subject=${encodeURIComponent(subject)}`;

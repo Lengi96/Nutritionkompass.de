@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { LEGAL, legalMailto } from "@/config/legal";
+import { LEGAL, LEGAL_ENTITY, legalMailto } from "@/config/legal";
 
 export default function DatenschutzPage() {
   return (
@@ -23,7 +23,9 @@ export default function DatenschutzPage() {
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">1. Verantwortlicher</h2>
           <p className="text-gray-700 leading-relaxed">
-            {LEGAL.operator.name}
+            {LEGAL.companyName}
+            <br />
+            Inhaber: {LEGAL.operator.name}
             <br />
             {LEGAL.operator.addressLine1}
             <br />
@@ -117,7 +119,7 @@ export default function DatenschutzPage() {
             Soweit Einrichtungen (Nutzer des Dienstes) im Rahmen von
             mein-nutrikompass.de personenbezogene Daten von Patienten
             verarbeiten, handeln Sie als <strong>Verantwortliche</strong> im
-            Sinne der DSGVO. {LEGAL.operator.name} / mein-nutrikompass.de agiert
+            Sinne der DSGVO. {LEGAL_ENTITY} / mein-nutrikompass.de agiert
             dabei als <strong>Auftragsverarbeiter</strong> gem. Art.&thinsp;6
             Abs.&thinsp;4, Art.&thinsp;28 DSGVO.
           </p>
