@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSession } from "next-auth/react";
@@ -142,11 +142,11 @@ export default function SettingsPage() {
   });
   const updateRoleMutation = trpc.staff.updateRole.useMutation({
     onSuccess: () => utils.staff.list.invalidate(),
-    onError: (error) => toast.error(error.message || "Rolle konnte nicht geändert werden."),
+    onError: (error) => toast.error(error.message || "Rolle konnte nicht geÃ¤ndert werden."),
   });
   const deactivateMutation = trpc.staff.deactivate.useMutation({
     onSuccess: () => utils.staff.list.invalidate(),
-    onError: (error) => toast.error(error.message || "Status konnte nicht geändert werden."),
+    onError: (error) => toast.error(error.message || "Status konnte nicht geÃ¤ndert werden."),
   });
   const removeMutation = trpc.staff.remove.useMutation({
     onSuccess: () => {
@@ -169,7 +169,7 @@ export default function SettingsPage() {
       setDeleteOpen(false);
       setDeleteConfirm("");
     },
-    onError: (error) => toast.error(error.message || "Löschungsantrag fehlgeschlagen."),
+    onError: (error) => toast.error(error.message || "LÃ¶schungsantrag fehlgeschlagen."),
   });
 
   const orgPayload = useMemo(
@@ -202,7 +202,7 @@ export default function SettingsPage() {
   }, [orgPayload, organization]);
 
   if (status === "loading") return <div className="py-20 text-center text-muted-foreground">Lade Einstellungen...</div>;
-  if (!isAdmin) return <div className="py-20 text-center text-muted-foreground">Zugriff nur für Administratoren.</div>;
+  if (!isAdmin) return <div className="py-20 text-center text-muted-foreground">Zugriff nur fÃ¼r Administratoren.</div>;
 
   const submitOrg = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -234,6 +234,24 @@ export default function SettingsPage() {
       phone: normalizeOptional(editPhone) || null,
       profileNotes: normalizeOptional(editNotes) || null,
     });
+  };
+  const openEditDialog = (member: {
+    id: string;
+    name: string;
+    email: string;
+    role: "ADMIN" | "STAFF";
+    jobTitle: string | null;
+    phone: string | null;
+    profileNotes: string | null;
+  }) => {
+    setEditId(member.id);
+    setEditName(member.name ?? "");
+    setEditEmail(member.email ?? "");
+    setEditRole(member.role);
+    setEditJobTitle(member.jobTitle ?? "");
+    setEditPhone(member.phone ?? "");
+    setEditNotes(member.profileNotes ?? "");
+    setEditOpen(true);
   };
 
   return (
@@ -276,27 +294,23 @@ export default function SettingsPage() {
                         <TableRow key={member.id} className={!member.isActive ? "opacity-50" : undefined}>
                           <TableCell className="font-medium">
                             <div>{member.name}</div>
-                            {(member.jobTitle || member.phone) && <div className="text-xs text-muted-foreground">{member.jobTitle || ""}{member.jobTitle && member.phone ? " • " : ""}{member.phone || ""}</div>}
+                            {(member.jobTitle || member.phone) && <div className="text-xs text-muted-foreground">{member.jobTitle || ""}{member.jobTitle && member.phone ? " â€¢ " : ""}{member.phone || ""}</div>}
                           </TableCell>
                           <TableCell>{member.email}</TableCell>
                           <TableCell><Badge className={member.role === "ADMIN" ? "rounded-xl bg-primary text-white" : "rounded-xl bg-accent text-text-main"}>{member.role === "ADMIN" ? "Administrator:in" : "Mitarbeiter:in"}</Badge></TableCell>
                           <TableCell><Badge variant="secondary" className={member.isActive ? "rounded-xl bg-secondary/20 text-secondary-600" : "rounded-xl bg-destructive/10 text-destructive"}>{member.isActive ? "Aktiv" : "Inaktiv"}</Badge></TableCell>
                           <TableCell className="text-right">
-                            {isCurrentUser ? (
-                              <span className="text-xs text-muted-foreground">(Sie)</span>
-                            ) : (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-xl">
-                                  <DropdownMenuItem onClick={() => { setEditId(member.id); setEditName(member.name ?? ""); setEditEmail(member.email ?? ""); setEditRole(member.role); setEditJobTitle(member.jobTitle ?? ""); setEditPhone(member.phone ?? ""); setEditNotes(member.profileNotes ?? ""); setEditOpen(true); }}><Pencil className="mr-2 h-4 w-4" />Bearbeiten</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: member.id, role: member.role === "ADMIN" ? "STAFF" : "ADMIN" })}><Shield className="mr-2 h-4 w-4" />{member.role === "ADMIN" ? "Zu Mitarbeiter:in ändern" : "Zum Admin befördern"}</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className={member.isActive ? "text-destructive focus:text-destructive" : "text-green-600 focus:text-green-600"} onClick={() => deactivateMutation.mutate({ userId: member.id })}>{member.isActive ? (<><X className="mr-2 h-4 w-4" />Deaktivieren</>) : (<><Users className="mr-2 h-4 w-4" />Reaktivieren</>)}</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { setRemoveId(member.id); setRemoveName(member.name); setRemoveConfirm(""); setRemoveOpen(true); }}><UserX className="mr-2 h-4 w-4" />Entfernen</DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="rounded-xl">
+                                <DropdownMenuItem onClick={() => openEditDialog(member)}><Pencil className="mr-2 h-4 w-4" />Bearbeiten {isCurrentUser ? "(Sie)" : ""}</DropdownMenuItem>
+                                <DropdownMenuItem disabled={isCurrentUser} onClick={() => updateRoleMutation.mutate({ userId: member.id, role: member.role === "ADMIN" ? "STAFF" : "ADMIN" })}><Shield className="mr-2 h-4 w-4" />{member.role === "ADMIN" ? "Zu Mitarbeiter:in Ã¤ndern" : "Zum Admin befÃ¶rdern"}</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem disabled={isCurrentUser} className={member.isActive ? "text-destructive focus:text-destructive" : "text-green-600 focus:text-green-600"} onClick={() => deactivateMutation.mutate({ userId: member.id })}>{member.isActive ? (<><X className="mr-2 h-4 w-4" />Deaktivieren</>) : (<><Users className="mr-2 h-4 w-4" />Reaktivieren</>)}</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem disabled={isCurrentUser} className="text-destructive focus:text-destructive" onClick={() => { setRemoveId(member.id); setRemoveName(member.name); setRemoveConfirm(""); setRemoveOpen(true); }}><UserX className="mr-2 h-4 w-4" />Entfernen</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
@@ -312,7 +326,7 @@ export default function SettingsPage() {
               <CardHeader><CardTitle className="text-base text-text-main">Offene Einladungen</CardTitle></CardHeader>
               <CardContent>
                 <Table>
-                  <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>E-Mail</TableHead><TableHead>Rolle</TableHead><TableHead>Gültig bis</TableHead><TableHead className="text-right">Aktionen</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>E-Mail</TableHead><TableHead>Rolle</TableHead><TableHead>GÃ¼ltig bis</TableHead><TableHead className="text-right">Aktionen</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {invitations.map((inv) => (
                       <TableRow key={inv.id}>
@@ -355,7 +369,7 @@ export default function SettingsPage() {
             <CardHeader><CardTitle className="flex items-center gap-2 text-text-main"><Shield className="h-5 w-5 text-primary" />Datenschutz & DSGVO</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <p className="flex items-start gap-2 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4" />Mitarbeiter- und Einrichtungsdetails sind optional, validiert, und auf notwendige Felder begrenzt.</p>
-              <Button variant="outline" className="rounded-xl text-destructive border-destructive hover:bg-destructive/10" onClick={() => setDeleteOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Datenlöschung beantragen</Button>
+              <Button variant="outline" className="rounded-xl text-destructive border-destructive hover:bg-destructive/10" onClick={() => setDeleteOpen(true)}><Trash2 className="mr-2 h-4 w-4" />DatenlÃ¶schung beantragen</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -363,7 +377,7 @@ export default function SettingsPage() {
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent className="sm:rounded-xl">
-          <DialogHeader><DialogTitle>Mitarbeiter:in einladen</DialogTitle><DialogDescription>Einladung ist 7 Tage gültig.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>Mitarbeiter:in einladen</DialogTitle><DialogDescription>Einladung ist 7 Tage gÃ¼ltig.</DialogDescription></DialogHeader>
           <form onSubmit={submitInvite} className="space-y-4">
             <div className="space-y-2"><Label htmlFor="inviteName">Name</Label><Input id="inviteName" value={inviteName} onChange={(e) => setInviteName(e.target.value)} required minLength={2} /></div>
             <div className="space-y-2"><Label htmlFor="inviteEmail">E-Mail</Label><Input id="inviteEmail" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required /></div>
@@ -391,18 +405,19 @@ export default function SettingsPage() {
       <Dialog open={removeOpen} onOpenChange={setRemoveOpen}>
         <DialogContent className="sm:rounded-xl">
           <DialogHeader><DialogTitle className="text-destructive">Mitarbeiterkonto entfernen</DialogTitle><DialogDescription>Konto wird deaktiviert und personenbezogene Kontodaten anonymisiert.</DialogDescription></DialogHeader>
-          <div className="space-y-2"><Label htmlFor="removeConfirm">Zur Bestätigung Namen eingeben: <strong>{removeName}</strong></Label><Input id="removeConfirm" value={removeConfirm} onChange={(e) => setRemoveConfirm(e.target.value)} /></div>
+          <div className="space-y-2"><Label htmlFor="removeConfirm">Zur BestÃ¤tigung Namen eingeben: <strong>{removeName}</strong></Label><Input id="removeConfirm" value={removeConfirm} onChange={(e) => setRemoveConfirm(e.target.value)} /></div>
           <DialogFooter><Button type="button" variant="outline" onClick={() => { setRemoveOpen(false); setRemoveId(null); setRemoveName(""); setRemoveConfirm(""); }}>Abbrechen</Button><Button variant="destructive" disabled={!removeId || removeMutation.isPending || removeConfirm.trim() !== removeName} onClick={() => removeId && removeMutation.mutate({ userId: removeId })}>{removeMutation.isPending ? "Entfernt..." : "Entfernen"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:rounded-xl">
-          <DialogHeader><DialogTitle className="text-destructive">Datenlöschung beantragen</DialogTitle><DialogDescription>Soft-Delete für aktive Datensätze Ihrer Einrichtung.</DialogDescription></DialogHeader>
-          <div className="space-y-2"><Label htmlFor="deleteConfirm">Bitte <strong>LÖSCHEN</strong> eingeben:</Label><Input id="deleteConfirm" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} /></div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); }}>Abbrechen</Button><Button variant="destructive" disabled={requestDeletionMutation.isPending || deleteConfirm !== "LÖSCHEN"} onClick={() => requestDeletionMutation.mutate()}>{requestDeletionMutation.isPending ? "Verarbeitet..." : "Löschung beantragen"}</Button></DialogFooter>
+          <DialogHeader><DialogTitle className="text-destructive">DatenlÃ¶schung beantragen</DialogTitle><DialogDescription>Soft-Delete fÃ¼r aktive DatensÃ¤tze Ihrer Einrichtung.</DialogDescription></DialogHeader>
+          <div className="space-y-2"><Label htmlFor="deleteConfirm">Bitte <strong>LÃ–SCHEN</strong> eingeben:</Label><Input id="deleteConfirm" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} /></div>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); }}>Abbrechen</Button><Button variant="destructive" disabled={requestDeletionMutation.isPending || deleteConfirm !== "LÃ–SCHEN"} onClick={() => requestDeletionMutation.mutate()}>{requestDeletionMutation.isPending ? "Verarbeitet..." : "LÃ¶schung beantragen"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
