@@ -67,6 +67,7 @@ export default function SettingsPage() {
   const { data: session, status } = useSession();
   const utils = trpc.useUtils();
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationWebsiteUrl, setOrganizationWebsiteUrl] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [inlineFeedback, setInlineFeedback] = useState<{
     type: "success" | "error";
@@ -104,13 +105,14 @@ export default function SettingsPage() {
   );
 
   useEffect(() => {
-    if (organization?.name) {
+    if (organization) {
       setOrganizationName(organization.name);
+      setOrganizationWebsiteUrl(organization.websiteUrl ?? "");
     }
-  }, [organization?.name]);
+  }, [organization]);
 
   // ── Mutations ──
-  const updateOrganization = trpc.organization.updateName.useMutation({
+  const updateOrganization = trpc.organization.update.useMutation({
     onSuccess: (updatedOrganization) => {
       utils.organization.get.setData(undefined, updatedOrganization);
       setLastSavedAt(
@@ -228,10 +230,26 @@ export default function SettingsPage() {
   });
 
   const trimmedName = organizationName.trim();
+  const trimmedUrl = organizationWebsiteUrl.trim();
+
+  // Client-seitige URL-Validierung
+  const urlError = useMemo(() => {
+    if (!trimmedUrl) return null;
+    try {
+      new URL(trimmedUrl);
+      return null;
+    } catch {
+      return "Bitte eine gültige URL angeben (z. B. https://example.de).";
+    }
+  }, [trimmedUrl]);
+
   const hasUnsavedChanges = useMemo(() => {
     if (!organization) return false;
-    return trimmedName !== organization.name;
-  }, [organization, trimmedName]);
+    return (
+      trimmedName !== organization.name ||
+      trimmedUrl !== (organization.websiteUrl ?? "")
+    );
+  }, [organization, trimmedName, trimmedUrl]);
 
   const saveStatus = useMemo(() => {
     if (organizationLoading) return "Lade Einrichtungsdaten…";
@@ -266,7 +284,16 @@ export default function SettingsPage() {
   function handleOrganizationSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setInlineFeedback(null);
-    updateOrganization.mutate({ name: trimmedName });
+    updateOrganization.mutate({
+      name: trimmedName,
+      websiteUrl: trimmedUrl || undefined,
+    });
+  }
+
+  function handleOrganizationDiscard() {
+    setOrganizationName(organization?.name ?? "");
+    setOrganizationWebsiteUrl(organization?.websiteUrl ?? "");
+    setInlineFeedback(null);
   }
 
   function handleInviteSubmit(event: FormEvent<HTMLFormElement>) {
@@ -341,6 +368,7 @@ export default function SettingsPage() {
                       <TableHead>E-Mail</TableHead>
                       <TableHead>Rolle</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Hinzugefügt am</TableHead>
                       <TableHead className="text-right">Aktionen</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -382,6 +410,11 @@ export default function SettingsPage() {
                             >
                               {member.isActive ? "Aktiv" : "Inaktiv"}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(member.createdAt).toLocaleDateString(
+                              "de-DE"
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             {isCurrentUser ? (
@@ -556,6 +589,28 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="orgWebsite">Website (optional)</Label>
+                  <Input
+                    id="orgWebsite"
+                    name="orgWebsite"
+                    type="url"
+                    autoComplete="url"
+                    className="rounded-xl"
+                    placeholder="https://www.einrichtung.de"
+                    value={organizationWebsiteUrl}
+                    onChange={(event) =>
+                      setOrganizationWebsiteUrl(event.target.value)
+                    }
+                    disabled={
+                      organizationLoading || updateOrganization.isPending
+                    }
+                  />
+                  {urlError && (
+                    <p className="text-sm text-destructive">{urlError}</p>
+                  )}
+                </div>
+
                 <p
                   aria-live="polite"
                   className="text-sm text-muted-foreground"
@@ -579,18 +634,34 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  className="rounded-xl bg-primary hover:bg-primary-600"
-                  disabled={
-                    organizationLoading ||
-                    updateOrganization.isPending ||
-                    trimmedName.length < 2 ||
-                    !hasUnsavedChanges
-                  }
-                >
-                  {updateOrganization.isPending ? "Speichert…" : "Speichern"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    className="rounded-xl bg-primary hover:bg-primary-600"
+                    disabled={
+                      organizationLoading ||
+                      updateOrganization.isPending ||
+                      trimmedName.length < 2 ||
+                      !hasUnsavedChanges ||
+                      !!urlError
+                    }
+                  >
+                    {updateOrganization.isPending ? "Speichert…" : "Speichern"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    disabled={
+                      organizationLoading ||
+                      updateOrganization.isPending ||
+                      !hasUnsavedChanges
+                    }
+                    onClick={handleOrganizationDiscard}
+                  >
+                    Verwerfen
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>

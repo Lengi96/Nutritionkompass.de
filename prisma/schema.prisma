@@ -29,9 +29,10 @@ enum SubscriptionStatus {
 }
 
 model Organization {
-  id        String    @id @default(cuid())
-  name      String
-  createdAt DateTime  @default(now())
+  id         String    @id @default(cuid())
+  name       String
+  websiteUrl String?
+  createdAt  DateTime  @default(now())
 
   // Stripe & Subscription
   stripeCustomerId     String?            @unique

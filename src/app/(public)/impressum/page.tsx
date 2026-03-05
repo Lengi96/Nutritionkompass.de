@@ -11,14 +11,14 @@ export default function ImpressumPage() {
           className="inline-flex items-center gap-1.5 text-sm text-[#2D6A4F] hover:underline mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          Zur&uuml;ck zur Startseite
+          Zurück zur Startseite
         </Link>
 
         <h1 className="text-3xl sm:text-4xl font-bold mb-10">Impressum</h1>
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">
-            Angaben gem&auml;&szlig; &sect; 5 TMG
+            Angaben gemäß &sect; 5 TMG
           </h2>
           <p className="text-gray-700 leading-relaxed">
             {LEGAL.operator.name}
@@ -54,7 +54,7 @@ export default function ImpressumPage() {
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">
-            Verantwortlich f&uuml;r den Inhalt nach &sect; 55 Abs. 2 MStV
+            Verantwortlich für den Inhalt nach &sect; 55 Abs. 2 MStV
           </h2>
           <p className="text-gray-700 leading-relaxed">
             {LEGAL.operator.name}
@@ -68,7 +68,7 @@ export default function ImpressumPage() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">EU-Streitschlichtung</h2>
           <p className="text-gray-700 leading-relaxed">
-            Die Europ&auml;ische Kommission stellt eine Plattform zur
+            Die Europäische Kommission stellt eine Plattform zur
             Online-Streitbeilegung (OS) bereit:{" "}
             <a
               href="https://ec.europa.eu/consumers/odr/"
@@ -88,7 +88,7 @@ export default function ImpressumPage() {
 
         <div className="mt-12 pt-8 border-t border-gray-200 flex flex-wrap gap-6 text-sm text-gray-600">
           <Link href="/datenschutz" className="hover:text-[#2D6A4F] transition-colors">
-            Datenschutzerkl&auml;rung
+            Datenschutzerklärung
           </Link>
           <Link href="/agb" className="hover:text-[#2D6A4F] transition-colors">
             AGB
