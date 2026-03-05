@@ -46,3 +46,35 @@ html {
 summary::-webkit-details-marker {
   display: none;
 }
+
+/* Hero dot-grid background */
+@layer utilities {
+  .hero-dot-grid {
+    background-image: radial-gradient(rgba(46, 111, 143, 0.25) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+}
+
+/* FAQ answer fade-in */
+details[open] > :not(summary) {
+  animation: fade-in-down 0.2s ease-out;
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tighter optical Inter features for display headings */
+@layer base {
+  h1,
+  h2 {
+    font-feature-settings: "cv11" 1, "cv01" 1;
+  }
+}
