@@ -14,6 +14,9 @@ export const staffRouter = router({
         id: true,
         name: true,
         email: true,
+        jobTitle: true,
+        phone: true,
+        profileNotes: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -222,6 +225,133 @@ export const staffRouter = router({
       return updated;
     }),
 
+  // ── Mitarbeiterdaten bearbeiten ───────────────────────────────
+  update: adminProcedure
+    .input(
+      z.object({
+        userId: z.string().min(1),
+        name: z
+          .string()
+          .trim()
+          .min(2, "Der Name muss mindestens 2 Zeichen lang sein.")
+          .max(120, "Der Name darf maximal 120 Zeichen lang sein.")
+          .regex(/^[^<>]*$/, "Bitte keine HTML-Tags oder Sondermarkierungen verwenden."),
+        email: z
+          .string()
+          .trim()
+          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein.")
+          .max(160),
+        role: z.enum(["ADMIN", "STAFF"]),
+        jobTitle: z
+          .string()
+          .trim()
+          .max(100, "Funktion darf maximal 100 Zeichen lang sein.")
+          .regex(/^[^<>]*$/, "Bitte keine HTML-Tags oder Sondermarkierungen verwenden.")
+          .optional()
+          .nullable(),
+        phone: z
+          .string()
+          .trim()
+          .max(40, "Telefonnummer darf maximal 40 Zeichen lang sein.")
+          .regex(/^[0-9+\-()\/\s.]*$/, "Telefonnummer enthält ungültige Zeichen.")
+          .optional()
+          .nullable(),
+        profileNotes: z
+          .string()
+          .trim()
+          .max(1000, "Notizen dürfen maximal 1000 Zeichen lang sein.")
+          .regex(/^[^<>]*$/, "Bitte keine HTML-Tags oder Sondermarkierungen verwenden.")
+          .optional()
+          .nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.userId === ctx.user.id && input.role !== "ADMIN") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Sie können Ihre eigene Admin-Rolle nicht entfernen.",
+        });
+      }
+
+      const targetUser = await ctx.prisma.user.findFirst({
+        where: {
+          id: input.userId,
+          organizationId: ctx.organizationId,
+        },
+        select: { id: true, role: true },
+      });
+
+      if (!targetUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Mitarbeiter nicht gefunden.",
+        });
+      }
+
+      if (targetUser.role === "ADMIN" && input.role === "STAFF") {
+        const activeAdminCount = await ctx.prisma.user.count({
+          where: {
+            organizationId: ctx.organizationId,
+            role: "ADMIN",
+            isActive: true,
+          },
+        });
+
+        if (activeAdminCount <= 1) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Mindestens ein aktiver Administrator muss erhalten bleiben.",
+          });
+        }
+      }
+
+      const normalizedEmail = input.email.trim().toLowerCase();
+      const duplicateEmail = await ctx.prisma.user.findFirst({
+        where: {
+          email: { equals: normalizedEmail, mode: "insensitive" },
+          NOT: { id: input.userId },
+        },
+        select: { id: true },
+      });
+
+      if (duplicateEmail) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Diese E-Mail-Adresse ist bereits vergeben.",
+        });
+      }
+
+      const normalizeOptional = (value?: string | null) => {
+        if (!value) return null;
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+      };
+
+      const updated = await ctx.prisma.user.update({
+        where: { id: input.userId },
+        data: {
+          name: input.name.trim(),
+          email: normalizedEmail,
+          role: input.role,
+          jobTitle: normalizeOptional(input.jobTitle),
+          phone: normalizeOptional(input.phone),
+          profileNotes: normalizeOptional(input.profileNotes),
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          jobTitle: true,
+          phone: true,
+          profileNotes: true,
+          role: true,
+          isActive: true,
+        },
+      });
+
+      return updated;
+    }),
+
   // ── Mitarbeiter deaktivieren ──────────────────────────────────
   deactivate: adminProcedure
     .input(z.object({ userId: z.string() }))
@@ -255,6 +385,71 @@ export const staffRouter = router({
       });
 
       return updated;
+    }),
+
+  // ── Mitarbeiter datenschutzkonform entfernen ──────────────────
+  remove: adminProcedure
+    .input(z.object({ userId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.userId === ctx.user.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Sie können Ihren eigenen Account hier nicht entfernen.",
+        });
+      }
+
+      const user = await ctx.prisma.user.findFirst({
+        where: {
+          id: input.userId,
+          organizationId: ctx.organizationId,
+        },
+        select: {
+          id: true,
+          role: true,
+          isActive: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Mitarbeiter nicht gefunden.",
+        });
+      }
+
+      if (user.role === "ADMIN" && user.isActive) {
+        const activeAdminCount = await ctx.prisma.user.count({
+          where: {
+            organizationId: ctx.organizationId,
+            role: "ADMIN",
+            isActive: true,
+          },
+        });
+
+        if (activeAdminCount <= 1) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Der letzte aktive Administrator kann nicht entfernt werden.",
+          });
+        }
+      }
+
+      const deletedEmail = `deleted+${user.id}+${Date.now()}@anonymized.local`;
+      const deletedName = "Gelöschter Account";
+
+      await ctx.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          isActive: false,
+          name: deletedName,
+          email: deletedEmail,
+          jobTitle: null,
+          phone: null,
+          profileNotes: null,
+        },
+      });
+
+      return { success: true };
     }),
 
   // ── Einladung annehmen (öffentlich – per Token) ───────────────
@@ -382,6 +577,9 @@ export const staffRouter = router({
             id: true,
             name: true,
             email: true,
+            jobTitle: true,
+            phone: true,
+            profileNotes: true,
             role: true,
             isActive: true,
             createdAt: true,

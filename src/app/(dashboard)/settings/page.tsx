@@ -2,26 +2,16 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSession } from "next-auth/react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { toast } from "sonner";
+import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -44,405 +34,266 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
-  Shield,
-  Users,
   Building2,
-  Lock,
+  Clock,
   Info,
   Loader2,
+  Lock,
   MoreHorizontal,
-  UserPlus,
-  Mail,
-  Download,
+  Pencil,
+  Shield,
   Trash2,
-  Clock,
+  UserPlus,
+  UserX,
+  Users,
   X,
 } from "lucide-react";
-import { trpc } from "@/trpc/client";
-import { toast } from "sonner";
+
+const normalizeOptional = (value: string) => {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : "";
+};
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
   const utils = trpc.useUtils();
-  const [organizationName, setOrganizationName] = useState("");
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const [inlineFeedback, setInlineFeedback] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-
-  // ── Invite Dialog ──
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
-  const [inviteRole, setInviteRole] = useState<"STAFF" | "ADMIN">("STAFF");
-
-  // ── Delete Dialog ──
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
-
   const isAdmin = session?.user?.role === "ADMIN";
 
-  // ── Organization Data ──
-  const { data: organization, isLoading: organizationLoading } =
-    trpc.organization.get.useQuery(undefined, {
-      enabled: isAdmin,
-    });
+  const [orgName, setOrgName] = useState("");
+  const [orgContactEmail, setOrgContactEmail] = useState("");
+  const [orgContactPhone, setOrgContactPhone] = useState("");
+  const [orgWebsite, setOrgWebsite] = useState("");
+  const [orgAddress, setOrgAddress] = useState("");
+  const [orgPostalCode, setOrgPostalCode] = useState("");
+  const [orgCity, setOrgCity] = useState("");
+  const [orgCountry, setOrgCountry] = useState("");
+  const [orgNotes, setOrgNotes] = useState("");
 
-  // ── Staff Data ──
-  const { data: staffList, isLoading: staffLoading } =
-    trpc.staff.list.useQuery(undefined, {
-      enabled: isAdmin,
-    });
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteName, setInviteName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"ADMIN" | "STAFF">("STAFF");
 
-  // ── Invitations Data ──
-  const { data: invitations } = trpc.staff.listInvitations.useQuery(
-    undefined,
-    { enabled: isAdmin }
-  );
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState<"ADMIN" | "STAFF">("STAFF");
+  const [editJobTitle, setEditJobTitle] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removeId, setRemoveId] = useState<string | null>(null);
+  const [removeName, setRemoveName] = useState("");
+  const [removeConfirm, setRemoveConfirm] = useState("");
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+
+  const { data: organization, isLoading: orgLoading } = trpc.organization.get.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const { data: staffList, isLoading: staffLoading } = trpc.staff.list.useQuery(undefined, {
+    enabled: isAdmin,
+  });
+  const { data: invitations } = trpc.staff.listInvitations.useQuery(undefined, { enabled: isAdmin });
 
   useEffect(() => {
-    if (organization?.name) {
-      setOrganizationName(organization.name);
-    }
-  }, [organization?.name]);
+    if (!organization) return;
+    setOrgName(organization.name ?? "");
+    setOrgContactEmail(organization.contactEmail ?? "");
+    setOrgContactPhone(organization.contactPhone ?? "");
+    setOrgWebsite(organization.websiteUrl ?? "");
+    setOrgAddress(organization.addressLine ?? "");
+    setOrgPostalCode(organization.postalCode ?? "");
+    setOrgCity(organization.city ?? "");
+    setOrgCountry(organization.country ?? "");
+    setOrgNotes(organization.profileNotes ?? "");
+  }, [organization]);
 
-  // ── Mutations ──
-  const updateOrganization = trpc.organization.updateName.useMutation({
-    onSuccess: (updatedOrganization) => {
-      utils.organization.get.setData(undefined, updatedOrganization);
-      setLastSavedAt(
-        new Date().toLocaleTimeString("de-DE", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      );
-      setInlineFeedback({
-        type: "success",
-        message: "Einrichtung wurde erfolgreich gespeichert.",
-      });
+  const updateOrg = trpc.organization.updateProfile.useMutation({
+    onSuccess: (data) => {
+      utils.organization.get.setData(undefined, data);
       toast.success("Einrichtung wurde gespeichert.");
     },
-    onError: (error) => {
-      setInlineFeedback({
-        type: "error",
-        message:
-          error.message || "Einrichtung konnte nicht gespeichert werden.",
-      });
-      toast.error(
-        error.message || "Einrichtung konnte nicht gespeichert werden."
-      );
-    },
+    onError: (error) => toast.error(error.message || "Einrichtung konnte nicht gespeichert werden."),
   });
-
   const inviteMutation = trpc.staff.invite.useMutation({
-    onSuccess: (data) => {
-      toast.success(
-        `Einladung an ${data.invitation.email} wurde gesendet.`
-      );
+    onSuccess: () => {
+      toast.success("Einladung wurde gesendet.");
       setInviteOpen(false);
-      setInviteEmail("");
       setInviteName("");
+      setInviteEmail("");
       setInviteRole("STAFF");
       utils.staff.listInvitations.invalidate();
     },
-    onError: (error) => {
-      toast.error(error.message || "Einladung konnte nicht gesendet werden.");
-    },
+    onError: (error) => toast.error(error.message || "Einladung fehlgeschlagen."),
   });
-
-  const revokeInvitationMutation = trpc.staff.revokeInvitation.useMutation({
+  const updateMutation = trpc.staff.update.useMutation({
     onSuccess: () => {
-      toast.success("Einladung wurde widerrufen.");
-      utils.staff.listInvitations.invalidate();
+      toast.success("Mitarbeiter wurde aktualisiert.");
+      setEditOpen(false);
+      setEditId(null);
+      utils.staff.list.invalidate();
     },
-    onError: (error) => {
-      toast.error(
-        error.message || "Einladung konnte nicht widerrufen werden."
-      );
-    },
+    onError: (error) => toast.error(error.message || "Mitarbeiter konnte nicht aktualisiert werden."),
   });
-
   const updateRoleMutation = trpc.staff.updateRole.useMutation({
-    onSuccess: (data) => {
-      toast.success(
-        `Rolle von ${data.name} wurde zu ${data.role === "ADMIN" ? "Administrator:in" : "Mitarbeiter:in"} geändert.`
-      );
-      utils.staff.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Rolle konnte nicht geändert werden.");
-    },
+    onSuccess: () => utils.staff.list.invalidate(),
+    onError: (error) => toast.error(error.message || "Rolle konnte nicht geändert werden."),
   });
-
   const deactivateMutation = trpc.staff.deactivate.useMutation({
-    onSuccess: (data) => {
-      toast.success(
-        data.isActive
-          ? `${data.name} wurde reaktiviert.`
-          : `${data.name} wurde deaktiviert.`
-      );
+    onSuccess: () => utils.staff.list.invalidate(),
+    onError: (error) => toast.error(error.message || "Status konnte nicht geändert werden."),
+  });
+  const removeMutation = trpc.staff.remove.useMutation({
+    onSuccess: () => {
+      toast.success("Mitarbeiterkonto wurde anonymisiert und deaktiviert.");
+      setRemoveOpen(false);
+      setRemoveId(null);
+      setRemoveName("");
+      setRemoveConfirm("");
       utils.staff.list.invalidate();
     },
-    onError: (error) => {
-      toast.error(
-        error.message || "Status konnte nicht geändert werden."
-      );
-    },
+    onError: (error) => toast.error(error.message || "Mitarbeiter konnte nicht entfernt werden."),
   });
-
-  const exportMutation = trpc.staff.exportData.useMutation({
-    onSuccess: (data) => {
-      // JSON-Export herunterladen
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `mein-nutrikompass-export-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success("Datenexport wurde heruntergeladen.");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Datenexport fehlgeschlagen.");
-    },
+  const revokeInviteMutation = trpc.staff.revokeInvitation.useMutation({
+    onSuccess: () => utils.staff.listInvitations.invalidate(),
+    onError: (error) => toast.error(error.message || "Einladung konnte nicht widerrufen werden."),
   });
-
-  const deletionMutation = trpc.staff.requestDeletion.useMutation({
+  const requestDeletionMutation = trpc.staff.requestDeletion.useMutation({
     onSuccess: (data) => {
       toast.success(data.message);
       setDeleteOpen(false);
-      setDeleteConfirmText("");
+      setDeleteConfirm("");
     },
-    onError: (error) => {
-      toast.error(
-        error.message || "Löschungsantrag konnte nicht verarbeitet werden."
-      );
-    },
+    onError: (error) => toast.error(error.message || "Löschungsantrag fehlgeschlagen."),
   });
 
-  const trimmedName = organizationName.trim();
-  const hasUnsavedChanges = useMemo(() => {
+  const orgPayload = useMemo(
+    () => ({
+      name: orgName.trim(),
+      contactEmail: normalizeOptional(orgContactEmail),
+      contactPhone: normalizeOptional(orgContactPhone),
+      websiteUrl: normalizeOptional(orgWebsite),
+      addressLine: normalizeOptional(orgAddress),
+      postalCode: normalizeOptional(orgPostalCode),
+      city: normalizeOptional(orgCity),
+      country: normalizeOptional(orgCountry),
+      profileNotes: normalizeOptional(orgNotes),
+    }),
+    [orgAddress, orgCity, orgContactEmail, orgContactPhone, orgCountry, orgName, orgNotes, orgPostalCode, orgWebsite]
+  );
+  const orgHasChanges = useMemo(() => {
     if (!organization) return false;
-    return trimmedName !== organization.name;
-  }, [organization, trimmedName]);
-
-  const saveStatus = useMemo(() => {
-    if (organizationLoading) return "Lade Einrichtungsdaten…";
-    if (updateOrganization.isPending) return "Speichert…";
-    if (hasUnsavedChanges) return "Ungespeicherte Änderungen";
-    if (lastSavedAt) return `Zuletzt gespeichert um ${lastSavedAt} Uhr`;
-    return "Alle Änderungen gespeichert";
-  }, [
-    organizationLoading,
-    updateOrganization.isPending,
-    hasUnsavedChanges,
-    lastSavedAt,
-  ]);
-
-  if (status === "loading") {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Lade Einstellungen…
-      </div>
+      orgPayload.name !== organization.name ||
+      orgPayload.contactEmail !== (organization.contactEmail ?? "") ||
+      orgPayload.contactPhone !== (organization.contactPhone ?? "") ||
+      orgPayload.websiteUrl !== (organization.websiteUrl ?? "") ||
+      orgPayload.addressLine !== (organization.addressLine ?? "") ||
+      orgPayload.postalCode !== (organization.postalCode ?? "") ||
+      orgPayload.city !== (organization.city ?? "") ||
+      orgPayload.country !== (organization.country ?? "") ||
+      orgPayload.profileNotes !== (organization.profileNotes ?? "")
     );
-  }
+  }, [orgPayload, organization]);
 
-  if (!isAdmin) {
-    return (
-      <div className="text-center py-20 text-muted-foreground">
-        <Shield className="mx-auto h-12 w-12 mb-3 opacity-50" />
-        <p>Zugriff verweigert. Diese Seite ist nur für Administratoren.</p>
-      </div>
-    );
-  }
+  if (status === "loading") return <div className="py-20 text-center text-muted-foreground">Lade Einstellungen...</div>;
+  if (!isAdmin) return <div className="py-20 text-center text-muted-foreground">Zugriff nur für Administratoren.</div>;
 
-  function handleOrganizationSave(event: FormEvent<HTMLFormElement>) {
+  const submitOrg = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setInlineFeedback(null);
-    updateOrganization.mutate({ name: trimmedName });
-  }
-
-  function handleInviteSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    inviteMutation.mutate({
-      email: inviteEmail.trim(),
-      name: inviteName.trim(),
-      role: inviteRole,
+    updateOrg.mutate({
+      ...orgPayload,
+      contactEmail: orgPayload.contactEmail || null,
+      contactPhone: orgPayload.contactPhone || null,
+      websiteUrl: orgPayload.websiteUrl || null,
+      addressLine: orgPayload.addressLine || null,
+      postalCode: orgPayload.postalCode || null,
+      city: orgPayload.city || null,
+      country: orgPayload.country || null,
+      profileNotes: orgPayload.profileNotes || null,
     });
-  }
+  };
+  const submitInvite = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    inviteMutation.mutate({ name: inviteName.trim(), email: inviteEmail.trim(), role: inviteRole });
+  };
+  const submitEdit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editId) return;
+    updateMutation.mutate({
+      userId: editId,
+      name: editName.trim(),
+      email: editEmail.trim(),
+      role: editRole,
+      jobTitle: normalizeOptional(editJobTitle) || null,
+      phone: normalizeOptional(editPhone) || null,
+      profileNotes: normalizeOptional(editNotes) || null,
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-text-main">Einstellungen</h2>
-        <p className="text-muted-foreground">
-          Verwaltung der Einrichtung und Mitarbeiter:innen
-        </p>
+        <p className="text-muted-foreground">Verwaltung der Einrichtung und Mitarbeiter:innen</p>
       </div>
 
       <Tabs defaultValue="staff" className="space-y-4">
         <TabsList className="rounded-xl">
-          <TabsTrigger value="staff" className="rounded-xl">
-            <Users className="mr-2 h-4 w-4" />
-            Mitarbeiter:innen
-          </TabsTrigger>
-          <TabsTrigger value="organization" className="rounded-xl">
-            <Building2 className="mr-2 h-4 w-4" />
-            Einrichtung
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="rounded-xl">
-            <Lock className="mr-2 h-4 w-4" />
-            Datenschutz
-          </TabsTrigger>
+          <TabsTrigger value="staff" className="rounded-xl"><Users className="mr-2 h-4 w-4" />Mitarbeiter:innen</TabsTrigger>
+          <TabsTrigger value="organization" className="rounded-xl"><Building2 className="mr-2 h-4 w-4" />Einrichtung</TabsTrigger>
+          <TabsTrigger value="privacy" className="rounded-xl"><Lock className="mr-2 h-4 w-4" />Datenschutz</TabsTrigger>
         </TabsList>
 
-        {/* ══════════════════════════════════════════════════════════════
-            TAB: Mitarbeiter verwalten
-            ══════════════════════════════════════════════════════════════ */}
         <TabsContent value="staff" className="space-y-4">
           <Card className="rounded-xl shadow-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-text-main">
-                    Mitarbeiter:innen verwalten
-                  </CardTitle>
-                  <CardDescription>
-                    Übersicht aller Mitarbeiter:innen Ihrer Einrichtung
-                  </CardDescription>
+                  <CardTitle className="text-text-main">Mitarbeiter:innen verwalten</CardTitle>
+                  <CardDescription>Bearbeiten, deaktivieren und datenschutzkonform entfernen</CardDescription>
                 </div>
-                <Button
-                  className="rounded-xl bg-primary hover:bg-primary-600"
-                  onClick={() => setInviteOpen(true)}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Mitarbeiter:in einladen
+                <Button className="rounded-xl bg-primary hover:bg-primary-600" onClick={() => setInviteOpen(true)}>
+                  <UserPlus className="mr-2 h-4 w-4" />Mitarbeiter:in einladen
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {staffLoading ? (
-                <div className="flex items-center justify-center py-8 text-muted-foreground">
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Lade Mitarbeiter:innen…
-                </div>
+                <div className="flex items-center justify-center py-8 text-muted-foreground"><Loader2 className="mr-2 h-5 w-5 animate-spin" />Lade Mitarbeiter:innen...</div>
               ) : (
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>E-Mail</TableHead>
-                      <TableHead>Rolle</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Aktionen</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                  <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>E-Mail</TableHead><TableHead>Rolle</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aktionen</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {staffList?.map((member) => {
                       const isCurrentUser = member.id === session?.user?.id;
                       return (
-                        <TableRow
-                          key={member.id}
-                          className={
-                            !member.isActive ? "opacity-50" : undefined
-                          }
-                        >
+                        <TableRow key={member.id} className={!member.isActive ? "opacity-50" : undefined}>
                           <TableCell className="font-medium">
-                            {member.name}
+                            <div>{member.name}</div>
+                            {(member.jobTitle || member.phone) && <div className="text-xs text-muted-foreground">{member.jobTitle || ""}{member.jobTitle && member.phone ? " • " : ""}{member.phone || ""}</div>}
                           </TableCell>
                           <TableCell>{member.email}</TableCell>
-                          <TableCell>
-                            <Badge
-                              className={
-                                member.role === "ADMIN"
-                                  ? "rounded-xl bg-primary text-white"
-                                  : "rounded-xl bg-accent text-text-main"
-                              }
-                            >
-                              {member.role === "ADMIN"
-                                ? "Administrator:in"
-                                : "Mitarbeiter:in"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="secondary"
-                              className={
-                                member.isActive
-                                  ? "rounded-xl bg-secondary/20 text-secondary-600"
-                                  : "rounded-xl bg-destructive/10 text-destructive"
-                              }
-                            >
-                              {member.isActive ? "Aktiv" : "Inaktiv"}
-                            </Badge>
-                          </TableCell>
+                          <TableCell><Badge className={member.role === "ADMIN" ? "rounded-xl bg-primary text-white" : "rounded-xl bg-accent text-text-main"}>{member.role === "ADMIN" ? "Administrator:in" : "Mitarbeiter:in"}</Badge></TableCell>
+                          <TableCell><Badge variant="secondary" className={member.isActive ? "rounded-xl bg-secondary/20 text-secondary-600" : "rounded-xl bg-destructive/10 text-destructive"}>{member.isActive ? "Aktiv" : "Inaktiv"}</Badge></TableCell>
                           <TableCell className="text-right">
                             {isCurrentUser ? (
-                              <span className="text-xs text-muted-foreground">
-                                (Sie)
-                              </span>
+                              <span className="text-xs text-muted-foreground">(Sie)</span>
                             ) : (
                               <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className="rounded-xl"
-                                >
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      updateRoleMutation.mutate({
-                                        userId: member.id,
-                                        role:
-                                          member.role === "ADMIN"
-                                            ? "STAFF"
-                                            : "ADMIN",
-                                      })
-                                    }
-                                  >
-                                    <Shield className="mr-2 h-4 w-4" />
-                                    {member.role === "ADMIN"
-                                      ? "Zu Mitarbeiter:in ändern"
-                                      : "Zum Admin befördern"}
-                                  </DropdownMenuItem>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-xl">
+                                  <DropdownMenuItem onClick={() => { setEditId(member.id); setEditName(member.name ?? ""); setEditEmail(member.email ?? ""); setEditRole(member.role); setEditJobTitle(member.jobTitle ?? ""); setEditPhone(member.phone ?? ""); setEditNotes(member.profileNotes ?? ""); setEditOpen(true); }}><Pencil className="mr-2 h-4 w-4" />Bearbeiten</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => updateRoleMutation.mutate({ userId: member.id, role: member.role === "ADMIN" ? "STAFF" : "ADMIN" })}><Shield className="mr-2 h-4 w-4" />{member.role === "ADMIN" ? "Zu Mitarbeiter:in ändern" : "Zum Admin befördern"}</DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className={
-                                      member.isActive
-                                        ? "text-destructive focus:text-destructive"
-                                        : "text-green-600 focus:text-green-600"
-                                    }
-                                    onClick={() =>
-                                      deactivateMutation.mutate({
-                                        userId: member.id,
-                                      })
-                                    }
-                                  >
-                                    {member.isActive ? (
-                                      <>
-                                        <X className="mr-2 h-4 w-4" />
-                                        Deaktivieren
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Users className="mr-2 h-4 w-4" />
-                                        Reaktivieren
-                                      </>
-                                    )}
-                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className={member.isActive ? "text-destructive focus:text-destructive" : "text-green-600 focus:text-green-600"} onClick={() => deactivateMutation.mutate({ userId: member.id })}>{member.isActive ? (<><X className="mr-2 h-4 w-4" />Deaktivieren</>) : (<><Users className="mr-2 h-4 w-4" />Reaktivieren</>)}</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { setRemoveId(member.id); setRemoveName(member.name); setRemoveConfirm(""); setRemoveOpen(true); }}><UserX className="mr-2 h-4 w-4" />Entfernen</DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             )}
@@ -456,66 +307,18 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Offene Einladungen */}
           {invitations && invitations.length > 0 && (
             <Card className="rounded-xl shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-text-main text-base flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Offene Einladungen
-                </CardTitle>
-                <CardDescription>
-                  Einladungen, die noch nicht angenommen wurden
-                </CardDescription>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-base text-text-main">Offene Einladungen</CardTitle></CardHeader>
               <CardContent>
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>E-Mail</TableHead>
-                      <TableHead>Rolle</TableHead>
-                      <TableHead>Gültig bis</TableHead>
-                      <TableHead className="text-right">Aktionen</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                  <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>E-Mail</TableHead><TableHead>Rolle</TableHead><TableHead>Gültig bis</TableHead><TableHead className="text-right">Aktionen</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {invitations.map((inv) => (
                       <TableRow key={inv.id}>
-                        <TableCell className="font-medium">
-                          {inv.name}
-                        </TableCell>
-                        <TableCell>{inv.email}</TableCell>
-                        <TableCell>
-                          <Badge className="rounded-xl bg-accent text-text-main">
-                            {inv.role === "ADMIN"
-                              ? "Administrator"
-                              : "Mitarbeiter"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {new Date(inv.expiresAt).toLocaleDateString(
-                              "de-DE"
-                            )}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() =>
-                              revokeInvitationMutation.mutate({
-                                invitationId: inv.id,
-                              })
-                            }
-                            disabled={revokeInvitationMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        <TableCell className="font-medium">{inv.name}</TableCell><TableCell>{inv.email}</TableCell><TableCell>{inv.role}</TableCell>
+                        <TableCell><span className="flex items-center gap-1 text-sm text-muted-foreground"><Clock className="h-3 w-3" />{new Date(inv.expiresAt).toLocaleDateString("de-DE")}</span></TableCell>
+                        <TableCell className="text-right"><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => revokeInviteMutation.mutate({ invitationId: inv.id })}><Trash2 className="h-4 w-4" /></Button></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -525,341 +328,79 @@ export default function SettingsPage() {
           )}
         </TabsContent>
 
-        {/* ══════════════════════════════════════════════════════════════
-            TAB: Einrichtung
-            ══════════════════════════════════════════════════════════════ */}
         <TabsContent value="organization">
           <Card className="rounded-xl shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-text-main">
-                Einrichtungsdaten
-              </CardTitle>
-              <CardDescription>
-                Grunddaten Ihrer Einrichtung bearbeiten
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="max-w-md">
-              <form className="space-y-4" onSubmit={handleOrganizationSave}>
-                <div className="space-y-2">
-                  <Label htmlFor="orgName">Einrichtungsname</Label>
-                  <Input
-                    id="orgName"
-                    name="orgName"
-                    autoComplete="organization"
-                    className="rounded-xl"
-                    placeholder="Name der Einrichtung…"
-                    value={organizationName}
-                    onChange={(event) => setOrganizationName(event.target.value)}
-                    disabled={
-                      organizationLoading || updateOrganization.isPending
-                    }
-                  />
+            <CardHeader><CardTitle className="text-text-main">Einrichtungsdaten</CardTitle><CardDescription>Erweiterte Details mit datensparsamen Feldern (keine Patientendaten)</CardDescription></CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={submitOrg}>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2"><Label htmlFor="orgName">Einrichtungsname</Label><Input id="orgName" value={orgName} onChange={(e) => setOrgName(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2"><Label htmlFor="orgContactEmail">Kontakt-E-Mail</Label><Input id="orgContactEmail" type="email" value={orgContactEmail} onChange={(e) => setOrgContactEmail(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2"><Label htmlFor="orgContactPhone">Telefon</Label><Input id="orgContactPhone" value={orgContactPhone} onChange={(e) => setOrgContactPhone(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2 md:col-span-2"><Label htmlFor="orgWebsite">Website</Label><Input id="orgWebsite" value={orgWebsite} onChange={(e) => setOrgWebsite(e.target.value)} disabled={orgLoading || updateOrg.isPending} placeholder="https://..." /></div>
+                  <div className="space-y-2 md:col-span-2"><Label htmlFor="orgAddress">Adresse</Label><Input id="orgAddress" value={orgAddress} onChange={(e) => setOrgAddress(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2"><Label htmlFor="orgPostalCode">PLZ</Label><Input id="orgPostalCode" value={orgPostalCode} onChange={(e) => setOrgPostalCode(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2"><Label htmlFor="orgCity">Ort</Label><Input id="orgCity" value={orgCity} onChange={(e) => setOrgCity(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2 md:col-span-2"><Label htmlFor="orgCountry">Land</Label><Input id="orgCountry" value={orgCountry} onChange={(e) => setOrgCountry(e.target.value)} disabled={orgLoading || updateOrg.isPending} /></div>
+                  <div className="space-y-2 md:col-span-2"><Label htmlFor="orgNotes">Interne Hinweise</Label><Textarea id="orgNotes" value={orgNotes} onChange={(e) => setOrgNotes(e.target.value)} placeholder="Nur Organisationshinweise, keine sensiblen Patientendaten." disabled={orgLoading || updateOrg.isPending} /></div>
                 </div>
-
-                <p
-                  aria-live="polite"
-                  className="text-sm text-muted-foreground"
-                >
-                  {saveStatus}
-                </p>
-
-                {inlineFeedback && (
-                  <div
-                    role="status"
-                    aria-live={
-                      inlineFeedback.type === "error" ? "assertive" : "polite"
-                    }
-                    className={
-                      inlineFeedback.type === "error"
-                        ? "rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                        : "rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
-                    }
-                  >
-                    {inlineFeedback.message}
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  className="rounded-xl bg-primary hover:bg-primary-600"
-                  disabled={
-                    organizationLoading ||
-                    updateOrganization.isPending ||
-                    trimmedName.length < 2 ||
-                    !hasUnsavedChanges
-                  }
-                >
-                  {updateOrganization.isPending ? "Speichert…" : "Speichern"}
-                </Button>
+                <Button type="submit" className="rounded-xl bg-primary hover:bg-primary-600" disabled={updateOrg.isPending || orgPayload.name.length < 2 || !orgHasChanges}>{updateOrg.isPending ? "Speichert..." : "Speichern"}</Button>
               </form>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* ══════════════════════════════════════════════════════════════
-            TAB: Datenschutz
-            ══════════════════════════════════════════════════════════════ */}
         <TabsContent value="privacy">
           <Card className="rounded-xl shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-text-main flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Datenschutz & DSGVO
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-xl bg-accent/50 p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-text-main mb-1">
-                      Datenschutzhinweise
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      mein-nutrikompass.de speichert ausschließlich pseudonymisierte
-                      Daten. Es werden keine Klarnamen der Betreuten
-                      erfasst. Alle Daten werden verschlüsselt in
-                      einer sicheren Datenbank gespeichert und sind nur für
-                      autorisiertes Fachpersonal Ihrer Einrichtung zugänglich.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium text-text-main mb-2">
-                  Gespeicherte Daten
-                </h4>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Pseudonyme und Geburtsjahre der betreuten Personen</li>
-                  <li>Gewichtsverlaufsdaten</li>
-                  <li>Allergien und Unverträglichkeiten</li>
-                  <li>
-                    Generierte Ernährungspläne und Einkaufslisten
-                  </li>
-                  <li>Mitarbeiter:innen-Accounts (E-Mail, Name, Rolle)</li>
-                </ul>
-              </div>
-
-              <Separator />
-
-              {/* Datenexport */}
-              <div>
-                <h4 className="font-medium text-text-main mb-2">
-                  Daten exportieren
-                </h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Gemäß DSGVO Art. 20 haben Sie das Recht auf
-                  Datenübertragbarkeit. Exportieren Sie alle Daten Ihrer
-                  Einrichtung im JSON-Format.
-                </p>
-                <Button
-                  variant="outline"
-                  className="rounded-xl"
-                  onClick={() => exportMutation.mutate()}
-                  disabled={exportMutation.isPending}
-                >
-                  {exportMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Exportiert…
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Daten exportieren
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* Datenlöschung */}
-              <div>
-                <h4 className="font-medium text-text-main mb-2">
-                  Datenlöschung beantragen
-                </h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Gemäß DSGVO Art. 17 haben betroffene Personen das Recht auf
-                  Löschung ihrer Daten. Bewohner:innen werden in mein-nutrikompass.de
-                  standardmäßig deaktiviert (Soft-Delete), um die
-                  Dokumentationspflicht zu erfüllen.
-                </p>
-                <Button
-                  variant="outline"
-                  className="rounded-xl text-destructive border-destructive hover:bg-destructive/10"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Datenlöschung beantragen
-                </Button>
-              </div>
+            <CardHeader><CardTitle className="flex items-center gap-2 text-text-main"><Shield className="h-5 w-5 text-primary" />Datenschutz & DSGVO</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="flex items-start gap-2 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4" />Mitarbeiter- und Einrichtungsdetails sind optional, validiert, und auf notwendige Felder begrenzt.</p>
+              <Button variant="outline" className="rounded-xl text-destructive border-destructive hover:bg-destructive/10" onClick={() => setDeleteOpen(true)}><Trash2 className="mr-2 h-4 w-4" />Datenlöschung beantragen</Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* ════════════════════════════════════════════════════════════════
-          DIALOG: Mitarbeiter einladen
-          ════════════════════════════════════════════════════════════════ */}
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent className="sm:rounded-xl">
-          <DialogHeader>
-            <DialogTitle>Mitarbeiter:in einladen</DialogTitle>
-            <DialogDescription>
-              Die eingeladene Person erhält eine E-Mail mit einem Link zur
-              Registrierung. Die Einladung ist 7 Tage gültig.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleInviteSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="inviteName">Name</Label>
-              <Input
-                id="inviteName"
-                className="rounded-xl"
-                placeholder="Vor- und Nachname"
-                value={inviteName}
-                onChange={(e) => setInviteName(e.target.value)}
-                required
-                minLength={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="inviteEmail">E-Mail-Adresse</Label>
-              <Input
-                id="inviteEmail"
-                type="email"
-                className="rounded-xl"
-                placeholder="name@einrichtung.de"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="inviteRole">Rolle</Label>
-              <Select
-                value={inviteRole}
-                onValueChange={(v) => setInviteRole(v as "STAFF" | "ADMIN")}
-              >
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="STAFF">
-                    Mitarbeiter:in – kann Bewohner:innen & Pläne verwalten
-                  </SelectItem>
-                  <SelectItem value="ADMIN">
-                    Administrator:in – voller Zugriff inkl. Einstellungen
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                onClick={() => setInviteOpen(false)}
-              >
-                Abbrechen
-              </Button>
-              <Button
-                type="submit"
-                className="rounded-xl bg-primary hover:bg-primary-600"
-                disabled={
-                  inviteMutation.isPending ||
-                  inviteName.trim().length < 2 ||
-                  !inviteEmail.includes("@")
-                }
-              >
-                {inviteMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sendet…
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Einladung senden
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
+          <DialogHeader><DialogTitle>Mitarbeiter:in einladen</DialogTitle><DialogDescription>Einladung ist 7 Tage gültig.</DialogDescription></DialogHeader>
+          <form onSubmit={submitInvite} className="space-y-4">
+            <div className="space-y-2"><Label htmlFor="inviteName">Name</Label><Input id="inviteName" value={inviteName} onChange={(e) => setInviteName(e.target.value)} required minLength={2} /></div>
+            <div className="space-y-2"><Label htmlFor="inviteEmail">E-Mail</Label><Input id="inviteEmail" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required /></div>
+            <div className="space-y-2"><Label htmlFor="inviteRole">Rolle</Label><Select value={inviteRole} onValueChange={(v) => setInviteRole(v as "ADMIN" | "STAFF")}><SelectTrigger id="inviteRole"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="STAFF">Mitarbeiter:in</SelectItem><SelectItem value="ADMIN">Administrator:in</SelectItem></SelectContent></Select></div>
+            <DialogFooter><Button type="button" variant="outline" onClick={() => setInviteOpen(false)}>Abbrechen</Button><Button type="submit" disabled={inviteMutation.isPending || inviteName.trim().length < 2 || !inviteEmail.includes("@")}>{inviteMutation.isPending ? "Sendet..." : "Einladen"}</Button></DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* ════════════════════════════════════════════════════════════════
-          DIALOG: Datenlöschung bestätigen
-          ════════════════════════════════════════════════════════════════ */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:rounded-xl">
+          <DialogHeader><DialogTitle>Mitarbeiter:in bearbeiten</DialogTitle><DialogDescription>Nur arbeitsbezogene Daten speichern.</DialogDescription></DialogHeader>
+          <form onSubmit={submitEdit} className="space-y-4">
+            <div className="space-y-2"><Label htmlFor="editName">Name</Label><Input id="editName" value={editName} onChange={(e) => setEditName(e.target.value)} required minLength={2} /></div>
+            <div className="space-y-2"><Label htmlFor="editEmail">E-Mail</Label><Input id="editEmail" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} required /></div>
+            <div className="space-y-2"><Label htmlFor="editRole">Rolle</Label><Select value={editRole} onValueChange={(v) => setEditRole(v as "ADMIN" | "STAFF")}><SelectTrigger id="editRole"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="STAFF">Mitarbeiter:in</SelectItem><SelectItem value="ADMIN">Administrator:in</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="editJobTitle">Funktion</Label><Input id="editJobTitle" value={editJobTitle} onChange={(e) => setEditJobTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label htmlFor="editPhone">Telefon</Label><Input id="editPhone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} /></div>
+            <div className="space-y-2"><Label htmlFor="editNotes">Interne Notiz</Label><Textarea id="editNotes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} /></div>
+            <DialogFooter><Button type="button" variant="outline" onClick={() => { setEditOpen(false); setEditId(null); }}>Abbrechen</Button><Button type="submit" disabled={updateMutation.isPending || !editId || editName.trim().length < 2 || !editEmail.includes("@")}>{updateMutation.isPending ? "Speichert..." : "Speichern"}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={removeOpen} onOpenChange={setRemoveOpen}>
+        <DialogContent className="sm:rounded-xl">
+          <DialogHeader><DialogTitle className="text-destructive">Mitarbeiterkonto entfernen</DialogTitle><DialogDescription>Konto wird deaktiviert und personenbezogene Kontodaten anonymisiert.</DialogDescription></DialogHeader>
+          <div className="space-y-2"><Label htmlFor="removeConfirm">Zur Bestätigung Namen eingeben: <strong>{removeName}</strong></Label><Input id="removeConfirm" value={removeConfirm} onChange={(e) => setRemoveConfirm(e.target.value)} /></div>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => { setRemoveOpen(false); setRemoveId(null); setRemoveName(""); setRemoveConfirm(""); }}>Abbrechen</Button><Button variant="destructive" disabled={!removeId || removeMutation.isPending || removeConfirm.trim() !== removeName} onClick={() => removeId && removeMutation.mutate({ userId: removeId })}>{removeMutation.isPending ? "Entfernt..." : "Entfernen"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-destructive">
-              Datenlöschung beantragen
-            </DialogTitle>
-            <DialogDescription>
-              Dies deaktiviert alle aktiven Datensätze Ihrer
-              Einrichtung (Soft-Delete). Für eine vollständige Löschung
-              kontaktieren Sie bitte den Support.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
-              <strong>Achtung:</strong> Diese Aktion kann nicht direkt
-              rückgängig gemacht werden. Alle aktiven Daten werden
-              deaktiviert.
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="deleteConfirm">
-                Bitte geben Sie <strong>LÖSCHEN</strong> ein, um zu bestätigen:
-              </Label>
-              <Input
-                id="deleteConfirm"
-                className="rounded-xl"
-                placeholder="LÖSCHEN"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-xl"
-              onClick={() => {
-                setDeleteOpen(false);
-                setDeleteConfirmText("");
-              }}
-            >
-              Abbrechen
-            </Button>
-            <Button
-              variant="destructive"
-              className="rounded-xl"
-              disabled={
-                deleteConfirmText !== "LÖSCHEN" || deletionMutation.isPending
-              }
-              onClick={() => deletionMutation.mutate()}
-            >
-              {deletionMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verarbeitet…
-                </>
-              ) : (
-                <>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Löschung beantragen
-                </>
-              )}
-            </Button>
-          </DialogFooter>
+          <DialogHeader><DialogTitle className="text-destructive">Datenlöschung beantragen</DialogTitle><DialogDescription>Soft-Delete für aktive Datensätze Ihrer Einrichtung.</DialogDescription></DialogHeader>
+          <div className="space-y-2"><Label htmlFor="deleteConfirm">Bitte <strong>LÖSCHEN</strong> eingeben:</Label><Input id="deleteConfirm" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} /></div>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => { setDeleteOpen(false); setDeleteConfirm(""); }}>Abbrechen</Button><Button variant="destructive" disabled={requestDeletionMutation.isPending || deleteConfirm !== "LÖSCHEN"} onClick={() => requestDeletionMutation.mutate()}>{requestDeletionMutation.isPending ? "Verarbeitet..." : "Löschung beantragen"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
