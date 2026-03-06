@@ -62,27 +62,30 @@ function ctaButton(url: string, text: string): string {
 }
 
 function buildVerificationEmailHtml(name: string, verifyUrl: string): string {
-  return emailWrapper("Bitte bestaetigen Sie Ihre E-Mail-Adresse fuer mein-nutrikompass.de.", `
+  return emailWrapper("Bitte bestaetigen Sie Ihre E-Mail-Adresse fuer Ihr Konto bei mein-nutrikompass.de.", `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
-      Willkommen bei mein-nutrikompass.de, ${name}!
+      E-Mail-Adresse bestaetigen
     </h2>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
-      Vielen Dank fuer Ihre Registrierung. Sie haben eine <strong>14-taegige kostenlose Testphase</strong> mit vollem Zugang zu allen Funktionen.
+      Hallo ${name},
+    </p>
+    <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
+      fuer Ihr Konto bei <strong>mein-nutrikompass.de</strong> wurde diese E-Mail-Adresse hinterlegt. Bitte bestaetigen Sie die Adresse, um die Registrierung abzuschliessen.
     </p>
     <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
-      Bitte bestaetigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren:
+      Nutzen Sie dazu bitte den folgenden Link:
     </p>
     <div style="text-align:center;margin:0 0 24px;">
-      ${ctaButton(verifyUrl, "E-Mail bestaetigen")}
+      ${ctaButton(verifyUrl, "E-Mail-Adresse bestaetigen")}
     </div>
     <p style="margin:0 0 8px;font-size:13px;color:#6B7280;">
-      Oder kopieren Sie diesen Link in Ihren Browser:
+      Falls der Button nicht funktioniert, koennen Sie diesen Link in Ihren Browser kopieren:
     </p>
     <p style="margin:0 0 24px;font-size:13px;color:#2D6A4F;word-break:break-all;">
       ${verifyUrl}
     </p>
     <p style="margin:0;font-size:13px;color:#9CA3AF;">
-      Falls Sie sich nicht bei mein-nutrikompass.de registriert haben, koennen Sie diese E-Mail ignorieren.
+      Wenn Sie die Registrierung nicht selbst gestartet haben, koennen Sie diese E-Mail ignorieren.
     </p>
   `);
 }
@@ -152,12 +155,13 @@ function buildStaffInvitationEmailHtml(
 
 function buildVerificationEmailText(name: string, verifyUrl: string): string {
   return [
-    `Willkommen bei mein-nutrikompass.de, ${name}!`,
+    `Hallo ${name},`,
     "",
-    "Bitte bestaetigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren:",
+    "fuer Ihr Konto bei mein-nutrikompass.de wurde diese E-Mail-Adresse hinterlegt.",
+    "Bitte bestaetigen Sie die Adresse ueber den folgenden Link, um die Registrierung abzuschliessen:",
     verifyUrl,
     "",
-    "Falls Sie sich nicht registriert haben, ignorieren Sie diese Nachricht.",
+    "Wenn Sie die Registrierung nicht selbst gestartet haben, koennen Sie diese E-Mail ignorieren.",
   ].join("\n");
 }
 
@@ -214,7 +218,7 @@ export async function sendVerificationEmail(
     from: getFromAddress(),
     to: email,
     replyTo: getReplyToAddress(),
-    subject: "Willkommen bei mein-nutrikompass.de - Bitte bestaetigen Sie Ihre E-Mail",
+    subject: "Bitte bestaetigen Sie Ihre E-Mail-Adresse",
     html: buildVerificationEmailHtml(name, verifyUrl),
     text: buildVerificationEmailText(name, verifyUrl),
   });

@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const { auth } = NextAuth(authConfig);
 
 // Geschützte Routen (Login erforderlich)
-const protectedPaths = ["/dashboard", "/patients", "/meal-plans", "/shopping-lists", "/settings", "/billing", "/profile"];
+const protectedPaths = ["/dashboard", "/patients", "/meal-plans", "/shopping-lists", "/agent", "/settings", "/fhir-export", "/billing", "/profile"];
 // Öffentliche Routen (kein Login nötig)
 const publicPaths = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/invite", "/impressum", "/datenschutz", "/agb", "/avv", "/api/auth", "/api/trpc", "/api/health", "/api/webhooks/stripe"];
 
@@ -124,8 +124,8 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  // Settings-Seite nur für Admins
-  if (pathname.startsWith("/settings") && isLoggedIn) {
+  // Admin-Seiten nur für Admins
+  if ((pathname.startsWith("/settings") || pathname.startsWith("/fhir-export")) && isLoggedIn) {
     const role = req.auth?.user?.role;
     if (role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", nextUrl));

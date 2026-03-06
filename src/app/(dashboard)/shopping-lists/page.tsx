@@ -11,7 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, ShoppingCart, CalendarDays, List, ChevronLeft, ChevronRight, Trash2, FileDown } from "lucide-react";
 import { toast } from "sonner";
-import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
+import {
+  aggregateShoppingItems,
+  isNewMealPlan,
+  isRedFlagMealPlan,
+} from "@/lib/mealPlans/planFormat";
 
 interface ShoppingItem {
   name: string;
@@ -110,47 +114,10 @@ function isTooCoarseGroupedItems(grouped: Record<string, ShoppingItem[]>): boole
 
 function rebuildGroupedItemsFromPlan(planJson?: unknown): Record<string, ShoppingItem[]> | null {
   if (!planJson) return null;
-  const plan = planJson as MealPlanData;
-  if (!plan?.days?.length) return null;
-
-  const ingredientMap = new Map<string, ShoppingItem>();
-  for (const day of plan.days) {
-    for (const meal of day.meals) {
-      for (const ingredient of meal.ingredients) {
-        const key = `${ingredient.name.toLowerCase()}_${ingredient.unit}`;
-        const existing = ingredientMap.get(key);
-        if (existing) {
-          existing.amount += ingredient.amount;
-        } else {
-          ingredientMap.set(key, {
-            name: ingredient.name,
-            amount: ingredient.amount,
-            unit: ingredient.unit,
-            category: ingredient.category,
-          });
-        }
-      }
-    }
+  if (isNewMealPlan(planJson) && isRedFlagMealPlan(planJson)) {
+    return null;
   }
-
-  const grouped: Record<string, ShoppingItem[]> = {
-    "Gemüse & Obst": [],
-    Protein: [],
-    Milchprodukte: [],
-    Kohlenhydrate: [],
-    Sonstiges: [],
-  };
-
-  for (const item of Array.from(ingredientMap.values())) {
-    const cat = grouped[item.category] ? item.category : "Sonstiges";
-    grouped[cat].push({ ...item, amount: Math.round(item.amount) });
-  }
-
-  for (const cat of Object.keys(grouped)) {
-    grouped[cat].sort((a, b) => a.name.localeCompare(b.name, "de"));
-  }
-
-  return grouped;
+  return aggregateShoppingItems(planJson as never) as Record<string, ShoppingItem[]>;
 }
 
 function getNormalizedItems(

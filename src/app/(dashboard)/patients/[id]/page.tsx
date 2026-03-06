@@ -376,7 +376,7 @@ export default function PatientDetailPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Kalenderwoche</TableHead>
-                      <TableHead>Kalorien/Woche</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Erstellt von</TableHead>
                       <TableHead>Datum</TableHead>
                       <TableHead>Einkaufsliste</TableHead>
@@ -393,9 +393,9 @@ export default function PatientDetailPage() {
                         <TableCell>
                           <Badge
                             variant="secondary"
-                            className="rounded-xl bg-secondary/20 text-secondary-600"
+                            className="rounded-xl bg-primary/10 text-primary"
                           >
-                            {plan.totalKcal.toLocaleString("de-DE")} kcal
+                            Wochenplan
                           </Badge>
                         </TableCell>
                         <TableCell>{plan.createdByUser.name}</TableCell>

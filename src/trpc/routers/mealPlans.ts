@@ -5,6 +5,7 @@ import { router, protectedProcedure } from "../init";
 import { generateMealPlan } from "@/lib/openai/nutritionPrompt";
 import { PLAN_LIMITS } from "@/lib/stripe";
 import { validateInput } from "@/lib/ai-security/guardrails";
+import { getPlanNutrition, isNewMealPlan, isOkMealPlan } from "@/lib/mealPlans/planFormat";
 
 const MEAL_TYPE_VALUES = [
   "Frühstück",
@@ -77,7 +78,7 @@ export const mealPlansRouter = router({
       z.object({
         patientId: z.string(),
         weekStart: z.string().transform((val) => new Date(val)),
-        numDays: z.number().int().min(1).max(14).default(7),
+        numDays: z.literal(7).default(7),
         fixedMealTypes: z.array(z.enum(MEAL_TYPE_VALUES)).default([]),
         additionalNotes: z.string().max(2000).optional(),
         basedOnPreviousPlan: z.boolean().default(false),
@@ -145,7 +146,8 @@ export const mealPlansRouter = router({
         });
 
         if (previousPlan) {
-          notes += "\n\nVorheriger Plan als Referenz vorhanden. Bitte variiere die Mahlzeiten, behalte aber die Kalorienverteilung bei.";
+          notes +=
+            "\n\nVorheriger Plan als Referenz vorhanden. Bitte variiere die Mahlzeiten, behalte aber eine verlässliche Tagesstruktur bei.";
         }
       }
 
@@ -203,6 +205,7 @@ export const mealPlansRouter = router({
       setProgress(ctx.user.id, "Wird vorbereitet...", 0, input.numDays);
 
       let plan: Awaited<ReturnType<typeof generateMealPlan>>["plan"];
+      let pipelineInfo: Awaited<ReturnType<typeof generateMealPlan>>["pipeline"] | null = null;
       try {
         const generated = await generateMealPlan(
           {
@@ -228,28 +231,34 @@ export const mealPlansRouter = router({
           }
         );
         plan = generated.plan;
+        pipelineInfo = generated.pipeline;
       } catch (error) {
         const rawMessage =
           error instanceof Error ? error.message : "Unbekannter Generierungsfehler";
         console.error("[mealPlans.generate] KI-Generierung fehlgeschlagen:", rawMessage);
+        const safeMessage = rawMessage.replace(/\s+/g, " ").slice(0, 220);
 
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "Die Plan-Generierung ist fehlgeschlagen. Bitte erneut versuchen oder die Tagesanzahl reduzieren.",
+          message: `Die Plan-Generierung ist fehlgeschlagen: ${safeMessage}`,
         });
       }
 
-      // Gesamt-Kalorien berechnen
-      const totalKcal = plan.days.reduce(
-        (sum, day) => sum + day.dailyKcal,
-        0
-      );
+      const totalKcal = getPlanNutrition(plan).kcal;
 
       // Plan in DB speichern
       // Sicherheitshinweis: promptUsed speichert nur Metadaten (kein PII).
       // Der vollständige Prompt wird nicht persistiert (DSGVO Datensparsamkeit).
-      const promptMetadata = `model=gpt-4o-mini numDays=${input.numDays} fastMode=${input.fastMode} hasNotes=${!!input.additionalNotes} hasAutonomy=${!!effectiveAutonomyNotes}`;
+      const promptMetadata = [
+        "pipeline=v2",
+        `numDays=${input.numDays}`,
+        `fastMode=${input.fastMode}`,
+        `hasNotes=${!!input.additionalNotes}`,
+        `hasAutonomy=${!!effectiveAutonomyNotes}`,
+        `structureDays=${pipelineInfo?.structure?.days.length ?? 0}`,
+        `recipes=${pipelineInfo?.recipes.length ?? 0}`,
+        `qualityScore=${pipelineInfo?.qualityAssessment?.qualityScore ?? "n/a"}`,
+      ].join(" ");
       const mealPlan = await ctx.prisma.mealPlan.create({
         data: {
           patientId: input.patientId,
@@ -372,22 +381,32 @@ export const mealPlansRouter = router({
         });
       }
 
-      const planData = plan.planJson as unknown as {
-        days?: Array<{
-          meals?: Array<Record<string, unknown>>;
-        }>;
-      };
+      const planData = plan.planJson;
+      if (!isNewMealPlan(planData) || !isOkMealPlan(planData)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Dieses Planformat unterstützt keine Rezeptbearbeitung.",
+        });
+      }
 
-      const day = planData.days?.[input.dayIndex];
+      const day = planData.days[input.dayIndex];
       const meal = day?.meals?.[input.mealIndex];
-      if (!day || !meal) {
+      if (!day || !meal || !meal.recipe_id) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Ungültiger Tag oder Mahlzeit.",
         });
       }
 
-      meal.recipe = input.recipe;
+      const recipe = planData.recipes.find((entry) => entry.recipe_id === meal.recipe_id);
+      if (!recipe) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Rezept nicht gefunden.",
+        });
+      }
+
+      recipe.short_preparation = input.recipe;
 
       await ctx.prisma.mealPlan.update({
         where: { id: input.planId },

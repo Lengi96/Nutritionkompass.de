@@ -1,67 +1,14 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure } from "../init";
-import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
 import type { Prisma } from "@prisma/client";
-
-interface AggregatedItem {
-  name: string;
-  amount: number;
-  unit: string;
-  category: string;
-}
-
-// Zutaten aus dem Plan aggregieren und nach Kategorie gruppieren
-function aggregateIngredients(planData: MealPlanData): Record<string, AggregatedItem[]> {
-  const ingredientMap = new Map<string, AggregatedItem>();
-
-  for (const day of planData.days) {
-    for (const meal of day.meals) {
-      for (const ingredient of meal.ingredients) {
-        const key = `${ingredient.name.toLowerCase()}_${ingredient.unit}`;
-        const existing = ingredientMap.get(key);
-
-        if (existing) {
-          existing.amount += ingredient.amount;
-        } else {
-          ingredientMap.set(key, {
-            name: ingredient.name,
-            amount: ingredient.amount,
-            unit: ingredient.unit,
-            category: ingredient.category,
-          });
-        }
-      }
-    }
-  }
-
-  // Nach Kategorie gruppieren
-  const grouped: Record<string, AggregatedItem[]> = {
-    "Gemüse & Obst": [],
-    Protein: [],
-    Milchprodukte: [],
-    Kohlenhydrate: [],
-    Sonstiges: [],
-  };
-
-  for (const item of Array.from(ingredientMap.values())) {
-    const category = grouped[item.category] ? item.category : "Sonstiges";
-    grouped[category].push({
-      ...item,
-      amount: Math.round(item.amount),
-    });
-  }
-
-  // Alphabetisch innerhalb der Kategorien sortieren
-  for (const category of Object.keys(grouped)) {
-    grouped[category].sort((a, b) => a.name.localeCompare(b.name, "de"));
-  }
-
-  return grouped;
-}
+import { router, protectedProcedure } from "../init";
+import {
+  aggregateShoppingItems,
+  isNewMealPlan,
+  isRedFlagMealPlan,
+} from "@/lib/mealPlans/planFormat";
 
 export const shoppingListRouter = router({
-  // Einkaufsliste aus Ernährungsplan generieren
   generateFromPlan: protectedProcedure
     .input(z.object({ mealPlanId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -82,7 +29,6 @@ export const shoppingListRouter = router({
         });
       }
 
-      // Sicherheitshinweis: Organization-Check
       if (mealPlan.patient.organizationId !== ctx.organizationId) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -90,16 +36,20 @@ export const shoppingListRouter = router({
         });
       }
 
-      // Falls bereits eine Einkaufsliste existiert, diese zurückgeben
       if (mealPlan.shoppingList) {
         return mealPlan.shoppingList;
       }
 
-      // Zutaten aggregieren
-      const planData = mealPlan.planJson as unknown as MealPlanData;
-      const groupedItems = aggregateIngredients(planData);
+      if (isNewMealPlan(mealPlan.planJson) && isRedFlagMealPlan(mealPlan.planJson)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Für einen Red-Flag-Hinweisplan kann keine Einkaufsliste erstellt werden.",
+        });
+      }
 
-      // In DB speichern
+      const groupedItems = aggregateShoppingItems(mealPlan.planJson as never);
+
       const shoppingList = await ctx.prisma.shoppingList.create({
         data: {
           mealPlanId: input.mealPlanId,
@@ -110,7 +60,6 @@ export const shoppingListRouter = router({
       return shoppingList;
     }),
 
-  // Einkaufsliste anhand des MealPlans laden
   getByMealPlan: protectedProcedure
     .input(z.object({ mealPlanId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -134,7 +83,6 @@ export const shoppingListRouter = router({
         });
       }
 
-      // Sicherheitshinweis: Organization-Check
       if (shoppingList.mealPlan.patient.organizationId !== ctx.organizationId) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -145,7 +93,6 @@ export const shoppingListRouter = router({
       return shoppingList;
     }),
 
-  // Alle Einkaufslisten der eigenen Organisation
   list: protectedProcedure
     .input(
       z
@@ -190,7 +137,6 @@ export const shoppingListRouter = router({
       });
     }),
 
-  // Einkaufsliste anhand der eigenen ID laden
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -227,7 +173,6 @@ export const shoppingListRouter = router({
       return shoppingList;
     }),
 
-  // Einkaufsliste löschen
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -265,4 +210,3 @@ export const shoppingListRouter = router({
       return { success: true };
     }),
 });
-

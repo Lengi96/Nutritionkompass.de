@@ -14,6 +14,18 @@ enum Role {
   STAFF
 }
 
+enum UserDefaultLandingPage {
+  DASHBOARD
+  PATIENTS
+  MEAL_PLANS
+  SHOPPING_LISTS
+}
+
+enum UiDensity {
+  COMFORTABLE
+  COMPACT
+}
+
 enum SubscriptionPlan {
   TRIAL
   BASIC
@@ -52,6 +64,8 @@ model Organization {
   patients             Patient[]
   invitations          StaffInvitation[]
   autonomyAgreements   AutonomyAgreement[]
+  fhirExportAuditLogs  FhirExportAuditLog[]
+  agentAuditLogs       AgentAuditLog[]
 }
 
 model User {
@@ -67,6 +81,7 @@ model User {
   role           Role         @default(STAFF)
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
+  settings       UserSettings?
   mealPlans      MealPlan[]
 
   // E-Mail-Verifizierung
@@ -80,9 +95,21 @@ model User {
   // Autonomie-Relationen
   createdAgreements      AutonomyAgreement[]  @relation("AgreementCreatedBy")
   auditLogEntries        AutonomyAuditLog[]   @relation("AuditChangedBy")
+  fhirExportAuditLogs    FhirExportAuditLog[]
+  agentAuditLogs         AgentAuditLog[]
 
   @@index([organizationId])
   @@index([email])
+}
+
+model UserSettings {
+  id                 String                 @id @default(cuid())
+  userId             String                 @unique
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultLandingPage UserDefaultLandingPage @default(DASHBOARD)
+  uiDensity          UiDensity              @default(COMFORTABLE)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
 }
 
 model Patient {
@@ -209,4 +236,38 @@ model AutonomyAuditLog {
 
   @@index([patientId])
   @@index([agreementId])
+}
+
+model FhirExportAuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  patientIds     String[]
+  resourceTypes  String[]
+  dateFrom       DateTime?
+  dateTo         DateTime?
+  payloadBytes   Int
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AgentAuditLog {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  userId              String
+  user                User         @relation(fields: [userId], references: [id])
+  createdAt           DateTime     @default(now())
+  intentSummary       String
+  proposedActionsJson Json
+  committed           Boolean      @default(false)
+  commitResultJson    Json?
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }
