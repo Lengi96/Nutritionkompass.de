@@ -7,9 +7,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function buildCsp() {
-  const scriptSrc = ["'self'"];
+  const scriptSrc = ["'self'", "'unsafe-inline'"];
   if (isDev) {
-    scriptSrc.push("'unsafe-inline'", "'unsafe-eval'");
+    scriptSrc.push("'unsafe-eval'");
   }
 
   const connectSrc = [
