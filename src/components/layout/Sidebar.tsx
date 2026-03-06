@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -39,7 +39,7 @@ interface SidebarProps {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patients", label: "Bewohner:innen", icon: Users },
-  { href: "/meal-plans", label: "Ernaehrungsplaene", icon: ClipboardList },
+  { href: "/meal-plans", label: "Ernährungspläne", icon: ClipboardList },
   { href: "/shopping-lists", label: "Einkaufslisten", icon: ShoppingCart },
   { href: "/agent", label: "Agent", icon: Bot },
   { href: "/billing", label: "Abonnement", icon: CreditCard },
@@ -130,7 +130,7 @@ function SidebarContent({
           </div>
           <div>
             <span className="block text-sm font-bold text-text-main">NutriKompass</span>
-            <span className="block text-xs text-slate-500">Planung fuer Einrichtungsteams</span>
+            <span className="block text-xs text-slate-500">Planung für Einrichtungsteams</span>
           </div>
         </div>
       </Link>
@@ -222,7 +222,7 @@ export function Sidebar({ user }: SidebarProps) {
             variant="outline"
             size="icon"
             className="fixed left-4 top-4 z-40 h-11 w-11 rounded-2xl border-primary/15 bg-white/92 shadow-[0_12px_24px_rgba(53,95,81,0.12)] backdrop-blur lg:hidden"
-            aria-label="Menue oeffnen"
+            aria-label="Menü öffnen"
           >
             <Menu className="h-5 w-5" />
           </Button>
