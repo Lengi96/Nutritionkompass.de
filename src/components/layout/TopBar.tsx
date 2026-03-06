@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,7 +24,7 @@ interface TopBarProps {
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/patients": "Bewohner:innen",
-  "/meal-plans": "Ernaehrungsplaene",
+  "/meal-plans": "Ernährungspläne",
   "/shopping-lists": "Einkaufslisten",
   "/settings": "Einstellungen",
   "/profile": "Mein Profil",
@@ -51,7 +51,7 @@ function getBreadcrumbs(pathname: string) {
 function getPageTitle(pathname: string): string {
   if (pageTitles[pathname]) return pageTitles[pathname];
   if (pathname.startsWith("/patients/")) return "Bewohner:in-Details";
-  if (pathname.startsWith("/meal-plans/")) return "Ernaehrungsplan";
+  if (pathname.startsWith("/meal-plans/")) return "Ernährungsplan";
   if (pathname.startsWith("/shopping-lists/")) return "Einkaufsliste";
   return "Dashboard";
 }

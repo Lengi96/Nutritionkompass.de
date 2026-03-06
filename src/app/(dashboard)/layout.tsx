@@ -36,7 +36,7 @@ export default async function DashboardLayout({
           className="min-h-screen overflow-x-hidden bg-background"
         >
           <Sidebar user={user} />
-          <div className="min-w-0 lg:pl-64">
+          <div className="min-w-0 lg:pl-72">
             <TrialBanner />
             <TopBar user={user} />
             <main className="p-4 sm:p-6">{children}</main>
