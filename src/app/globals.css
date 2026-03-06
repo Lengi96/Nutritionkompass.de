@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 210 17% 98%;
-    --foreground: 240 33% 14%;
+    --background: 180 8% 97%;
+    --foreground: 156 18% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 240 33% 14%;
+    --card-foreground: 156 18% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 33% 14%;
-    --primary: 200 51% 37%;
+    --popover-foreground: 156 18% 16%;
+    --primary: 159 29% 44%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 200 47% 48%;
-    --secondary-foreground: 240 33% 14%;
-    --muted: 200 17% 95%;
-    --muted-foreground: 200 16% 47%;
-    --accent: 200 80% 95%;
-    --accent-foreground: 200 51% 37%;
+    --secondary: 159 22% 57%;
+    --secondary-foreground: 156 18% 16%;
+    --muted: 156 20% 94%;
+    --muted-foreground: 156 10% 41%;
+    --accent: 155 43% 94%;
+    --accent-foreground: 159 29% 34%;
     --destructive: 355 71% 56%;
     --destructive-foreground: 0 0% 100%;
-    --border: 200 20% 90%;
-    --input: 200 20% 90%;
-    --ring: 200 51% 37%;
+    --border: 156 14% 86%;
+    --input: 156 14% 86%;
+    --ring: 159 29% 44%;
     --radius: 0.75rem;
   }
 }
@@ -31,31 +31,28 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     min-height: 100%;
   }
 }
 
-/* Zoom-safe scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Hide default details marker in Safari */
 summary::-webkit-details-marker {
   display: none;
 }
 
-/* Hero dot-grid background */
 @layer utilities {
   .hero-dot-grid {
-    background-image: radial-gradient(rgba(46, 111, 143, 0.25) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(80, 145, 123, 0.18) 1px, transparent 1px);
     background-size: 36px 36px;
   }
 }
 
-/* FAQ answer fade-in */
 details[open] > :not(summary) {
   animation: fade-in-down 0.2s ease-out;
 }
@@ -71,7 +68,6 @@ details[open] > :not(summary) {
   }
 }
 
-/* Tighter optical Inter features for display headings */
 @layer base {
   h1,
   h2 {

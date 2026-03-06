@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { router, protectedProcedure } from "../init";
 import {
   agentCommitInputSchema,
@@ -67,6 +67,15 @@ async function resolvePatientIdByReference(
   }
 
   return candidates[0].id;
+}
+
+function isMissingAgentAuditLogTableError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    const table = typeof error.meta?.table === "string" ? error.meta.table : "";
+    return error.code === "P2021" && table.includes("AgentAuditLog");
+  }
+
+  return error instanceof Error && error.message.includes("AgentAuditLog");
 }
 
 function actionToIntentChunk(action: AgentProposedAction): string {
@@ -251,22 +260,34 @@ export const agentRouter = router({
           createdWeightEntryIds,
           createdMealPlanIds,
         };
+        let auditId: string | null = null;
 
-        const audit = await tx.agentAuditLog.create({
-          data: {
-            organizationId: ctx.organizationId,
-            userId: ctx.user.id,
-            intentSummary: summary,
-            proposedActionsJson: input.proposedActions as unknown as Prisma.InputJsonValue,
-            committed: true,
-            commitResultJson: commitResult as unknown as Prisma.InputJsonValue,
-          },
-          select: { id: true },
-        });
+        try {
+          const audit = await tx.agentAuditLog.create({
+            data: {
+              organizationId: ctx.organizationId,
+              userId: ctx.user.id,
+              intentSummary: summary,
+              proposedActionsJson: input.proposedActions as unknown as Prisma.InputJsonValue,
+              committed: true,
+              commitResultJson: commitResult as unknown as Prisma.InputJsonValue,
+            },
+            select: { id: true },
+          });
+          auditId = audit.id;
+        } catch (error) {
+          if (!isMissingAgentAuditLogTableError(error)) {
+            throw error;
+          }
+
+          console.warn(
+            "[Agent] AgentAuditLog table missing; commit succeeded without audit log."
+          );
+        }
 
         return {
           summary,
-          auditId: audit.id,
+          auditId,
           ...commitResult,
         };
       }, { timeout: txTimeoutMs, maxWait: txMaxWaitMs });

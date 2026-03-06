@@ -85,8 +85,9 @@ model User {
   mealPlans      MealPlan[]
 
   // E-Mail-Verifizierung
-  emailVerified          Boolean   @default(false)
-  emailVerificationToken String?   @unique
+  emailVerified                Boolean   @default(false)
+  emailVerificationToken       String?   @unique
+  emailVerificationTokenExpiresAt DateTime?
 
   // Passwort-Reset
   resetToken             String?   @unique
@@ -120,11 +121,11 @@ model Patient {
   birthYear      Int
   currentWeight  Decimal       @db.Decimal(5, 2)
   targetWeight   Decimal       @db.Decimal(5, 2)
-  targetDate     DateTime?     // Optionales Zieldatum für Gewichtsziel
+  targetDate     DateTime?     // Optionales Zieldatum fÃ¼r Gewichtsziel
   allergies      String[]
-  fearFoods      String[]      // Angst-/Triggerlebensmittel (Essstörungstherapie)
+  fearFoods      String[]      // Angst-/Triggerlebensmittel (EssstÃ¶rungstherapie)
   notes          String?
-  autonomyNotes  String?       // Legacy – wird durch AutonomyAgreement ersetzt
+  autonomyNotes  String?       // Legacy â€“ wird durch AutonomyAgreement ersetzt
   isActive       Boolean       @default(true)
   weightHistory  WeightEntry[]
   mealPlans      MealPlan[]
@@ -190,7 +191,7 @@ model StaffInvitation {
   @@index([token])
 }
 
-// Autonomie-Absprachen – Strukturierte Selbstständigkeitsvereinbarungen
+// Autonomie-Absprachen â€“ Strukturierte SelbststÃ¤ndigkeitsvereinbarungen
 model AutonomyAgreement {
   id                     String       @id @default(cuid())
   patientId              String       @unique
@@ -200,7 +201,7 @@ model AutonomyAgreement {
 
   // Portionier-Absprachen
   canPortionSupervised   Boolean      @default(false) // Darf unter Aufsicht portionieren
-  canPortionIndependent  Boolean      @default(false) // Darf vollständig eigenständig portionieren
+  canPortionIndependent  Boolean      @default(false) // Darf vollstÃ¤ndig eigenstÃ¤ndig portionieren
 
   notes                  String?      // Freitext: z.B. "Gilt nur beim Abendessen"
   validFrom              DateTime
@@ -217,7 +218,7 @@ model AutonomyAgreement {
   @@index([organizationId])
 }
 
-// Unveränderliches Audit-Log – Dokumentiert jede Änderung an Absprachen
+// UnverÃ¤nderliches Audit-Log â€“ Dokumentiert jede Ã„nderung an Absprachen
 model AutonomyAuditLog {
   id            String            @id @default(cuid())
   patientId     String
@@ -232,7 +233,7 @@ model AutonomyAuditLog {
   fieldChanged  String            // z.B. "canPortionSupervised" oder "CREATED"
   oldValue      String            // Vorheriger Wert als String
   newValue      String            // Neuer Wert als String
-  reason        String            // Begründung (Pflichtfeld, min. 10 Zeichen)
+  reason        String            // BegrÃ¼ndung (Pflichtfeld, min. 10 Zeichen)
 
   @@index([patientId])
   @@index([agreementId])
@@ -271,3 +272,4 @@ model AgentAuditLog {
   @@index([userId, createdAt])
   @@index([createdAt])
 }
+

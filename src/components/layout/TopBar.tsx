@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,11 +24,12 @@ interface TopBarProps {
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/patients": "Bewohner:innen",
-  "/meal-plans": "Ernährungspläne",
+  "/meal-plans": "Ernaehrungsplaene",
   "/shopping-lists": "Einkaufslisten",
   "/settings": "Einstellungen",
   "/profile": "Mein Profil",
   "/billing": "Abonnement",
+  "/agent": "Agent",
 };
 
 function getBreadcrumbs(pathname: string) {
@@ -48,14 +49,10 @@ function getBreadcrumbs(pathname: string) {
 }
 
 function getPageTitle(pathname: string): string {
-  // Exakter Match
   if (pageTitles[pathname]) return pageTitles[pathname];
-
-  // Dynamische Routen
   if (pathname.startsWith("/patients/")) return "Bewohner:in-Details";
-  if (pathname.startsWith("/meal-plans/")) return "Ernährungsplan";
+  if (pathname.startsWith("/meal-plans/")) return "Ernaehrungsplan";
   if (pathname.startsWith("/shopping-lists/")) return "Einkaufsliste";
-
   return "Dashboard";
 }
 
@@ -65,17 +62,23 @@ export function TopBar({ user }: TopBarProps) {
   const breadcrumbs = getBreadcrumbs(pathname);
   const initials = user.name
     .split(" ")
-    .map((n) => n[0])
+    .map((name) => name[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-surface pl-14 pr-3 sm:pr-6 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-primary/10 bg-white/78 pl-16 pr-3 backdrop-blur sm:pr-6 lg:px-8">
       <div className="min-w-0">
-        <h1 className="truncate text-base font-semibold text-text-main sm:text-lg">{title}</h1>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/70">
+          Einrichtungscockpit
+        </p>
+        <h1 className="truncate text-lg font-bold text-text-main sm:text-[1.35rem]">{title}</h1>
         {breadcrumbs.length > 1 && (
-          <nav className="hidden items-center gap-1 text-xs text-muted-foreground sm:flex" aria-label="Breadcrumb">
+          <nav
+            className="hidden items-center gap-1 pt-1 text-xs text-slate-500 sm:flex"
+            aria-label="Breadcrumb"
+          >
             {breadcrumbs.map((crumb, idx) => (
               <span key={crumb.href} className="flex items-center gap-1">
                 {idx > 0 && <ChevronRight className="h-3 w-3" aria-hidden="true" />}
@@ -84,10 +87,7 @@ export function TopBar({ user }: TopBarProps) {
                     {crumb.label}
                   </span>
                 ) : (
-                  <Link
-                    href={crumb.href}
-                    className="hover:text-primary transition-colors"
-                  >
+                  <Link href={crumb.href} className="transition-colors hover:text-primary">
                     {crumb.label}
                   </Link>
                 )}
@@ -99,21 +99,21 @@ export function TopBar({ user }: TopBarProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-3 rounded-xl p-2 hover:bg-accent transition-colors">
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-medium text-text-main">{user.name}</p>
-              <p className="text-xs text-muted-foreground">
+          <button className="flex items-center gap-3 rounded-2xl border border-transparent bg-white/70 p-2 transition-all hover:border-primary/10 hover:bg-[#f7faf8]">
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-semibold text-text-main">{user.name}</p>
+              <p className="text-xs text-slate-500">
                 {user.role === "ADMIN" ? "Administrator:in" : "Mitarbeiter:in"}
               </p>
             </div>
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary text-white text-sm">
+            <Avatar className="h-10 w-10 ring-1 ring-primary/10">
+              <AvatarFallback className="bg-primary text-sm font-semibold text-white">
                 {initials}
               </AvatarFallback>
             </Avatar>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-52 rounded-2xl border-primary/10">
           <Link href="/profile">
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />

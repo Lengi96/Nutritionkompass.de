@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
+import { validateSameOriginRequest } from "@/server/security/same-origin";
 import { getOpenAIClient } from "@/lib/openai/client";
 import { agentPlanRequestSchema, agentPlanSchema } from "@/lib/agent/schemas";
 import type { AgentPlan } from "@/lib/agent/types";
@@ -43,8 +44,8 @@ function validationFallbackPlan(): AgentPlan {
   return {
     intentSummary: "Eingabe unklar",
     questions: [
-      "Bitte formuliere konkreter: Welche Aktion soll ausgeführt werden?",
-      "Nenne Pseudonym oder Patient-ID sowie alle benötigten Werte (z. B. Gewicht und Datum).",
+      "Bitte formuliere konkreter: Welche Aktion soll ausgefuehrt werden?",
+      "Nenne Pseudonym oder Patient-ID sowie alle benoetigten Werte (z. B. Gewicht und Datum).",
     ],
     proposedActions: [],
   };
@@ -64,9 +65,9 @@ function extractFirstMatch(message: string, pattern: RegExp): string | undefined
 
 function extractPseudonym(message: string): string | undefined {
   const patterns = [
-    /\bpseudonym\s+([a-zA-Z0-9ÄÖÜäöüß\-_ ]{2,50})/i,
-    /\bname\s+([a-zA-Z0-9ÄÖÜäöüß\-_ ]{2,50})/i,
-    /\bbewohner(?:in)?\s+([a-zA-Z0-9ÄÖÜäöüß\-_ ]{2,50})\s+anlegen/i,
+    /\bpseudonym\s+([a-zA-Z0-9A-Za-zÄÖÜäöüß\-_ ]{2,50})/i,
+    /\bname\s+([a-zA-Z0-9A-Za-zÄÖÜäöüß\-_ ]{2,50})/i,
+    /\bbewohner(?:in)?\s+([a-zA-Z0-9A-Za-zÄÖÜäöüß\-_ ]{2,50})\s+anlegen/i,
   ];
 
   for (const pattern of patterns) {
@@ -118,8 +119,7 @@ function buildHeuristicPlan(message: string): AgentPlan | null {
     (/\blege\b/.test(normalized) && /\ban\b/.test(normalized));
   const hasSubject = /\b(bewohner|bewohnerin|patient)\b/.test(normalized);
   const hasPseudonymHint = /\bpseudonym\b/.test(normalized);
-  const isPatientCreateIntent =
-    hasCreateVerb && (hasSubject || hasPseudonymHint);
+  const isPatientCreateIntent = hasCreateVerb && (hasSubject || hasPseudonymHint);
 
   if (!isPatientCreateIntent) {
     return null;
@@ -133,7 +133,7 @@ function buildHeuristicPlan(message: string): AgentPlan | null {
   const questions: string[] = [];
 
   if (!pseudonym) {
-    questions.push("Welches Pseudonym soll für die neue Bewohner:in verwendet werden?");
+    questions.push("Welches Pseudonym soll fuer die neue Bewohner:in verwendet werden?");
   }
   if (!birthYear) {
     questions.push("Bitte gib den Jahrgang als 4-stellige Zahl an (z. B. 2008).");
@@ -172,6 +172,11 @@ function buildHeuristicPlan(message: string): AgentPlan | null {
 }
 
 export async function POST(req: Request) {
+  const sameOriginError = validateSameOriginRequest(req);
+  if (sameOriginError) {
+    return sameOriginError;
+  }
+
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Nicht autorisiert." }, { status: 401 });
@@ -179,7 +184,7 @@ export async function POST(req: Request) {
 
   if (!checkRateLimit(session.user.id)) {
     return NextResponse.json(
-      { error: "Zu viele Anfragen. Bitte später erneut versuchen." },
+      { error: "Zu viele Anfragen. Bitte spaeter erneut versuchen." },
       { status: 429 }
     );
   }
@@ -188,7 +193,7 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Ungültiger JSON-Body." }, { status: 400 });
+    return NextResponse.json({ error: "Ungueltiger JSON-Body." }, { status: 400 });
   }
 
   const parsedInput = agentPlanRequestSchema.safeParse(body);

@@ -1,4 +1,4 @@
-﻿import { Resend } from "resend";
+import { Resend } from "resend";
 
 let resendClient: Resend | null = null;
 
@@ -28,13 +28,22 @@ function getAppUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function emailWrapper(preheader: string, content: string): string {
   return `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background-color:#F8F9FA;font-family:Inter,system-ui,-apple-system,sans-serif;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-    ${preheader}
+    ${escapeHtml(preheader)}
   </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F8F9FA;padding:40px 20px;">
     <tr><td align="center">
@@ -58,16 +67,19 @@ function emailWrapper(preheader: string, content: string): string {
 }
 
 function ctaButton(url: string, text: string): string {
-  return `<a href="${url}" style="display:inline-block;background-color:#2D6A4F;color:#FFFFFF;font-weight:600;font-size:15px;padding:12px 32px;border-radius:8px;text-decoration:none;">${text}</a>`;
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;background-color:#2D6A4F;color:#FFFFFF;font-weight:600;font-size:15px;padding:12px 32px;border-radius:8px;text-decoration:none;">${escapeHtml(text)}</a>`;
 }
 
 function buildVerificationEmailHtml(name: string, verifyUrl: string): string {
+  const safeName = escapeHtml(name);
+  const safeVerifyUrl = escapeHtml(verifyUrl);
+
   return emailWrapper("Bitte bestaetigen Sie Ihre E-Mail-Adresse fuer Ihr Konto bei mein-nutrikompass.de.", `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
       E-Mail-Adresse bestaetigen
     </h2>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
-      Hallo ${name},
+      Hallo ${safeName},
     </p>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
       fuer Ihr Konto bei <strong>mein-nutrikompass.de</strong> wurde diese E-Mail-Adresse hinterlegt. Bitte bestaetigen Sie die Adresse, um die Registrierung abzuschliessen.
@@ -82,7 +94,7 @@ function buildVerificationEmailHtml(name: string, verifyUrl: string): string {
       Falls der Button nicht funktioniert, koennen Sie diesen Link in Ihren Browser kopieren:
     </p>
     <p style="margin:0 0 24px;font-size:13px;color:#2D6A4F;word-break:break-all;">
-      ${verifyUrl}
+      ${safeVerifyUrl}
     </p>
     <p style="margin:0;font-size:13px;color:#9CA3AF;">
       Wenn Sie die Registrierung nicht selbst gestartet haben, koennen Sie diese E-Mail ignorieren.
@@ -91,12 +103,15 @@ function buildVerificationEmailHtml(name: string, verifyUrl: string): string {
 }
 
 function buildPasswordResetEmailHtml(name: string, resetUrl: string): string {
+  const safeName = escapeHtml(name);
+  const safeResetUrl = escapeHtml(resetUrl);
+
   return emailWrapper("Setzen Sie jetzt Ihr Passwort fuer mein-nutrikompass.de zurueck.", `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
       Passwort zuruecksetzen
     </h2>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
-      Hallo ${name}, wir haben eine Anfrage zum Zuruecksetzen Ihres Passworts erhalten.
+      Hallo ${safeName}, wir haben eine Anfrage zum Zuruecksetzen Ihres Passworts erhalten.
     </p>
     <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
       Klicken Sie auf den folgenden Button, um ein neues Passwort zu setzen:
@@ -108,7 +123,7 @@ function buildPasswordResetEmailHtml(name: string, resetUrl: string): string {
       Oder kopieren Sie diesen Link in Ihren Browser:
     </p>
     <p style="margin:0 0 24px;font-size:13px;color:#2D6A4F;word-break:break-all;">
-      ${resetUrl}
+      ${safeResetUrl}
     </p>
     <p style="margin:0 0 8px;font-size:13px;color:#EF4444;font-weight:600;">
       Dieser Link ist 1 Stunde gueltig.
@@ -125,12 +140,17 @@ function buildStaffInvitationEmailHtml(
   inviterName: string,
   inviteUrl: string
 ): string {
+  const safeName = escapeHtml(name);
+  const safeOrgName = escapeHtml(orgName);
+  const safeInviterName = escapeHtml(inviterName);
+  const safeInviteUrl = escapeHtml(inviteUrl);
+
   return emailWrapper(`Einladung zu ${orgName} auf mein-nutrikompass.de.`, `
     <h2 style="margin:0 0 16px;font-size:20px;color:#1A1A2E;">
-      Einladung zu ${orgName}
+      Einladung zu ${safeOrgName}
     </h2>
     <p style="margin:0 0 12px;font-size:15px;color:#374151;line-height:1.6;">
-      Hallo ${name}, <strong>${inviterName}</strong> hat Sie als Mitarbeiter zu <strong>${orgName}</strong> bei mein-nutrikompass.de eingeladen.
+      Hallo ${safeName}, <strong>${safeInviterName}</strong> hat Sie als Mitarbeiter zu <strong>${safeOrgName}</strong> bei mein-nutrikompass.de eingeladen.
     </p>
     <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
       Klicken Sie auf den folgenden Button, um die Einladung anzunehmen und Ihr Passwort zu setzen:
@@ -142,7 +162,7 @@ function buildStaffInvitationEmailHtml(
       Oder kopieren Sie diesen Link in Ihren Browser:
     </p>
     <p style="margin:0 0 24px;font-size:13px;color:#2D6A4F;word-break:break-all;">
-      ${inviteUrl}
+      ${safeInviteUrl}
     </p>
     <p style="margin:0 0 8px;font-size:13px;color:#EF4444;font-weight:600;">
       Diese Einladung ist 7 Tage gueltig.

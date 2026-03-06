@@ -40,7 +40,7 @@ export default function AgentPage() {
     createdPatientIds: string[];
     createdWeightEntryIds: string[];
     createdMealPlanIds: string[];
-    auditId: string;
+    auditId: string | null;
   } | null>(null);
   const [isPlanning, setIsPlanning] = useState(false);
   const previewMutation = trpc.agent.preview.useMutation();
@@ -243,7 +243,7 @@ export default function AgentPage() {
             <CardDescription>{commitResult.summary}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <p>Audit-ID: {commitResult.auditId}</p>
+            <p>Audit-ID: {commitResult.auditId ?? "nicht verfuegbar"}</p>
             <p>Neue Patient:innen: {commitResult.createdPatientIds.length}</p>
             <p>Neue Gewichtseinträge: {commitResult.createdWeightEntryIds.length}</p>
             <p>Neue MealPlan Drafts: {commitResult.createdMealPlanIds.length}</p>

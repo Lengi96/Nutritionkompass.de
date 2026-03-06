@@ -2,24 +2,25 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs";
 
-/** @type {import('next').NextConfig} */
 const isDev = process.env.NODE_ENV !== "production";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function buildCsp() {
-  const scriptSrc = ["'self'", "'unsafe-inline'"];
-  if (isDev) scriptSrc.push("'unsafe-eval'");
+  const scriptSrc = ["'self'"];
+  if (isDev) {
+    scriptSrc.push("'unsafe-inline'", "'unsafe-eval'");
+  }
 
   const connectSrc = [
     "'self'",
     "https://api.openai.com",
     "https://api.stripe.com",
     "https://checkout.stripe.com",
-    // Sentry error reporting
     "https://*.sentry.io",
-    "https://o*.ingest.sentry.io",
+    "https://*.ingest.sentry.io",
   ];
+
   if (isDev) {
     connectSrc.push("ws:", "wss:");
   }
@@ -65,7 +66,7 @@ const securityHeaders = [
   {
     key: "Permissions-Policy",
     value:
-      "accelerometer=(), ambient-light-sensor=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(self), usb=()",
+      "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(self), usb=()",
   },
   {
     key: "Content-Security-Policy",
@@ -83,11 +84,12 @@ const securityHeaders = [
 
 const nextConfig = {
   outputFileTracingRoot: __dirname,
-  // ESM-Pakete die per dynamic import geladen werden
   experimental: {
     esmExternals: "loose",
+    sri: {
+      algorithm: "sha384",
+    },
   },
-  // CSP-Headers für Sicherheit
   async headers() {
     return [
       {
@@ -96,7 +98,6 @@ const nextConfig = {
       },
     ];
   },
-  // Webpack-Konfiguration für @react-pdf/renderer (benötigt Canvas-Polyfill)
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;
@@ -104,19 +105,10 @@ const nextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-  // Sentry organisation / project (aus Sentry-Dashboard)
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
-
-  // Sourcemaps in CI hochladen (nur wenn Auth-Token gesetzt)
   authToken: process.env.SENTRY_AUTH_TOKEN,
-
-  // Sourcemaps nicht im Client-Bundle ausliefern
   hideSourceMaps: true,
-
-  // Sentry-Telemetrie über Builds deaktivieren
   telemetry: false,
-
-  // Kein Sentry-Bundler wenn DSN nicht gesetzt (z.B. lokal ohne Sentry)
   silent: !process.env.NEXT_PUBLIC_SENTRY_DSN,
 });

@@ -9,11 +9,10 @@ export function LogoIcon({ className }: { className?: string }) {
     >
       <defs>
         <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3F8FB5" />
-          <stop offset="100%" stopColor="#2E6F8F" />
+          <stop offset="0%" stopColor="#78A897" />
+          <stop offset="100%" stopColor="#50917B" />
         </linearGradient>
       </defs>
-      {/* outer circle */}
       <circle
         cx="128"
         cy="128"
@@ -22,13 +21,11 @@ export function LogoIcon({ className }: { className?: string }) {
         strokeWidth="14"
         strokeLinecap="round"
       />
-      {/* compass needle */}
       <polygon
         points="128,52 170,128 128,112 86,204 96,128"
         fill="url(#logoGradient)"
       />
-      {/* center point */}
-      <circle cx="128" cy="128" r="6" fill="#2E6F8F" />
+      <circle cx="128" cy="128" r="6" fill="#355F51" />
     </svg>
   );
 }

@@ -1,718 +1,474 @@
 import Link from "next/link";
-import { LogoIcon } from "@/components/ui/LogoIcon";
-import { LandingShowcase } from "@/components/landing/LandingShowcase";
-import { HeroSection } from "@/components/landing/HeroSection";
-import { MobileNav } from "@/components/landing/MobileNav";
-import { LEGAL, legalMailto } from "@/config/legal";
 import {
-  Sparkles,
-  ShoppingCart,
-  FileDown,
-  Shield,
-  Check,
-  Bot,
-  Lock,
   ArrowRight,
-  ChevronDown,
+  Check,
+  Clock3,
+  Shield,
+  ShoppingCart,
+  Users,
+  FileText,
+  Compass,
+  PlayCircle,
+  HeartHandshake,
+  LockKeyhole,
+  Cloud,
+  BadgeCheck,
 } from "lucide-react";
+import { MobileNav } from "@/components/landing/MobileNav";
+import { LogoIcon } from "@/components/ui/LogoIcon";
+import { LEGAL, legalMailto } from "@/config/legal";
 
-const MEAL_PREVIEWS = [
-  "Montag: Linsencurry mit Reis — 690 kcal",
-  "Dienstag: Vollkorn-Wraps mit Hummus — 520 kcal",
-  "Mittwoch: Gemüsepfanne mit Quinoa — 580 kcal",
+const NAV_ITEMS = [
+  { href: "#features", label: "Funktionen" },
+  { href: "#workflow", label: "Workflow" },
+  { href: "#pricing", label: "Preise" },
+  { href: "#trust", label: "Sicherheit" },
+] as const;
+
+const HERO_POINTS = [
+  "KI-gestuetzte Wochenplaene",
+  "Automatische Einkaufslisten",
+  "Patientenverwaltung und Dokumentation",
+] as const;
+
+const PROBLEMS = [
+  {
+    icon: Clock3,
+    title: "Zeitintensive Essensplanung",
+    text: "Manuelle Planung frisst Zeit, die im Alltag eigentlich fuer Begleitung, Therapie und Abstimmung im Team gebraucht wird.",
+  },
+  {
+    icon: Users,
+    title: "Viele parallele Anforderungen",
+    text: "Unvertraeglichkeiten, Vorlieben und unterschiedliche Stationsrealitaeten muessen gleichzeitig im Blick bleiben.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Hoher organisatorischer Druck",
+    text: "Dokumentationspflichten, Personalmangel und Schichtwechsel machen einen klaren, verlaesslichen Prozess notwendig.",
+  },
+] as const;
+
+const FEATURES = [
+  {
+    icon: Compass,
+    title: "KI-Essensplanung",
+    text: "Generieren Sie strukturierte Planvorschlaege passend zu Profil, Alltag und Versorgungssituation.",
+  },
+  {
+    icon: ShoppingCart,
+    title: "Auto-Einkaufslisten",
+    text: "Komplette Listen, zusammengefasst nach Kategorien und direkt aus freigegebenen Plaenen abgeleitet.",
+  },
+  {
+    icon: Users,
+    title: "Patientenverwaltung",
+    text: "Zentrale Profile fuer Allergien, Abneigungen, Ziele und organisationsrelevante Hinweise.",
+  },
+  {
+    icon: FileText,
+    title: "Dokumentation",
+    text: "Planstaende, PDFs und organisatorische Uebergaben bleiben nachvollziehbar und teamfaehig.",
+  },
+] as const;
+
+const WORKFLOW_STEPS = [
+  {
+    title: "Patientin anlegen",
+    text: "Erfassen Sie Basisdaten und spezifische Ernaehrungsanforderungen in einem klaren Profil.",
+  },
+  {
+    title: "Essensplan generieren",
+    text: "Die KI erstellt einen Vorschlag, den Ihr Team prueft, anpasst und fachlich freigibt.",
+  },
+  {
+    title: "Einkaufsliste nutzen",
+    text: "Leiten Sie freigegebene Plaene in eine sofort nutzbare Einkaufsliste fuer die Versorgung ueber.",
+  },
+] as const;
+
+const TRUST_ITEMS = [
+  { icon: Shield, label: "DSGVO-orientiert" },
+  { icon: Cloud, label: "EU-Hosting" },
+  { icon: LockKeyhole, label: "Pseudonymisierte Daten" },
+  { icon: BadgeCheck, label: "Rollenbasierte Zugriffe" },
+] as const;
+
+const PRICING = [
+  {
+    name: "Basis",
+    price: "29 EUR",
+    suffix: "/Monat",
+    featured: false,
+    cta: "Jetzt starten",
+    href: "/register?plan=basic",
+    points: [
+      "Bis zu 10 Essensplaene",
+      "Patientenverwaltung",
+      "Standard Support",
+    ],
+  },
+  {
+    name: "Premium",
+    price: "59 EUR",
+    suffix: "/Monat",
+    featured: true,
+    cta: "Jetzt starten",
+    href: "/register?plan=professional",
+    points: [
+      "Unbegrenzte Plaene",
+      "Priorisierter Support",
+      "Erweiterte Analytics",
+      "Rollenverwaltung",
+    ],
+  },
 ] as const;
 
 export default function LandingPage() {
-  const faqs = [
-    {
-      question: "Ersetzt mein-nutrikompass.de medizinische Entscheidungen?",
-      answer:
-        "Nein. mein-nutrikompass.de unterstützt die Planung. Die fachliche Verantwortung bleibt bei Ihrem Team.",
-    },
-    {
-      question: "Verarbeitet mein-nutrikompass.de Gesundheitsdaten?",
-      answer:
-        "Je nach Nutzung können Gesundheitsdaten verarbeitet werden. Dafür gelten erhöhte Schutzanforderungen.",
-    },
-    {
-      question: "Wo werden Daten gespeichert?",
-      answer:
-        "Details zu Hosting, Unterauftragsverarbeitung und Speicherfristen finden Sie in den Datenschutzhinweisen.",
-    },
-    {
-      question: "Wie funktioniert die Testphase?",
-      answer:
-        "Sie können 14 Tage unverbindlich testen. In der Testphase sind aktuell bis zu 3 aktive Patientinnen und Patienten sowie 10 Pläne pro Monat enthalten.",
-    },
-    {
-      question: "Wie kündige ich einen bezahlten Plan?",
-      answer:
-        "Die Kündigung ist zum Ende des Abrechnungszeitraums möglich. Bedingungen stehen vor dem Abschluss klar in der Bestellstrecke.",
-    },
-    {
-      question: "Gibt es einen AV-Vertrag?",
-      answer:
-        "Ja. Informationen zur Auftragsverarbeitung erhalten Sie über den Support und in den Vertragsunterlagen.",
-    },
-  ];
-
-  const testimonials = [
-    "Die Wochenplanung hat uns früher viel Zeit gekostet und war oft abhängig von einzelnen Mitarbeitenden. Mit Nutrikompass erstellen wir strukturierte, anpassbare Essenspläne in deutlich kürzerer Zeit. Das gibt uns im Alltag spürbar mehr Ruhe und Verlässlichkeit.",
-    "Besonders hilfreich ist für uns die automatisch generierte Einkaufsliste. Wir sparen nicht nur Planungszeit, sondern vermeiden auch Missverständnisse im Team. Die Vorschläge der KI sind eine gute Grundlage, die wir fachlich individuell anpassen.",
-    "Nutrikompass bringt Struktur in einen sensiblen Bereich unserer Arbeit. Wir behalten den Überblick über mehrere Patientinnen gleichzeitig und können die Pläne flexibel bearbeiten. Das entlastet unser Team organisatorisch, ohne unsere therapeutische Verantwortung zu ersetzen.",
-  ] as const;
-
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white pb-20 text-surface-dark md:pb-0">
-      {/* Skip link (a11y) */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:left-4 focus:top-4 focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-surface-dark focus:shadow-lg focus:outline-none"
-      >
-        Zum Hauptinhalt springen
-      </a>
-
-      {/* Announcement bar */}
-      <div className="bg-surface-dark text-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-5 gap-y-1 px-4 py-2 text-center text-xs sm:px-6 lg:px-8">
-          <span className="text-white/75">DSGVO-orientierte Prozesse</span>
-          <span className="hidden text-white/25 sm:inline">&bull;</span>
-          <span className="text-white/75">Pseudonymisierte Patientenprofile</span>
-          <span className="hidden text-white/25 sm:inline">&bull;</span>
-          <span className="text-white/75">Transparente Preise</span>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 border-b border-gray-100/80 bg-white/80 backdrop-blur-md">
-        <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <LogoIcon className="h-8 w-8" />
-            <span className="whitespace-nowrap text-sm font-bold text-surface-dark sm:text-base">
-              mein-nutrikompass.de
-            </span>
+    <div className="min-h-screen overflow-x-hidden bg-background pb-24 text-slate-900 md:pb-0">
+      <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1100px] items-center justify-between px-6 py-4">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow-sm shadow-primary/20">
+              <LogoIcon className="h-6 w-6" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-primary">NutriKompass</span>
           </Link>
 
-          <div className="hidden items-center gap-7 text-sm font-medium text-gray-500 md:flex">
-            <a href="#problem" className="transition-colors hover:text-surface-dark">Problem</a>
-            <a href="#loesung" className="transition-colors hover:text-surface-dark">Lösung</a>
-            <a href="#sicherheit" className="transition-colors hover:text-surface-dark">Sicherheit</a>
-            <a href="#preise" className="transition-colors hover:text-surface-dark">Preise</a>
-            <a href="#faq" className="transition-colors hover:text-surface-dark">FAQ</a>
-          </div>
+          <nav className="hidden items-center gap-8 md:flex">
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium text-slate-700 transition-colors hover:text-primary"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="hidden items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 md:inline-flex"
+              className="hidden px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:text-primary sm:block"
             >
-              Anmelden
+              Login
             </Link>
             <Link
               href="/register"
-              className="hidden items-center rounded-xl bg-surface-dark px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 md:inline-flex"
+              className="hidden rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 sm:inline-flex"
             >
-              14 Tage testen
+              Kostenlos testen
             </Link>
             <MobileNav />
           </div>
-        </nav>
+        </div>
       </header>
 
-      {/* Hero with cursor spotlight */}
-      <HeroSection />
+      <main>
+        <section className="relative overflow-hidden py-24 md:py-32">
+          <div aria-hidden className="absolute inset-0 hero-dot-grid opacity-70" />
+          <div aria-hidden className="absolute -left-12 top-14 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
+          <div aria-hidden className="absolute -right-8 bottom-0 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
-      {/* Problem */}
-      <section id="main-content" aria-labelledby="problem-heading" className="scroll-mt-16 bg-surface-light py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Das Problem
-            </p>
-            <h2
-              id="problem-heading"
-              className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl"
-            >
-              Wenn Planung Zeit frisst, leidet die Versorgung
-            </h2>
-            <p className="mt-4 text-gray-500">
-              Im Alltag fehlen oft Zeit und einheitliche Abläufe. Das führt zu
-              Unsicherheit bei Vertretung und vermeidbarer Mehrarbeit.
-            </p>
-          </div>
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[
-              {
-                n: "01",
-                title: "Abstimmungsaufwand",
-                desc: "Hoher Abstimmungsaufwand zwischen Fachkräften und Schichten",
-              },
-              {
-                n: "02",
-                title: "Medienbrüche",
-                desc: "Medienbrüche zwischen Planung, Einkauf und Dokumentation",
-              },
-              {
-                n: "03",
-                title: "Qualitätsschwankungen",
-                desc: "Uneinheitliche Qualität bei Vertretungssituationen",
-              },
-            ].map(({ n, title, desc }) => (
-              <div
-                key={n}
-                className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 pb-14 sm:p-10 sm:pb-10 transition-shadow hover:shadow-md"
-              >
-                <div className="absolute left-0 top-6 bottom-6 w-[3px] rounded-full bg-primary/20" />
-                <span className="pointer-events-none absolute bottom-3 right-4 select-none text-5xl sm:text-7xl font-extrabold leading-none text-gray-200">
-                  {n}
-                </span>
-                <p className="text-base font-bold text-surface-dark">{title}</p>
-                <p className="mt-2 text-sm text-gray-500">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Solution — Bento grid */}
-      <section id="loesung" className="scroll-mt-16 bg-white py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Die Lösung
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
-              Ein klarer Ablauf von Bedarf bis Einkauf
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-gray-500">
-              mein-nutrikompass.de verbindet strukturierte Datenerfassung,
-              KI-Vorschlag und fachliche Freigabe in einem Prozess.
-            </p>
-          </div>
-
-          {/* Bento */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-            {/* KI-Vorschläge — large dark card */}
-            <div className="relative col-span-1 min-h-[420px] overflow-hidden rounded-3xl bg-gradient-to-br from-surface-dark to-surface-mid p-8 text-white transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 sm:col-span-2 lg:col-span-2">
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
-                <Sparkles className="h-6 w-6 text-primary-300" />
-              </div>
-              <h3 className="text-xl font-bold">KI-Vorschläge</h3>
-              <p className="mt-2 max-w-sm text-sm text-white/65">
-                Vorschläge für 1- bis 14-Tage-Pläne auf Basis Ihrer Eingaben.
-                Automatisch angepasst an individuelle Präferenzen und
-                Einschränkungen.
-              </p>
-              {/* Window chrome mockup */}
-              <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm">
-                <div className="flex items-center gap-1.5 border-b border-white/8 px-3 py-2.5">
-                  <span className="h-2 w-2 rounded-full bg-white/15" />
-                  <span className="h-2 w-2 rounded-full bg-white/15" />
-                  <span className="h-2 w-2 rounded-full bg-white/15" />
-                  <span className="ml-2 text-[10px] text-white/30">KI-Planvorschlag</span>
+          <div className="relative mx-auto max-w-[1100px] px-6">
+            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+              <div className="flex flex-col gap-8">
+                <div className="space-y-6">
+                  <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
+                    Strukturierte Essensplanung fuer therapeutische Wohngruppen.
+                  </h1>
+                  <p className="text-lg leading-relaxed text-slate-600">
+                    Plane Mahlzeiten fuer mehrere Patientinnen in Minuten statt Stunden. Entlasten Sie Ihr Team durch intelligente Automatisierung.
+                  </p>
                 </div>
-                <div className="divide-y divide-white/5">
-                  {MEAL_PREVIEWS.map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-center gap-3 px-3 py-2.5 text-xs text-white/65"
-                    >
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-300" />
-                      {item}
+
+                <ul className="space-y-3">
+                  {HERO_POINTS.map((point) => (
+                    <li key={point} className="flex items-center gap-3 text-slate-700">
+                      <Check className="h-5 w-5 text-primary" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    href="/register"
+                    className="rounded-xl bg-primary px-8 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary/90"
+                  >
+                    Kostenlos testen
+                  </Link>
+                  <a
+                    href="#workflow"
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-4 text-base font-bold text-slate-800 transition-all hover:bg-slate-50"
+                  >
+                    Demo ansehen
+                    <PlayCircle className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xl">
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+                    <div className="h-3 w-24 rounded-full bg-slate-100" />
+                    <div className="flex gap-2">
+                      <div className="h-6 w-6 rounded-full bg-primary/20" />
+                      <div className="h-6 w-6 rounded-full bg-primary/20" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-2">
+                      <div className="h-20 rounded-lg bg-accent p-2">
+                        <div className="mb-2 h-2 w-full rounded bg-primary/30" />
+                        <div className="h-2 w-2/3 rounded bg-primary/30" />
+                      </div>
+                      <div className="h-20 rounded-lg bg-slate-50 p-2" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-20 rounded-lg bg-slate-50 p-2" />
+                      <div className="h-20 rounded-lg bg-accent p-2">
+                        <div className="mb-2 h-2 w-full rounded bg-primary/30" />
+                        <div className="h-2 w-2/3 rounded bg-primary/30" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary/20 bg-primary/5">
+                        <ShoppingCart className="h-7 w-7 text-primary/40" />
+                        <div className="h-2 w-12 rounded bg-primary/20" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div aria-hidden className="absolute -bottom-6 -right-6 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden className="absolute -left-6 -top-6 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="problem" className="bg-white py-24">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <div className="mb-16 text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+                Der Alltag in therapeutischen Wohngruppen ist organisatorisch komplex
+              </h2>
+            </div>
+            <div className="grid gap-8 md:grid-cols-3">
+              {PROBLEMS.map(({ icon: Icon, title, text }) => (
+                <div
+                  key={title}
+                  className="group rounded-xl border border-slate-100 bg-surface-light p-8 transition-all hover:border-primary/30"
+                >
+                  <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-white text-primary shadow-sm">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mb-3 text-xl font-bold">{title}</h3>
+                  <p className="text-slate-600">{text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="py-24">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <div className="mb-20 text-center">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+                NutriKompass digitalisiert die Essensplanung
+              </h2>
+              <p className="mx-auto max-w-2xl text-lg text-slate-600">
+                Wir unterstuetzen therapeutische Einrichtungen dabei, den Fokus zurueck auf die Patientinnen zu legen, indem wir administrative Prozesse bei der Verpflegung automatisieren.
+              </p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {FEATURES.map(({ icon: Icon, title, text }) => (
+                <div key={title} className="rounded-xl bg-accent p-6">
+                  <Icon className="mb-4 h-8 w-8 text-primary" />
+                  <h4 className="mb-2 font-bold">{title}</h4>
+                  <p className="text-sm text-slate-600">{text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" className="bg-surface-dark py-24 text-white">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <h2 className="mb-16 text-center text-3xl font-bold tracking-tight md:text-4xl">
+              So funktioniert NutriKompass
+            </h2>
+            <div className="relative grid gap-12 md:grid-cols-3">
+              <div aria-hidden className="absolute left-0 top-1/2 hidden h-0.5 w-full -translate-y-1/2 bg-primary/20 md:block" />
+              {WORKFLOW_STEPS.map((step, index) => (
+                <div key={step.title} className="relative flex flex-col items-center text-center">
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold">
+                    {index + 1}
+                  </div>
+                  <h3 className="mb-4 text-xl font-bold">{step.title}</h3>
+                  <p className="text-slate-400">{step.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="trust" className="py-24">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <div className="flex flex-col gap-12 lg:flex-row lg:items-center">
+              <div className="lg:w-1/2">
+                <h2 className="mb-6 text-3xl font-bold tracking-tight md:text-4xl">
+                  Entwickelt fuer therapeutische Einrichtungen
+                </h2>
+                <p className="mb-8 text-lg text-slate-600">
+                  Wir wissen, wie sensibel Daten im therapeutischen Umfeld sind. NutriKompass setzt auf klare Produktgrenzen, nachvollziehbare Prozesse und eine ruhige, professionelle Nutzerfuehrung.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {TRUST_ITEMS.map(({ icon: Icon, label }) => (
+                    <div key={label} className="flex items-center gap-3">
+                      <Icon className="h-5 w-5 text-primary" />
+                      <span className="font-medium">{label}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              {/* ambient glow */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/25 blur-3xl"
-              />
-            </div>
-
-            {/* Einkaufslisten */}
-            <div className="rounded-3xl border border-gray-100 bg-primary-50 p-8 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-gray-200/80">
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12">
-                <ShoppingCart className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold text-surface-dark">Einkaufslisten</h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Automatisch aus freigegebenen Plänen, sortiert nach Kategorien.
-              </p>
-              <div className="mt-5 space-y-2">
-                {[
-                  { cat: "Gemüse", items: "Karotten, Brokkoli, Zucchini" },
-                  { cat: "Hülsenfrüchte", items: "Rote Linsen, Kichererbsen" },
-                  { cat: "Körner", items: "Basmatireis, Quinoa" },
-                ].map(({ cat, items }) => (
-                  <div
-                    key={cat}
-                    className="rounded-xl border border-primary-100/60 bg-white px-3 py-2.5"
-                  >
-                    <p className="text-xs font-semibold text-primary">{cat}</p>
-                    <p className="text-xs text-gray-500">{items}</p>
+              <div className="lg:w-1/2">
+                <div className="rounded-2xl bg-surface-light p-8">
+                  <div className="mb-6 flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Shield className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold">Medical Standard Compliance</div>
+                      <div className="text-sm text-slate-500">Strukturierte Sicherheit fuer Ihre Einrichtung</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* PDF-Export */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-8 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-gray-200/80">
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-                <FileDown className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold text-surface-dark">PDF-Export</h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Pläne und Listen druckbar oder digital teilbar.
-              </p>
-              <div className="mt-5 rounded-2xl border border-gray-100 bg-surface-light p-5">
-                <div className="mb-2.5 h-2 w-3/4 rounded-full bg-gray-200" />
-                <div className="mb-2.5 h-2 w-1/2 rounded-full bg-gray-200" />
-                <div className="mb-4 h-2 w-2/3 rounded-full bg-gray-200" />
-                <div className="flex items-center gap-2 rounded-xl bg-primary/8 px-3 py-2">
-                  <FileDown className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-medium text-primary">
-                    Ernährungsplan_KW12.pdf
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Sicherheitsfokus — large teal card */}
-            <div className="relative col-span-1 overflow-hidden rounded-3xl border border-primary-100/50 bg-primary-50 p-8 transition-transform duration-300 hover:-translate-y-1 sm:col-span-2 lg:col-span-2">
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold text-surface-dark">Sicherheitsfokus</h3>
-              <p className="mt-2 max-w-sm text-sm text-gray-500">
-                Rollen, Zugriffskontrolle und dokumentierte Prozesse für den
-                Datenschutz.
-              </p>
-              <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                {[
-                  "Rollenkonzept",
-                  "AVV verfügbar",
-                  "Pseudonymisierung",
-                  "Audit-Log",
-                  "Zugriffsschutz",
-                  "DSGVO-orientiert",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-xs font-medium text-primary"
-                  >
-                    <Check className="h-3.5 w-3.5 shrink-0" />
-                    {item}
+                  <div className="space-y-4">
+                    <div className="h-4 w-full rounded bg-slate-200" />
+                    <div className="h-4 w-5/6 rounded bg-slate-200" />
+                    <div className="h-4 w-4/6 rounded bg-slate-200" />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Product showcase */}
-      <LandingShowcase />
-
-      {/* Stats */}
-      <section className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 divide-y divide-gray-100 rounded-3xl border border-gray-100 bg-surface-light sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {[
-              { value: "3", label: "Stufen im Planmodell", sub: "Test · Basis · Professional" },
-              { value: "1–14", label: "Tage pro Plan", sub: "Flexibler Planungszeitraum" },
-              { value: "3 / 10", label: "Test-Limits", sub: "Aktive Patienten / Pläne pro Monat" },
-            ].map(({ value, label, sub }) => (
-              <div key={label} className="px-6 py-10 text-center sm:px-10">
-                <p className="text-5xl font-extrabold tracking-tight text-primary sm:text-6xl">
-                  {value}
-                </p>
-                <p className="mt-2 text-sm font-semibold text-surface-dark">{label}</p>
-                <p className="mt-1 text-xs text-gray-400">{sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="funktionsweise" className="scroll-mt-16 bg-surface-light py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Einstieg
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
-              In drei Schritten startklar
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[
-              {
-                step: 1,
-                title: "Konto erstellen",
-                desc: "Teamzugang anlegen und relevante Profilangaben strukturiert erfassen.",
-              },
-              {
-                step: 2,
-                title: "Vorschlag prüfen",
-                desc: "KI-Vorschläge fachlich kontrollieren und bei Bedarf anpassen.",
-              },
-              {
-                step: 3,
-                title: "Freigeben und exportieren",
-                desc: "Einkaufsliste erzeugen, PDF exportieren und Team informieren.",
-              },
-            ].map(({ step, title, desc }) => (
-              <div
-                key={step}
-                className="rounded-2xl border border-gray-200 bg-white p-8 transition-shadow hover:shadow-md"
-              >
-                <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-surface-dark text-xs font-bold text-white">
-                  {step}
                 </div>
-                <p className="text-base font-bold text-surface-dark">{title}</p>
-                <p className="mt-2 text-sm text-gray-500">{desc}</p>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Security */}
-      <section id="sicherheit" className="scroll-mt-16 bg-white py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Vertrauen
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
-              Sicherheit und Datenschutz als Produktbestandteil
-            </h2>
-            <p className="mt-4 text-gray-500">
-              Transparenz steht vor Marketing. Sie sehen klar, wie Daten
-              verarbeitet und wie KI-Ausgaben einzuordnen sind.
-            </p>
-          </div>
-          <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-2">
-            {[
-              {
-                icon: Lock,
-                title: "Datenschutz und Sicherheit",
-                items: [
-                  "Rollen- und Rechtekonzept für kontrollierten Zugriff",
-                  "AVV (Auftragsverarbeitungsvertrag) auf Anfrage verfügbar",
-                  "Hinweise zu Speicherfristen und Ansprechpartnern",
-                ],
-              },
-              {
-                icon: Bot,
-                title: "Transparenz zu KI-Funktionen",
-                items: [
-                  "KI erstellt Vorschläge, keine automatischen Therapieentscheidungen",
-                  "Fachliche Prüfung vor Nutzung ist verpflichtend",
-                  "Kein Heilversprechen, kein Ersatz für medizinische Betreuung",
-                ],
-              },
-            ].map(({ icon: Icon, title, items }) => (
-              <div key={title} className="relative overflow-hidden rounded-2xl border border-gray-100 bg-surface-light p-8">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-300/40 to-transparent" />
-                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-                  <Icon className="h-5 w-5 text-primary" />
+        <section id="pricing" className="bg-surface-light py-24">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <div className="mb-16 text-center">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Einfache, faire Preise</h2>
+              <p className="mt-4 text-slate-600">Waehlen Sie das passende Paket fuer Ihre Wohngruppe.</p>
+            </div>
+            <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
+              {PRICING.map((plan) => (
+                <div
+                  key={plan.name}
+                  className={
+                    plan.featured
+                      ? "relative flex flex-col rounded-xl border-2 border-primary bg-white p-8 shadow-xl"
+                      : "flex flex-col rounded-xl border border-slate-200 bg-white p-8 shadow-sm"
+                  }
+                >
+                  {plan.featured && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                      Empfohlen
+                    </div>
+                  )}
+                  <div className="mb-8">
+                    <h3 className="text-xl font-bold">{plan.name}</h3>
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-4xl font-bold">{plan.price}</span>
+                      <span className="text-slate-500">{plan.suffix}</span>
+                    </div>
+                  </div>
+                  <ul className="mb-10 flex-1 space-y-4">
+                    {plan.points.map((point) => (
+                      <li key={point} className="flex items-center gap-3">
+                        <Check className="h-4 w-4 text-primary" />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={plan.href}
+                    className={
+                      plan.featured
+                        ? "w-full rounded-xl bg-primary py-3 text-center font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                        : "w-full rounded-xl border-2 border-primary py-3 text-center font-bold text-primary transition-all hover:bg-primary hover:text-white"
+                    }
+                  >
+                    {plan.cta}
+                  </Link>
                 </div>
-                <p className="text-base font-bold text-surface-dark">{title}</p>
-                <ul className="mt-5 space-y-3.5">
-                  {items.map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-sm text-gray-600">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="preise" className="scroll-mt-16 bg-surface-light py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Preise
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">
-              Transparente Preise
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-gray-500">
-              Starten Sie kostenlos und wählen Sie später den Plan, der zu Ihrer
-              Einrichtung passt.
-            </p>
-          </div>
-
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3 md:items-start">
-            {/* Free trial */}
-            <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">Einstieg</p>
-              <h3 className="mt-1 text-lg font-bold text-surface-dark">Testphase</h3>
-              <div className="mt-5 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold text-surface-dark">Kostenlos</span>
-              </div>
-              <p className="mt-1.5 text-sm text-gray-400">14 Tage, unverbindlich</p>
-              <ul className="mt-8 flex-1 space-y-3">
-                {[
-                  "KI-Vorschläge, Einkaufslisten und PDF-Export",
-                  "Maximal 3 Bewohnerinnen und Bewohner",
-                  "10 Pläne pro Monat",
-                  "E-Mail-Support",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="mt-8 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-surface-dark transition-colors hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2"
-              >
-                Test starten
-              </Link>
-            </div>
-
-            {/* Basis */}
-            <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">Kleinsteinrichtungen</p>
-              <h3 className="mt-1 text-lg font-bold text-surface-dark">Basis</h3>
-              <div className="mt-5 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold text-surface-dark">29</span>
-                <span className="text-lg font-semibold text-gray-400">EUR</span>
-                <span className="text-sm text-gray-400">/Mo.</span>
-              </div>
-              <p className="mt-1.5 text-sm text-gray-400">Für kleinere Einrichtungen</p>
-              <ul className="mt-8 flex-1 space-y-3">
-                {[
-                  "Bis 15 Bewohnerinnen und Bewohner",
-                  "50 Pläne pro Monat",
-                  "E-Mail-Support",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register?plan=basic"
-                className="mt-8 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-surface-dark transition-colors hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2"
-              >
-                Basis wählen
-              </Link>
-            </div>
-
-            {/* Professional — highlighted */}
-            <div className="relative flex flex-col rounded-2xl bg-surface-dark p-8 text-white shadow-2xl shadow-surface-dark/20 md:scale-105">
-              <div className="absolute -top-3.5 right-6 rounded-full bg-primary-300 px-3 py-1 text-xs font-bold text-surface-dark">
-                Beliebt
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">Wachsende Einrichtungen</p>
-              <h3 className="mt-1 text-lg font-bold">Professional</h3>
-              <div className="mt-5 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold">59</span>
-                <span className="text-lg font-semibold text-white/50">EUR</span>
-                <span className="text-sm text-white/50">/Mo.</span>
-              </div>
-              <p className="mt-1.5 text-sm text-white/50">Für wachsende Einrichtungen</p>
-              <ul className="mt-8 flex-1 space-y-3">
-                {[
-                  "Unbegrenzt Bewohnerinnen und Bewohner",
-                  "Unbegrenzt Pläne",
-                  "Prioritäts-Support",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-white/65">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary-300" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register?plan=professional"
-                className="mt-8 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-surface-dark transition-colors hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark"
-              >
-                Professional wählen
-              </Link>
+              ))}
             </div>
           </div>
+        </section>
 
-          <div className="mx-auto mt-10 max-w-4xl rounded-2xl border border-gray-100 bg-white p-5 text-sm text-gray-500">
-            <p className="font-medium text-gray-700">Zahlungs- und Vertragsinformationen</p>
-            <ul className="mt-3 space-y-1.5 text-xs">
-              <li>Abrechnung monatlich. Preise als Endpreise; {LEGAL.commercial.vatNotice}</li>
-              <li>Mindestlaufzeit, Kündigungsfrist und Verlängerung werden vor Abschluss transparent angezeigt.</li>
-              <li>Zahlungsabwicklung erfolgt im Checkout über Stripe.</li>
-              <li>
-                Rechtliche Details:{" "}
-                <Link href="/agb" className="underline underline-offset-2 hover:text-primary">AGB</Link>{" "}
-                und{" "}
-                <Link href="/datenschutz" className="underline underline-offset-2 hover:text-primary">Datenschutz</Link>
-              </li>
-            </ul>
+        <section className="py-24">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <div className="rounded-2xl bg-primary px-8 py-16 text-center text-white shadow-2xl">
+              <h2 className="mb-6 text-3xl font-bold md:text-4xl">Bereit fuer eine effizientere Essensplanung?</h2>
+              <p className="mx-auto mb-10 max-w-xl text-lg text-white/90">
+                Testen Sie NutriKompass 14 Tage lang kostenlos und unverbindlich. Keine Kreditkarte erforderlich.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  href="/register"
+                  className="rounded-xl bg-white px-8 py-4 text-lg font-bold text-primary shadow-lg transition-all hover:bg-slate-50"
+                >
+                  Kostenlos testen
+                </Link>
+                <a
+                  href={legalMailto(LEGAL.mailSubjects.demoRequest)}
+                  className="rounded-xl border border-white/30 bg-white/10 px-8 py-4 text-lg font-bold backdrop-blur-sm transition-all hover:bg-white/20"
+                >
+                  Kontakt aufnehmen
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* FAQ */}
-      <section id="faq" className="scroll-mt-16 bg-white py-20 sm:py-24">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Häufige Fragen
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl">FAQ</h2>
-          </div>
-          <div className="space-y-3">
-            {faqs.map((item) => (
-              <details
-                key={item.question}
-                className="group rounded-2xl border border-gray-100 bg-surface-light px-6 py-5 transition-colors open:border-gray-200 open:bg-white"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-surface-dark">
-                  <span>{item.question}</span>
-                  <ChevronDown
-                    aria-hidden
-                    className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180"
-                  />
-                </summary>
-                <p className="mt-3 text-sm leading-relaxed text-gray-500">{item.answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section aria-labelledby="testimonials-heading" className="overflow-hidden bg-surface-light py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Vertrauen im Alltag
-            </p>
-            <h2
-              id="testimonials-heading"
-              className="mt-3 text-4xl font-bold tracking-[-0.02em] sm:text-5xl"
-            >
-              Erfahrungen aus der Praxis
-            </h2>
-            <p className="mt-4 text-sm text-gray-500 sm:text-base">
-              Stimmen aus Einrichtungen, die Nutrikompass als organisatorische
-              Unterstützung im Planungsalltag nutzen.
-            </p>
-          </div>
-
-          <div className="mt-12 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-1 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
-            {testimonials.map((quote, i) => (
-              <figure
-                key={i}
-                className="flex h-full w-[88%] shrink-0 snap-start flex-col rounded-3xl border border-gray-100 bg-white p-8 shadow-sm sm:w-auto sm:shrink"
-              >
-                <div className="mb-3 select-none font-serif text-5xl font-bold leading-none text-primary/15">
-                  &ldquo;
-                </div>
-                <blockquote className="flex-1 text-sm leading-7 text-gray-600">
-                  {quote}
-                </blockquote>
-                <figcaption className="mt-5 border-t border-gray-100 pt-4 text-xs text-gray-400">
-                  Therapeutische Einrichtung, Deutschland
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA — dark */}
-      <section className="relative overflow-hidden bg-surface-dark py-20 sm:py-24">
-        {/* Subtle radial gradient accent */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(46,111,143,0.15),_transparent)]"
-        />
-        <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-300">
-            Jetzt starten
-          </p>
-          <h2 className="mt-4 text-4xl font-bold tracking-[-0.02em] text-white sm:text-5xl">
-            Bereit für strukturierte Ernährungsplanung?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-gray-400">
-            Starten Sie direkt mit dem Test oder fordern Sie eine kurze Demo an
-            — wir zeigen Ihnen, wie mein-nutrikompass.de in Ihren Alltag passt.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="/register"
-              className="group inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-sm font-semibold text-surface-dark shadow-2xl transition-all hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark"
-            >
-              14 Tage kostenlos testen
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+      <footer className="border-t border-slate-200 py-12">
+        <div className="mx-auto max-w-[1100px] px-6">
+          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+                <LogoIcon className="h-5 w-5" />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-primary">NutriKompass</span>
             </Link>
-            <a
-              href={legalMailto(LEGAL.mailSubjects.demoRequest)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark"
-            >
-              Demo anfordern
-            </a>
-          </div>
-          <p className="mt-5 text-xs text-white/25">
-            Kein Verkaufsdruck. Antwort in der Regel innerhalb von 1 Werktag.
-          </p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <Link href="/" className="flex shrink-0 items-center gap-2">
-              <LogoIcon className="h-7 w-7" />
-              <span className="whitespace-nowrap text-sm font-bold text-surface-dark">
-                mein-nutrikompass.de
-              </span>
-            </Link>
-            <div className="flex items-center gap-6 text-xs text-gray-400">
-              <Link href="/impressum" className="transition-colors hover:text-gray-700">Impressum</Link>
-              <Link href="/datenschutz" className="transition-colors hover:text-gray-700">Datenschutz</Link>
-              <Link href="/agb" className="transition-colors hover:text-gray-700">AGB</Link>
-              <Link href="/avv" className="transition-colors hover:text-gray-700">AVV</Link>
+            <div className="flex flex-wrap justify-center gap-8 text-sm text-slate-500">
+              <Link href="/impressum" className="hover:text-primary">Impressum</Link>
+              <Link href="/datenschutz" className="hover:text-primary">Datenschutz</Link>
+              <Link href="/agb" className="hover:text-primary">AGB</Link>
+              <Link href="/avv" className="hover:text-primary">AVV</Link>
             </div>
-            <p className="text-xs text-gray-400">
-              &copy; {new Date().getFullYear()} mein-nutrikompass.de
-            </p>
+            <div className="text-sm text-slate-400">
+              &copy; {new Date().getFullYear()} {LEGAL.brandName}. Alle Rechte vorbehalten.
+            </div>
           </div>
-          <p className="mt-6 text-center text-xs text-gray-300">
-            Dieses Tool dient ausschließlich der organisatorischen Planung. Es
-            stellt keine Medizinproduktesoftware im Sinne der MDR (EU&nbsp;2017/745)
-            dar und trifft keine eigenständigen therapeutischen Entscheidungen.
-          </p>
         </div>
       </footer>
 
-      {/* Mobile sticky CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-100 bg-white/95 p-3 backdrop-blur-md md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/10 bg-white/95 p-3 backdrop-blur-md md:hidden">
         <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 shrink-0"
+            className="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50"
           >
-            Anmelden
+            Login
           </Link>
           <Link
             href="/register"
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-surface-hover"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-primary/90"
           >
-            14 Tage testen
+            Kostenlos testen
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

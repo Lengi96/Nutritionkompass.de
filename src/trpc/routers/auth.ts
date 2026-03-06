@@ -8,8 +8,10 @@ import {
 } from "@/lib/email";
 import { createOpaqueTokenPair, hashOpaqueToken } from "@/lib/security/tokens";
 
+const PLAIN_TEXT_INPUT_REGEX = /^[^<>]*$/;
+const EMAIL_VERIFICATION_TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
+
 export const authRouter = router({
-  // ── Registrierung ──────────────────────────────────────────────
   register: publicProcedure
     .input(
       z.object({
@@ -17,15 +19,23 @@ export const authRouter = router({
           .string()
           .trim()
           .min(2, "Der Einrichtungsname muss mindestens 2 Zeichen lang sein.")
-          .max(120),
+          .max(120)
+          .regex(
+            PLAIN_TEXT_INPUT_REGEX,
+            "Bitte keine HTML-Tags oder Sondermarkierungen verwenden."
+          ),
         name: z
           .string()
           .trim()
           .min(2, "Der Name muss mindestens 2 Zeichen lang sein.")
-          .max(100),
+          .max(100)
+          .regex(
+            PLAIN_TEXT_INPUT_REGEX,
+            "Bitte keine HTML-Tags oder Sondermarkierungen verwenden."
+          ),
         email: z
           .string()
-          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein.")
+          .email("Bitte geben Sie eine gueltige E-Mail-Adresse ein.")
           .max(254, "E-Mail-Adresse darf maximal 254 Zeichen lang sein."),
         password: z
           .string()
@@ -34,7 +44,6 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Prüfen ob die E-Mail bereits existiert
       const email = input.email.trim().toLowerCase();
       const existingUser = await ctx.prisma.user.findFirst({
         where: {
@@ -57,8 +66,10 @@ export const authRouter = router({
         plainToken: emailVerificationToken,
         storedTokenHash: emailVerificationTokenHash,
       } = createOpaqueTokenPair();
+      const emailVerificationTokenExpiresAt = new Date(
+        Date.now() + EMAIL_VERIFICATION_TOKEN_TTL_MS
+      );
 
-      // Einrichtung + Admin-User in einer Transaktion erstellen
       const result = await ctx.prisma.$transaction(async (tx) => {
         const trialEndsAt = new Date();
         trialEndsAt.setDate(trialEndsAt.getDate() + 14);
@@ -81,13 +92,13 @@ export const authRouter = router({
             role: "ADMIN",
             emailVerified: false,
             emailVerificationToken: emailVerificationTokenHash,
+            emailVerificationTokenExpiresAt,
           },
         });
 
         return { organization, user };
       });
 
-      // Verifizierungs-E-Mail senden (best-effort)
       try {
         await sendVerificationEmail(
           result.user.email,
@@ -96,36 +107,28 @@ export const authRouter = router({
         );
       } catch (error) {
         console.error("[Email] Verifizierungs-E-Mail fehlgeschlagen:", error);
-        // Nicht werfen – User kann per Resend erneut anfordern
       }
 
       return { success: true, email: result.user.email };
     }),
 
-  // ── E-Mail verifizieren ────────────────────────────────────────
   verifyEmail: publicProcedure
     .input(
       z.object({
-        token: z.string().min(1, "Ungültiger Verifizierungstoken."),
+        token: z.string().min(1, "Ungueltiger Verifizierungstoken."),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const hashedToken = hashOpaqueToken(input.token);
-      let user = await ctx.prisma.user.findUnique({
+      const user = await ctx.prisma.user.findUnique({
         where: { emailVerificationToken: hashedToken },
       });
-      // Legacy compatibility for already issued plaintext links.
-      if (!user) {
-        user = await ctx.prisma.user.findUnique({
-          where: { emailVerificationToken: input.token },
-        });
-      }
 
       if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message:
-            "Ungültiger oder bereits verwendeter Verifizierungslink.",
+            "Ungueltiger oder bereits verwendeter Verifizierungslink.",
         });
       }
 
@@ -133,24 +136,42 @@ export const authRouter = router({
         return { success: true, alreadyVerified: true };
       }
 
+      if (
+        !user.emailVerificationTokenExpiresAt ||
+        user.emailVerificationTokenExpiresAt < new Date()
+      ) {
+        await ctx.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            emailVerificationToken: null,
+            emailVerificationTokenExpiresAt: null,
+          },
+        });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Dieser Verifizierungslink ist abgelaufen. Bitte fordern Sie eine neue E-Mail an.",
+        });
+      }
+
       await ctx.prisma.user.update({
         where: { id: user.id },
         data: {
           emailVerified: true,
           emailVerificationToken: null,
+          emailVerificationTokenExpiresAt: null,
         },
       });
 
       return { success: true, alreadyVerified: false };
     }),
 
-  // ── Verifizierungs-E-Mail erneut senden ────────────────────────
   resendVerificationEmail: publicProcedure
     .input(
       z.object({
         email: z
           .string()
-          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein."),
+          .email("Bitte geben Sie eine gueltige E-Mail-Adresse ein."),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -164,16 +185,21 @@ export const authRouter = router({
         },
       });
 
-      // Immer Erfolg zurückgeben (Anti-Enumeration)
       if (user && !user.emailVerified) {
         const {
           plainToken: emailVerificationToken,
           storedTokenHash: emailVerificationTokenHash,
         } = createOpaqueTokenPair();
+        const emailVerificationTokenExpiresAt = new Date(
+          Date.now() + EMAIL_VERIFICATION_TOKEN_TTL_MS
+        );
 
         await ctx.prisma.user.update({
           where: { id: user.id },
-          data: { emailVerificationToken: emailVerificationTokenHash },
+          data: {
+            emailVerificationToken: emailVerificationTokenHash,
+            emailVerificationTokenExpiresAt,
+          },
         });
 
         try {
@@ -193,17 +219,16 @@ export const authRouter = router({
       return {
         success: true,
         message:
-          "Falls ein unbestätigtes Konto mit dieser E-Mail existiert, wurde eine neue Bestätigungs-E-Mail gesendet.",
+          "Falls ein unbestaetigtes Konto mit dieser E-Mail existiert, wurde eine neue Bestaetigungs-E-Mail gesendet.",
       };
     }),
 
-  // ── Passwort-Reset anfordern ───────────────────────────────────
   requestPasswordReset: publicProcedure
     .input(
       z.object({
         email: z
           .string()
-          .email("Bitte geben Sie eine gültige E-Mail-Adresse ein.")
+          .email("Bitte geben Sie eine gueltige E-Mail-Adresse ein.")
           .max(254, "E-Mail-Adresse darf maximal 254 Zeichen lang sein."),
       })
     )
@@ -218,15 +243,12 @@ export const authRouter = router({
         },
       });
 
-      // Immer Erfolg zurückgeben (Anti-Enumeration)
       if (user) {
         const {
           plainToken: resetToken,
           storedTokenHash: resetTokenHash,
         } = createOpaqueTokenPair();
-        const resetTokenExpiresAt = new Date(
-          Date.now() + 60 * 60 * 1000
-        ); // 1 Stunde
+        const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
         await ctx.prisma.user.update({
           where: { id: user.id },
@@ -250,11 +272,10 @@ export const authRouter = router({
       };
     }),
 
-  // ── Passwort zurücksetzen ──────────────────────────────────────
   resetPassword: publicProcedure
     .input(
       z.object({
-        token: z.string().min(1, "Ungültiger Token."),
+        token: z.string().min(1, "Ungueltiger Token."),
         password: z
           .string()
           .min(8, "Das Passwort muss mindestens 8 Zeichen lang sein."),
@@ -262,26 +283,19 @@ export const authRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const hashedToken = hashOpaqueToken(input.token);
-      let user = await ctx.prisma.user.findUnique({
+      const user = await ctx.prisma.user.findUnique({
         where: { resetToken: hashedToken },
       });
-      // Legacy compatibility for already issued plaintext links.
-      if (!user) {
-        user = await ctx.prisma.user.findUnique({
-          where: { resetToken: input.token },
-        });
-      }
 
       if (!user || !user.resetTokenExpiresAt) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message:
-            "Ungültiger oder abgelaufener Link zum Zurücksetzen des Passworts.",
+            "Ungueltiger oder abgelaufener Link zum Zuruecksetzen des Passworts.",
         });
       }
 
       if (user.resetTokenExpiresAt < new Date()) {
-        // Abgelaufenen Token aufräumen
         await ctx.prisma.user.update({
           where: { id: user.id },
           data: { resetToken: null, resetTokenExpiresAt: null },
@@ -307,7 +321,6 @@ export const authRouter = router({
       return { success: true };
     }),
 
-  // ── Verifizierungsstatus prüfen (für Login-Seite) ──────────────
   checkVerificationStatus: publicProcedure
     .input(
       z.object({
@@ -325,11 +338,9 @@ export const authRouter = router({
         },
         select: { emailVerified: true },
       });
-      // Nur true zurückgeben wenn User existiert UND nicht verifiziert ist
       return { needsVerification: user ? !user.emailVerified : false };
     }),
 
-  // ── Profildaten abrufen ──────────────────────────────────────────
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const user = await ctx.prisma.user.findUnique({
       where: { id: ctx.user.id },
