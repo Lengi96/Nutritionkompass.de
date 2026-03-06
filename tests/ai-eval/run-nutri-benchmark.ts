@@ -1,21 +1,3 @@
-/**
- * Nutrikompass AI Benchmark Runner
- *
- * Führt 5 kritische Testszenarien gegen den echten generateMealPlan()-Output aus.
- * Nutzt GPT-4o als LLM-as-a-Judge für medizinische Plausibilität und Tonfall.
- *
- * Exitcode 0 = alle Checks bestanden (accuracy ≥ 90%, keine hardConstraint-Verletzung)
- * Exitcode 1 = Quality Gate fehlgeschlagen → CI blockiert Deployment
- *
- * Lokal starten:
- *   npx tsx tests/ai-eval/run-nutri-benchmark.ts
- *
- * Erfordert:
- *   OPENAI_API_KEY, DATABASE_URL, DIRECT_URL in .env
- */
-
-// .env für lokale Ausführung laden
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 require("dotenv").config({ path: ".env" });
 
 import { generateObject } from "ai";
@@ -28,23 +10,15 @@ import {
   JUDGE_USER_PROMPT_TEMPLATE,
 } from "../../src/prompts/configs";
 import type { MealPlanData } from "../../src/lib/openai/nutritionPrompt";
+import { getRecipeById, isOkMealPlan } from "../../src/lib/mealPlans/planFormat";
 
-// ---------------------------------------------------------------------------
-// Konfiguration
-// ---------------------------------------------------------------------------
+const ACCURACY_THRESHOLD = 0.9;
+const JUDGE_MODEL = "gpt-4o";
+const NUM_DAYS = 7;
 
-const ACCURACY_THRESHOLD = 0.9; // 90 % Mindest-Accuracy
-const JUDGE_MODEL = "gpt-4o";    // Stärkeres Modell als Gutachter
-const NUM_DAYS = 7;              // Vollständiger Wochenplan pro Szenario
-
-// Vercel AI SDK OpenAI-Provider (zeigt provider-agnostische Kompetenz)
 const openaiProvider = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-// ---------------------------------------------------------------------------
-// Typen
-// ---------------------------------------------------------------------------
 
 const JudgeResponseSchema = z.object({
   medicalScore: z.number().min(1).max(10),
@@ -69,25 +43,26 @@ interface ScenarioResult {
   durationMs: number;
 }
 
-// ---------------------------------------------------------------------------
-// LLM-as-a-Judge
-// ---------------------------------------------------------------------------
-
 async function runJudge(
   scenarioName: string,
   patientContext: string,
   plan: MealPlanData
 ): Promise<JudgeResponse | null> {
-  // Plan in kompakter, lesbarer Form zusammenfassen
-  const planSummary = plan.days
-    .slice(0, 3) // Nur 3 Tage für Judge (Kosten-/Zeitoptimierung)
-    .map((day) => {
-      const meals = day.meals
-        .map((m) => `  ${m.mealType}: ${m.name} (${m.kcal} kcal, P:${m.protein}g, K:${m.carbs}g, F:${m.fat}g)`)
-        .join("\n");
-      return `${day.dayName}:\n${meals}`;
-    })
-    .join("\n\n");
+  const planSummary = !isOkMealPlan(plan)
+    ? `${plan.message}\n${plan.recommended_action}\n${plan.refeeding_note}`
+    : plan.days
+        .slice(0, 3)
+        .map((day) => {
+          const meals = day.meals
+            .filter((meal) => Boolean(meal.title))
+            .map((meal) => {
+              const recipe = getRecipeById(plan, meal.recipe_id);
+              return `  ${meal.slot}: ${meal.title} | ${recipe?.short_preparation ?? ""}`;
+            })
+            .join("\n");
+          return `${day.day_name}:\n${meals}`;
+        })
+        .join("\n\n");
 
   try {
     const { object } = await generateObject({
@@ -97,23 +72,12 @@ async function runJudge(
       prompt: JUDGE_USER_PROMPT_TEMPLATE(scenarioName, patientContext, planSummary),
       temperature: 0,
     });
-    return object as {
-      medicalScore: number;
-      complianceScore: number;
-      toneScore: number;
-      overallScore: number;
-      reasoning: string;
-      concerns: string[];
-    };
+    return object as JudgeResponse;
   } catch (err) {
     console.error(`  [Judge] Fehler: ${String(err)}`);
     return null;
   }
 }
-
-// ---------------------------------------------------------------------------
-// Einzelnes Szenario ausführen
-// ---------------------------------------------------------------------------
 
 async function runScenario(
   scenario: (typeof BENCHMARK_SCENARIOS)[number]
@@ -123,14 +87,13 @@ async function runScenario(
 
   const patientContext = [
     `Geburtsjahr: ${patient.birthYear}`,
-    `Gewicht: ${patient.currentWeight} kg → Ziel: ${patient.targetWeight} kg`,
+    `Gewicht: ${patient.currentWeight} kg -> Ziel: ${patient.targetWeight} kg`,
     `Allergien: ${patient.allergies.length > 0 ? patient.allergies.join(", ") : "keine"}`,
     additionalNotes ? `Hinweise: ${additionalNotes}` : "",
   ]
     .filter(Boolean)
     .join(", ");
 
-  // 1. Mahlzeitplan generieren
   let plan: MealPlanData;
   try {
     const result = await generateMealPlan(patient, additionalNotes, {
@@ -153,10 +116,7 @@ async function runScenario(
     };
   }
 
-  // 2. Constraint-Validierung
   const { passed, violations } = scenario.validate(plan);
-
-  // 3. LLM-as-a-Judge (parallel zur Ergebnisauswertung)
   const judgeResult = await runJudge(scenario.name, patientContext, plan);
 
   return {
@@ -166,59 +126,42 @@ async function runScenario(
     hardConstraint: scenario.hardConstraint,
     violations,
     judgeScore: judgeResult?.overallScore ?? null,
-    judgeReasoning: judgeResult?.reasoning ?? "–",
+    judgeReasoning: judgeResult?.reasoning ?? "-",
     concerns: judgeResult?.concerns ?? [],
     durationMs: Date.now() - start,
   };
 }
 
-// ---------------------------------------------------------------------------
-// Report-Ausgabe
-// ---------------------------------------------------------------------------
-
 function printReport(results: ScenarioResult[]) {
-  const LINE = "─".repeat(70);
-  console.log("\n" + LINE);
+  const line = "-".repeat(70);
+  console.log(`\n${line}`);
   console.log("  NUTRIKOMPASS AI BENCHMARK REPORT");
-  console.log(LINE);
+  console.log(line);
 
-  for (const r of results) {
-    const icon = r.passed ? "✓" : "✗";
+  for (const result of results) {
+    const icon = result.passed ? "OK" : "FAIL";
     const judgeStr =
-      r.judgeScore !== null ? `[Judge: ${r.judgeScore.toFixed(1)}/10]` : "[Judge: n/a]";
-    const hardTag = r.hardConstraint ? " [HARD]" : "";
-    const duration = `${(r.durationMs / 1000).toFixed(1)}s`;
+      result.judgeScore !== null ? `[Judge: ${result.judgeScore.toFixed(1)}/10]` : "[Judge: n/a]";
+    const hardTag = result.hardConstraint ? " [HARD]" : "";
+    const duration = `${(result.durationMs / 1000).toFixed(1)}s`;
 
-    console.log(
-      `\n${icon} ${r.name}${hardTag}  ${judgeStr}  (${duration})`
-    );
+    console.log(`\n${icon} ${result.name}${hardTag} ${judgeStr} (${duration})`);
 
-    if (!r.passed && r.violations.length > 0) {
-      for (const v of r.violations.slice(0, 5)) {
-        console.log(`   ⚠ ${v}`);
-      }
-      if (r.violations.length > 5) {
-        console.log(`   ... und ${r.violations.length - 5} weitere`);
-      }
+    for (const violation of result.violations.slice(0, 5)) {
+      console.log(`   ! ${violation}`);
     }
 
-    if (r.judgeReasoning && r.judgeReasoning !== "–") {
-      console.log(`   → ${r.judgeReasoning}`);
+    if (result.judgeReasoning && result.judgeReasoning !== "-") {
+      console.log(`   -> ${result.judgeReasoning}`);
     }
 
-    if (r.concerns.length > 0) {
-      for (const c of r.concerns) {
-        console.log(`   ⚠ Concern: ${c}`);
-      }
+    for (const concern of result.concerns) {
+      console.log(`   ! Concern: ${concern}`);
     }
   }
 
-  console.log("\n" + LINE);
+  console.log(`\n${line}`);
 }
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
 
 async function main() {
   console.log("Nutrikompass AI Benchmark\n");
@@ -233,54 +176,25 @@ async function main() {
   }
 
   const results: ScenarioResult[] = [];
-
-  // Szenarien sequentiell ausführen (Rate Limit schonen)
   for (const scenario of BENCHMARK_SCENARIOS) {
     process.stdout.write(`Starte: ${scenario.name}...`);
     const result = await runScenario(scenario);
     results.push(result);
-    process.stdout.write(
-      ` ${result.passed ? "✓" : "✗"} (${(result.durationMs / 1000).toFixed(1)}s)\n`
-    );
+    process.stdout.write(" fertig.\n");
   }
 
-  // Report ausgeben
   printReport(results);
 
-  // Quality Gate auswerten
-  const passedCount = results.filter((r) => r.passed).length;
-  const totalCount = results.length;
-  const accuracy = passedCount / totalCount;
-  const hardViolations = results.filter(
-    (r) => r.hardConstraint && !r.passed
-  );
+  const hardFailures = results.filter((result) => result.hardConstraint && !result.passed);
+  const passedCount = results.filter((result) => result.passed).length;
+  const accuracy = passedCount / Math.max(results.length, 1);
 
-  console.log(`\nAccuracy:   ${passedCount}/${totalCount} (${(accuracy * 100).toFixed(0)}%)`);
-  console.log(`Threshold:  ${(ACCURACY_THRESHOLD * 100).toFixed(0)}%`);
-
-  if (hardViolations.length > 0) {
-    console.log("\n🚨 HARD CONSTRAINT VERLETZUNG:");
-    for (const r of hardViolations) {
-      console.log(`   ${r.name}: ${r.violations.join(", ")}`);
-    }
-    console.log(
-      "\n❌ CI FEHLGESCHLAGEN: Sicherheitskritische Constraint-Verletzung."
-    );
+  if (hardFailures.length > 0 || accuracy < ACCURACY_THRESHOLD) {
     process.exit(1);
   }
-
-  if (accuracy < ACCURACY_THRESHOLD) {
-    console.log(
-      `\n❌ CI FEHLGESCHLAGEN: Accuracy ${(accuracy * 100).toFixed(0)}% < ${(ACCURACY_THRESHOLD * 100).toFixed(0)}% Mindest-Schwelle.`
-    );
-    process.exit(1);
-  }
-
-  console.log(`\n✅ QUALITY GATE BESTANDEN (${(accuracy * 100).toFixed(0)}%)`);
-  process.exit(0);
 }
 
-main().catch((err) => {
-  console.error("\nUnerwarteter Fehler:", err);
+main().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

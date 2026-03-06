@@ -1,87 +1,116 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { trpc } from "@/trpc/client";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  ArrowLeft,
-  Loader2,
-  ShoppingCart,
-  FileDown,
-  Beef,
-  Wheat,
-  Droplets,
-  Handshake,
-  Coffee,
-  UtensilsCrossed,
-  Moon,
-  Apple,
-} from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, FileDown, Loader2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/trpc/client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NutrientBadge } from "@/components/ui/NutrientBadge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
+import {
+  getDayNutrition,
+  getMealNutrition,
+  getPlanNutrition,
+  getRecipeById,
+  isLegacyMealPlan,
+  isNewMealPlan,
+  isOkMealPlan,
+  isRedFlagMealPlan,
+  type LegacyMealPlanData,
+} from "@/lib/mealPlans/planFormat";
+
+function PdfExportButton({
+  plan,
+  patientPseudonym,
+  weekStart,
+  createdBy,
+}: {
+  plan: MealPlanData;
+  patientPseudonym: string;
+  weekStart: string;
+  createdBy: string;
+}) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  return (
+    <Button
+      variant="outline"
+      className="rounded-xl"
+      disabled={isExporting}
+      onClick={async () => {
+        setIsExporting(true);
+        try {
+          const { pdf } = await import("@react-pdf/renderer");
+          const { MealPlanPdfDocument } = await import("@/lib/pdf/mealPlanPdf");
+          const blob = await pdf(
+            <MealPlanPdfDocument
+              plan={plan}
+              patientPseudonym={patientPseudonym}
+              weekStart={weekStart}
+              createdBy={createdBy}
+            />
+          ).toBlob();
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `ernaehrungsplan-${patientPseudonym}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+          toast.success("PDF erfolgreich erstellt.");
+        } catch (error) {
+          toast.error(
+            `PDF konnte nicht erstellt werden: ${
+              error instanceof Error ? error.message : "Unbekannter Fehler"
+            }`
+          );
+        } finally {
+          setIsExporting(false);
+        }
+      }}
+    >
+      {isExporting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <FileDown className="mr-2 h-4 w-4" />
+      )}
+      PDF exportieren
+    </Button>
+  );
+}
 
 export default function MealPlanDetailPage() {
   const params = useParams();
   const router = useRouter();
   const utils = trpc.useUtils();
   const planId = params.id as string;
-  const [inlineFeedback, setInlineFeedback] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-  const [selectedDayTab, setSelectedDayTab] = useState("day-0");
   const [recipeDrafts, setRecipeDrafts] = useState<Record<string, string>>({});
-  const [savingRecipeKey, setSavingRecipeKey] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
-  const { data: plan, isLoading } = trpc.mealPlans.getById.useQuery({
-    id: planId,
+  const { data: plan, isLoading } = trpc.mealPlans.getById.useQuery({ id: planId });
+  const generateShoppingList = trpc.shoppingList.generateFromPlan.useMutation({
+    onSuccess: (data) => {
+      toast.success("Einkaufsliste erfolgreich erstellt.");
+      router.push(`/shopping-lists/${data.id}`);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
-
-  const generateShoppingList =
-    trpc.shoppingList.generateFromPlan.useMutation({
-      onSuccess: (data) => {
-        toast.success("Einkaufsliste erfolgreich erstellt!");
-        setInlineFeedback({
-          type: "success",
-          message: "Einkaufsliste wurde erfolgreich erstellt.",
-        });
-        router.push(`/shopping-lists/${data.id}`);
-      },
-      onError: (error) => {
-        toast.error(error.message);
-        setInlineFeedback({
-          type: "error",
-          message: error.message || "Einkaufsliste konnte nicht erstellt werden.",
-        });
-      },
-    });
 
   const updateMealRecipe = trpc.mealPlans.updateMealRecipe.useMutation({
     onSuccess: async () => {
-      toast.success("Rezept gespeichert.");
-      setInlineFeedback({
-        type: "success",
-        message: "Rezept wurde gespeichert.",
-      });
       await utils.mealPlans.getById.invalidate({ id: planId });
+      toast.success("Zubereitung gespeichert.");
     },
     onError: (error) => {
-      toast.error(error.message || "Rezept konnte nicht gespeichert werden.");
-      setInlineFeedback({
-        type: "error",
-        message: error.message || "Rezept konnte nicht gespeichert werden.",
-      });
+      toast.error(error.message || "Zubereitung konnte nicht gespeichert werden.");
     },
   });
 
@@ -94,605 +123,381 @@ export default function MealPlanDetailPage() {
   }
 
   if (!plan) {
-    return (
-      <div className="text-center py-20 text-muted-foreground">
-        <p>Ernährungsplan nicht gefunden.</p>
-      </div>
-    );
+    return <div className="py-20 text-center text-muted-foreground">Plan nicht gefunden.</div>;
   }
 
-  const planData = plan.planJson as unknown as MealPlanData;
-  const planHint = extractPlanHint(plan.promptUsed);
-  const totalDays = Math.max(planData.days.length, 1);
-  const weekTotalKcal = planData.days.reduce(
-    (sum, day) => sum + day.dailyKcal,
-    0
-  );
-  const avgDailyKcal = Math.round(weekTotalKcal / totalDays);
-
-  // Makros für die ganze Woche
-  const weekMacros = planData.days.reduce(
-    (acc, day) => {
-      for (const meal of day.meals) {
-        acc.protein += meal.protein ?? 0;
-        acc.carbs += meal.carbs ?? 0;
-        acc.fat += meal.fat ?? 0;
-      }
-      return acc;
-    },
-    { protein: 0, carbs: 0, fat: 0 }
-  );
-  const avgMacros = {
-    protein: Math.round(weekMacros.protein / totalDays),
-    carbs: Math.round(weekMacros.carbs / totalDays),
-    fat: Math.round(weekMacros.fat / totalDays),
-  };
-
-  function getMealKey(dayIdx: number, mealIdx: number): string {
-    return `${dayIdx}-${mealIdx}`;
-  }
-
-  function getRecipeDraft(
-    key: string,
-    fallbackRecipe: string | undefined
-  ): string {
-    if (Object.prototype.hasOwnProperty.call(recipeDrafts, key)) {
-      return recipeDrafts[key];
-    }
-    return fallbackRecipe ?? "";
-  }
+  const planData = plan.planJson as MealPlanData | LegacyMealPlanData;
+  const isLegacy = isLegacyMealPlan(planData);
+  const isRegularNewPlan = isOkMealPlan(planData);
+  const isRedFlagPlan = isNewMealPlan(planData) && isRedFlagMealPlan(planData);
+  const planNutrients = getPlanNutrition(planData);
 
   return (
     <div className="space-y-6">
-      {/* Zurück-Link */}
       <Link
         href={`/patients/${plan.patientId}`}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-text-main"
       >
         <ArrowLeft className="h-4 w-4" />
-        Zurück zur Bewohner:in
+        Zurueck zur Bewohner:in
       </Link>
 
-      {/* Plan-Header */}
       <Card className="rounded-xl shadow-sm">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="text-xl text-text-main">
-                Ernährungsplan – {plan.patient.pseudonym}
-                {planHint ? (
-                  <span className="ml-1 text-base font-medium text-muted-foreground">
-                    ({planHint})
-                  </span>
-                ) : null}
+                Ernaehrungsplan - {plan.patient.pseudonym}
               </CardTitle>
-              <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                <span>
-                  KW {getWeekNumber(new Date(plan.weekStart))} (
-                  {new Date(plan.weekStart).toLocaleDateString("de-DE")})
-                </span>
-                <span>|</span>
-                <span>Erstellt von: {plan.createdByUser.name}</span>
-                <span>|</span>
-                <span>
-                  {new Date(plan.createdAt).toLocaleDateString("de-DE")}
-                </span>
-              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                KW {getWeekNumber(new Date(plan.weekStart))} - erstellt am{" "}
+                {new Date(plan.createdAt).toLocaleDateString("de-DE")} - von{" "}
+                {plan.createdByUser.name}
+              </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 className="rounded-xl"
-                onClick={() => {
-                  setInlineFeedback(null);
-                  generateShoppingList.mutate({ mealPlanId: planId });
-                }}
-                disabled={
-                  generateShoppingList.isPending || !!plan.shoppingList
-                }
+                disabled={generateShoppingList.isPending || !!plan.shoppingList || isRedFlagPlan}
+                onClick={() => generateShoppingList.mutate({ mealPlanId: planId })}
               >
                 {generateShoppingList.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <ShoppingCart className="mr-2 h-4 w-4" />
                 )}
-                {plan.shoppingList
-                  ? "Einkaufsliste vorhanden"
-                  : "Einkaufsliste generieren"}
+                {plan.shoppingList ? "Einkaufsliste vorhanden" : "Einkaufsliste generieren"}
               </Button>
-              <PdfExportButton
-                plan={planData}
-                patientPseudonym={plan.patient.pseudonym}
-                weekStart={plan.weekStart.toString()}
-                createdBy={plan.createdByUser.name}
-                onStatus={setInlineFeedback}
-              />
+              {!isLegacy ? (
+                <PdfExportButton
+                  plan={planData}
+                  patientPseudonym={plan.patient.pseudonym}
+                  weekStart={String(plan.weekStart)}
+                  createdBy={plan.createdByUser.name}
+                />
+              ) : null}
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {inlineFeedback && (
-            <div
-              role="status"
-              aria-live={inlineFeedback.type === "error" ? "assertive" : "polite"}
-              className={
-                inlineFeedback.type === "error"
-                  ? "mb-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                  : "mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
-              }
-            >
-              {inlineFeedback.message}
+          {isRegularNewPlan ? (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="rounded-xl bg-primary/10 text-primary">
+                  7-Tage-Struktur
+                </Badge>
+                <Badge variant="secondary" className="rounded-xl bg-secondary/20 text-secondary-600">
+                  Snack-Zeiten: {planData.week_overview.snack_times.join(", ")}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <NutrientBadge type="kcal" value={planNutrients.kcal} />
+                <NutrientBadge type="protein" value={planNutrients.protein} />
+                <NutrientBadge type="carbs" value={planNutrients.carbs} />
+                <NutrientBadge type="fat" value={planNutrients.fat} />
+              </div>
+              <p className="text-sm text-text-main">{planData.week_overview.daily_structure}</p>
+              <p className="text-sm text-muted-foreground">{planData.week_overview.strategy}</p>
+            </div>
+          ) : isRedFlagPlan ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+              <p className="font-medium">{planData.message}</p>
+              <p className="mt-2">{planData.recommended_action}</p>
+              <p className="mt-2">{planData.refeeding_note}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Badge variant="secondary" className="rounded-xl bg-primary/10 text-primary">
+                Bestehender Plan
+              </Badge>
+              <p className="text-sm text-muted-foreground">
+                Dieser Plan wurde im aelteren Format gespeichert und wird kompatibel angezeigt.
+              </p>
             </div>
           )}
-
-          <div className="flex flex-wrap gap-3">
-            <Badge
-              variant="secondary"
-              className="rounded-xl bg-secondary/20 text-secondary-600 text-base px-4 py-1"
-            >
-              Ø {avgDailyKcal} kcal/Tag
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="rounded-xl bg-primary/10 text-primary text-base px-4 py-1"
-            >
-              {weekTotalKcal.toLocaleString("de-DE")} kcal/Plan
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="rounded-xl bg-blue-50 text-blue-600 text-sm px-3 py-1 flex items-center gap-1"
-            >
-              <Beef className="h-3.5 w-3.5" />
-              Ø {avgMacros.protein}g P / {Math.round(weekMacros.protein)}g/Wo
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="rounded-xl bg-amber-50 text-amber-600 text-sm px-3 py-1 flex items-center gap-1"
-            >
-              <Wheat className="h-3.5 w-3.5" />
-              Ø {avgMacros.carbs}g K / {Math.round(weekMacros.carbs)}g/Wo
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="rounded-xl bg-amber-50 text-amber-600 text-sm px-3 py-1 flex items-center gap-1"
-            >
-              <Droplets className="h-3.5 w-3.5" />
-              Ø {avgMacros.fat}g F / {Math.round(weekMacros.fat)}g/Wo
-            </Badge>
-          </div>
-          {(() => {
-            const ag = plan.patient.autonomyAgreement;
-            if (ag) {
-              const parts: string[] = [];
-              if (ag.canPortionIndependent) {
-                parts.push("Darf vollständig eigenständig portionieren");
-              } else if (ag.canPortionSupervised) {
-                parts.push("Darf unter Aufsicht portionieren");
-              }
-              if (ag.notes) parts.push(ag.notes);
-              if (parts.length > 0) {
-                return (
-                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-700">
-                    <Handshake className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span><span className="font-medium">Absprachen:</span> {parts.join(". ")}</span>
-                  </div>
-                );
-              }
-            }
-            // Legacy-Fallback
-            if (plan.patient.autonomyNotes) {
-              return (
-                <div className="mt-3 flex items-start gap-2 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-700">
-                  <Handshake className="h-4 w-4 mt-0.5 shrink-0" />
-                  <span><span className="font-medium">Absprachen:</span> {plan.patient.autonomyNotes}</span>
-                </div>
-              );
-            }
-            return null;
-          })()}
         </CardContent>
       </Card>
 
-      <Tabs value={selectedDayTab} onValueChange={setSelectedDayTab} className="space-y-4">
-        <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-xl p-2">
-          {planData.days.map((day, dayIdx) => {
-            const dayDate = getDateByOffset(new Date(plan.weekStart), dayIdx);
-            const shortWeekday = getShortWeekday(dayDate);
-            return (
-              <TabsTrigger
-                key={`day-trigger-${dayIdx}`}
-                value={`day-${dayIdx}`}
-                className="rounded-lg px-3 py-2"
-              >
-                {shortWeekday}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+      {isRegularNewPlan ? (
+        <>
+          <Tabs defaultValue={planData.days[0]?.day_name} className="space-y-4">
+            <div className="sticky top-0 z-10 -mx-2 overflow-x-auto px-2 pb-2 pt-1 backdrop-blur">
+              <TabsList className="h-auto min-w-max gap-2 rounded-2xl border bg-background/95 p-1 shadow-sm">
+                {planData.days.map((day) => (
+                  <TabsTrigger
+                    key={day.day_name}
+                    value={day.day_name}
+                    className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {day.day_name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
-        {planData.days.map((day, dayIdx) => {
-          const dayProtein = Math.round(day.meals.reduce((s, m) => s + (m.protein ?? 0), 0));
-          const dayCarbs = Math.round(day.meals.reduce((s, m) => s + (m.carbs ?? 0), 0));
-          const dayFat = Math.round(day.meals.reduce((s, m) => s + (m.fat ?? 0), 0));
-          const dayDate = getDateByOffset(new Date(plan.weekStart), dayIdx);
-
-          return (
-            <TabsContent key={`day-content-${dayIdx}`} value={`day-${dayIdx}`}>
-              <Card className="rounded-xl shadow-sm">
-                <CardHeader className="pb-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <CardTitle className="text-lg text-text-main">
-                      {day.dayName} - {dayDate.toLocaleDateString("de-DE")}
-                    </CardTitle>
-                    <div className="flex flex-wrap gap-1.5">
-                      <Badge className="rounded-xl bg-primary text-white">
-                        {day.dailyKcal} kcal
-                      </Badge>
-                      <Badge variant="secondary" className="rounded-xl bg-blue-50 text-blue-600 text-xs px-2 py-0.5 flex items-center gap-1">
-                        <Beef className="h-3 w-3" />{dayProtein}g
-                      </Badge>
-                      <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
-                        <Wheat className="h-3 w-3" />{dayCarbs}g
-                      </Badge>
-                      <Badge variant="secondary" className="rounded-xl bg-amber-50 text-amber-600 text-xs px-2 py-0.5 flex items-center gap-1">
-                        <Droplets className="h-3 w-3" />{dayFat}g
+            {planData.days.map((day, dayIndex) => (
+              <TabsContent key={day.day_name} value={day.day_name} className="mt-0">
+                {(() => {
+                  const dayNutrients = getDayNutrition(planData, dayIndex);
+                  return (
+                <Card className="rounded-2xl border-primary/10 shadow-sm">
+                  <CardHeader className="border-b bg-gradient-to-r from-primary/10 via-secondary/10 to-background">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-2">
+                        <CardTitle className="text-lg text-text-main">{day.day_name}</CardTitle>
+                        <div className="flex flex-wrap gap-2">
+                          <NutrientBadge type="kcal" value={dayNutrients.kcal} compact />
+                          <NutrientBadge type="protein" value={dayNutrients.protein} compact />
+                          <NutrientBadge type="carbs" value={dayNutrients.carbs} compact />
+                          <NutrientBadge type="fat" value={dayNutrients.fat} compact />
+                        </div>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="w-fit rounded-xl bg-background/80 text-text-main"
+                      >
+                        {day.meals.filter((meal) => meal.title).length} Mahlzeiten
                       </Badge>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {day.meals.map((meal, mealIdx) => {
-                      const mealKey = getMealKey(dayIdx, mealIdx);
-                      const currentRecipe =
-                        (meal as unknown as { recipe?: string }).recipe ?? "";
-                      const draftRecipe = getRecipeDraft(mealKey, currentRecipe);
-                      const allRecipeSteps = parseRecipeSteps(currentRecipe);
-                      const recipeSteps = allRecipeSteps.filter(
-                        (step) => !/^tipp:/i.test(step)
-                      );
-                      const tipSteps = allRecipeSteps.filter((step) =>
-                        /^tipp:/i.test(step)
-                      );
-                      const mealMeta = getMealTypeMeta(meal.mealType);
-                      const canSaveRecipe =
-                        draftRecipe.trim().length >= 5 &&
-                        draftRecipe.trim() !== currentRecipe.trim();
+                  </CardHeader>
+                  <CardContent className="grid gap-4 p-4 lg:grid-cols-2">
+                    {day.meals.map((meal, mealIndex) => {
+                      if (!meal.title) {
+                        return null;
+                      }
+
+                      const recipe = getRecipeById(planData, meal.recipe_id);
+                      const draftKey = `${dayIndex}-${mealIndex}`;
+                      const draftValue = recipeDrafts[draftKey] ?? recipe?.short_preparation ?? "";
+                      const mealNutrients = getMealNutrition(planData, dayIndex, mealIndex);
 
                       return (
                         <div
-                          key={mealKey}
-                          className="rounded-xl border p-3 hover:bg-accent/30 transition-colors"
+                          key={draftKey}
+                          className={`rounded-2xl border p-4 shadow-sm ${getMealCardClassName(meal.slot)}`}
                         >
-                          <div className="mb-1 flex items-center justify-between">
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
-                              <mealMeta.icon className="h-3.5 w-3.5" />
-                              {meal.mealType}
-                            </span>
-                            <Badge
-                              variant="outline"
-                              className="rounded-xl text-xs"
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getMealSlotBadgeClassName(meal.slot)}`}
                             >
-                              {meal.kcal} kcal
-                            </Badge>
+                              {meal.slot}
+                            </span>
+                            {meal.arfid_exposure ? (
+                              <Badge variant="outline" className="rounded-xl">
+                                Exposition
+                              </Badge>
+                            ) : null}
                           </div>
-                          <h4 className="font-medium text-sm text-text-main">
-                            {meal.name}
-                          </h4>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {meal.description}
-                          </p>
 
-                          <div className="mt-2 rounded-lg border bg-white/80 p-2">
-                            <p className="text-[11px] font-semibold text-text-main/90">
-                              Zutaten pro Portion
+                          <h3 className="mt-3 text-sm font-semibold text-text-main">{meal.title}</h3>
+
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <NutrientBadge type="kcal" value={mealNutrients.kcal} compact />
+                            <NutrientBadge type="protein" value={mealNutrients.protein} compact />
+                            <NutrientBadge type="carbs" value={mealNutrients.carbs} compact />
+                            <NutrientBadge type="fat" value={mealNutrients.fat} compact />
+                          </div>
+
+                          {meal.components ? (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              {meal.components.carb} · {meal.components.protein} · {meal.components.fat} ·{" "}
+                              {meal.components.fruit_or_veg}
                             </p>
-                            <div className="mt-1 space-y-1 text-[11px] text-text-main/80">
-                              {(meal.ingredients ?? []).slice(0, 5).map((ingredient, idx) => (
-                                <div
-                                  key={`${mealKey}-ingredient-${idx}`}
-                                  className="flex items-center justify-between gap-2"
-                                >
-                                  <span className="truncate">{ingredient.name}</span>
-                                  <span className="shrink-0 font-medium">
-                                    {ingredient.amount} {ingredient.unit}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          ) : null}
 
-                          <div className="mt-2 rounded-lg border bg-primary/5 p-2">
-                            <p className="text-[11px] font-semibold text-text-main/90">
-                              Zubereitung (kurz)
+                          {meal.alternatives.length > 0 ? (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              Alternativen: {meal.alternatives.join(" | ")}
                             </p>
-                            {recipeSteps.length > 0 ? (
-                              <ol className="mt-1 list-decimal space-y-1 pl-4 text-[11px] text-text-main/80">
-                                {recipeSteps.slice(0, 2).map((step, idx) => (
-                                  <li key={`${mealKey}-preview-step-${idx}`}>{step}</li>
-                                ))}
-                              </ol>
-                            ) : (
-                              <p className="mt-1 text-[11px] text-text-main/70">
-                                Keine Rezeptschritte vorhanden.
-                              </p>
-                            )}
-                          </div>
+                          ) : null}
 
-                          <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
-                            <span>P: {meal.protein}g</span>
-                            <span>K: {meal.carbs}g</span>
-                            <span>F: {meal.fat}g</span>
-                          </div>
+                          {meal.arfid_exposure ? (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              Kleine Exposition: {meal.arfid_exposure}
+                            </p>
+                          ) : null}
 
-                          <details className="mt-3 rounded-lg border bg-white/70 p-2">
-                            <summary className="cursor-pointer text-xs font-medium text-primary">
-                              Rezept anzeigen / bearbeiten
-                            </summary>
-                            <div className="mt-2 space-y-2">
-                              <div className="rounded-lg border bg-white p-2">
-                                <p className="text-xs font-medium text-text-main">
-                                  Zutaten mit Mengen
-                                </p>
-                                <div className="mt-1 space-y-1 text-xs text-text-main/80">
-                                  {(meal.ingredients ?? []).map((ingredient, idx) => (
-                                    <div
-                                      key={`${mealKey}-ingredient-full-${idx}`}
-                                      className="flex items-center justify-between gap-2"
-                                    >
-                                      <span>{ingredient.name}</span>
-                                      <span className="font-medium">
-                                        {ingredient.amount} {ingredient.unit}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              {recipeSteps.length > 0 ? (
-                                <div className="rounded-lg border bg-white p-2">
-                                  <p className="text-xs font-medium text-text-main">
-                                    Schritt-für-Schritt-Anleitung
+                          {recipe ? (
+                            <>
+                              <div className="mt-3 rounded-xl bg-background/80 p-3 text-xs text-text-main ring-1 ring-black/5">
+                                <p className="font-semibold">Rezept</p>
+                                {recipe.shopping_items.length > 0 ? (
+                                  <p className="mt-1 text-muted-foreground">
+                                    Zutaten: {recipe.shopping_items
+                                      .map((item) => `${item.amount} ${item.unit} ${item.name}`)
+                                      .join(", ")}
                                   </p>
-                                  <ol className="mt-1 list-decimal space-y-1 pl-4 text-xs text-text-main/80">
-                                    {recipeSteps.map((step, idx) => (
-                                      <li key={`${mealKey}-step-${idx}`}>{step}</li>
+                                ) : null}
+                                <div className="mt-2 space-y-1 text-muted-foreground">
+                                  {recipe.short_preparation
+                                    .split("\n")
+                                    .map((step) => step.trim())
+                                    .filter(Boolean)
+                                    .map((step, index) => (
+                                      <p key={`${recipe.recipe_id}-step-${index}`}>{step}</p>
                                     ))}
-                                  </ol>
                                 </div>
-                              ) : null}
-                              {(tipSteps[0] || "").length > 0 && (
-                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-700">
-                                  <span className="font-medium">Küchentipp:</span>{" "}
-                                  {tipSteps[0].replace(/^tipp:\s*/i, "")}
-                                </div>
-                              )}
+                                <p className="mt-2 text-muted-foreground">
+                                  Sensorik: {recipe.sensory_features.join(", ")}
+                                </p>
+                                <p className="mt-1 text-muted-foreground">
+                                  Warum hilfreich: {recipe.ed_support_rationale}
+                                </p>
+                              </div>
+
                               <Textarea
-                                value={draftRecipe}
+                                className="mt-3 rounded-xl"
+                                rows={3}
+                                value={draftValue}
                                 onChange={(event) =>
-                                  setRecipeDrafts((prev) => ({
-                                    ...prev,
-                                    [mealKey]: event.target.value,
+                                  setRecipeDrafts((current) => ({
+                                    ...current,
+                                    [draftKey]: event.target.value,
                                   }))
                                 }
-                                rows={5}
-                                className="rounded-lg text-xs"
-                                placeholder="Rezept mit Mengen/Zeiten, z.B. Schritt 1; Schritt 2; ...; Tipp: ..."
                               />
-                              <div className="flex justify-end">
-                                <Button
-                                  size="sm"
-                                  className="rounded-lg"
-                                  disabled={
-                                    savingRecipeKey === mealKey ||
-                                    updateMealRecipe.isPending ||
-                                    !canSaveRecipe
+
+                              <Button
+                                className="mt-2 rounded-xl"
+                                disabled={
+                                  savingKey === draftKey ||
+                                  draftValue.trim().length < 5 ||
+                                  draftValue.trim() === (recipe.short_preparation ?? "").trim()
+                                }
+                                onClick={async () => {
+                                  setSavingKey(draftKey);
+                                  try {
+                                    await updateMealRecipe.mutateAsync({
+                                      planId,
+                                      dayIndex,
+                                      mealIndex,
+                                      recipe: draftValue,
+                                    });
+                                  } finally {
+                                    setSavingKey(null);
                                   }
-                                  onClick={() => {
-                                    setInlineFeedback(null);
-                                    setSavingRecipeKey(mealKey);
-                                    updateMealRecipe.mutate(
-                                      {
-                                        planId,
-                                        dayIndex: dayIdx,
-                                        mealIndex: mealIdx,
-                                        recipe: draftRecipe.trim(),
-                                      },
-                                      {
-                                        onSettled: () => {
-                                          setSavingRecipeKey(null);
-                                        },
-                                      }
-                                    );
-                                  }}
-                                >
-                                  {savingRecipeKey === mealKey ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                                      Speichert...
-                                    </>
-                                  ) : (
-                                    "Rezept speichern"
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          </details>
+                                }}
+                              >
+                                {savingKey === draftKey ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : null}
+                                Zubereitung speichern
+                              </Button>
+                            </>
+                          ) : null}
                         </div>
                       );
                     })}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+                  </CardContent>
+                </Card>
+                  );
+                })()}
+              </TabsContent>
+            ))}
+          </Tabs>
 
-      {/* Shopping List Link */}
-      {plan.shoppingList && (
-        <div className="text-center">
-          <Link href={`/shopping-lists/${plan.shoppingList.id}`}>
-            <Button variant="outline" className="rounded-xl">
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Zur Einkaufsliste
-            </Button>
-          </Link>
+          {planData.meal_support_hints.length > 0 ? (
+            <Card className="rounded-xl shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg text-text-main">Meal-Support-Hinweise</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {planData.meal_support_hints.map((hint, index) => (
+                  <p key={`${hint}-${index}`} className="text-sm text-muted-foreground">
+                    {hint}
+                  </p>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
+        </>
+      ) : isLegacy ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {planData.days.map((day, dayIndex) => (
+            <Card key={`${day.dayName}-${dayIndex}`} className="rounded-xl shadow-sm">
+              <CardHeader>
+                <div className="space-y-2">
+                  <CardTitle className="text-lg text-text-main">{day.dayName}</CardTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <NutrientBadge type="kcal" value={getDayNutrition(planData, dayIndex).kcal} compact />
+                    <NutrientBadge type="protein" value={getDayNutrition(planData, dayIndex).protein} compact />
+                    <NutrientBadge type="carbs" value={getDayNutrition(planData, dayIndex).carbs} compact />
+                    <NutrientBadge type="fat" value={getDayNutrition(planData, dayIndex).fat} compact />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {day.meals.map((meal, mealIndex) => (
+                  <div key={`${dayIndex}-${mealIndex}`} className="rounded-xl border p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                      {meal.mealType}
+                    </p>
+                    <h3 className="mt-1 text-sm font-semibold text-text-main">{meal.name}</h3>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <NutrientBadge type="kcal" value={getMealNutrition(planData, dayIndex, mealIndex).kcal} compact />
+                      <NutrientBadge type="protein" value={getMealNutrition(planData, dayIndex, mealIndex).protein} compact />
+                      <NutrientBadge type="carbs" value={getMealNutrition(planData, dayIndex, mealIndex).carbs} compact />
+                      <NutrientBadge type="fat" value={getMealNutrition(planData, dayIndex, mealIndex).fat} compact />
+                    </div>
+                    {meal.description ? (
+                      <p className="mt-2 text-xs text-muted-foreground">{meal.description}</p>
+                    ) : null}
+                    {meal.recipe ? (
+                      <div className="mt-3 rounded-lg bg-accent/30 p-3 text-xs text-text-main">
+                        <p className="font-semibold">Rezept</p>
+                        <p className="mt-1 whitespace-pre-wrap">{meal.recipe}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
 
-// PDF-Export-Button Komponente (Client-only wegen @react-pdf/renderer)
-function PdfExportButton({
-  plan,
-  patientPseudonym,
-  weekStart,
-  createdBy,
-  onStatus,
-}: {
-  plan: MealPlanData;
-  patientPseudonym: string;
-  weekStart: string;
-  createdBy: string;
-  onStatus: (status: { type: "success" | "error"; message: string } | null) => void;
-}) {
-  // Da PDFDownloadLink und MealPlanPdfDocument dynamisch geladen werden,
-  // verwenden wir einen einfachen Download-Ansatz
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handlePdfExport = async () => {
-    setIsGenerating(true);
-    onStatus(null);
-    try {
-      const { pdf } = await import("@react-pdf/renderer");
-      const { MealPlanPdfDocument } = await import("@/lib/pdf/mealPlanPdf");
-
-      const blob = await pdf(
-        <MealPlanPdfDocument
-          plan={plan}
-          patientPseudonym={patientPseudonym}
-          weekStart={weekStart}
-          createdBy={createdBy}
-        />
-      ).toBlob();
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ernaehrungsplan-${patientPseudonym}-${weekStart}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("PDF erfolgreich erstellt!");
-      onStatus({
-        type: "success",
-        message: "PDF wurde erfolgreich erstellt.",
-      });
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : "Unbekannter Fehler";
-      console.error("[PDF] Export fehlgeschlagen:", err);
-      toast.error(`Fehler beim Erstellen des PDFs: ${detail}`);
-      onStatus({
-        type: "error",
-        message: `PDF konnte nicht erstellt werden: ${detail}`,
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  return (
-    <Button
-      variant="outline"
-      className="rounded-xl"
-      onClick={handlePdfExport}
-      disabled={isGenerating}
-    >
-      {isGenerating ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <FileDown className="mr-2 h-4 w-4" />
-      )}
-      Als PDF exportieren
-    </Button>
-  );
-}
-
 function getWeekNumber(date: Date): number {
-  const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  );
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-function getDateByOffset(startDate: Date, dayOffset: number): Date {
-  const date = new Date(startDate);
-  date.setDate(startDate.getDate() + dayOffset);
-  return date;
-}
-
-function getShortWeekday(date: Date): string {
-  return date
-    .toLocaleDateString("de-DE", { weekday: "short" })
-    .replace(".", "");
-}
-
-function getMealTypeMeta(mealType: string): {
-  icon: typeof Coffee;
-} {
-  switch (mealType) {
+function getMealCardClassName(slot: string): string {
+  switch (slot) {
     case "Frühstück":
-      return { icon: Coffee };
+      return "border-amber-200 bg-amber-50/70";
+    case "Snack 1":
+    case "Snack 2":
+    case "Später Snack":
+      return "border-sky-200 bg-sky-50/70";
     case "Mittagessen":
-      return { icon: UtensilsCrossed };
+      return "border-emerald-200 bg-emerald-50/70";
     case "Abendessen":
-      return { icon: Moon };
-    case "Snack":
-      return { icon: Apple };
+      return "border-rose-200 bg-rose-50/70";
     default:
-      return { icon: Coffee };
+      return "border-border bg-card";
   }
 }
 
-function extractPlanHint(promptUsed?: string | null): string | null {
-  if (!promptUsed) return null;
-
-  const hintMatch = promptUsed.match(/Hinweise:\s*([^|]+)/i);
-  if (!hintMatch?.[1]) return null;
-
-  let hint = hintMatch[1].trim();
-  if (!hint || /keine besonderen hinweise/i.test(hint)) return null;
-
-  hint = hint
-    .replace(/Vorheriger Plan als Referenz vorhanden[\s\S]*/i, "")
-    .split(/\r?\n/)[0]
-    .trim();
-
-  if (!hint) return null;
-
-  const normalized = hint.toLowerCase();
-  if (normalized.includes("vegetar")) return "vegetarisch";
-  if (normalized.includes("vegan")) return "vegan";
-  if (normalized.includes("laktose")) return "laktosearm";
-  if (normalized.includes("gluten")) return "glutenfrei";
-  if (normalized.includes("snack")) return "mehr Snacks";
-  if (normalized.includes("mittags warm") || normalized.includes("abends kalt")) {
-    return "mittags warm, abends kalt";
+function getMealSlotBadgeClassName(slot: string): string {
+  switch (slot) {
+    case "Frühstück":
+      return "bg-amber-100 text-amber-900";
+    case "Snack 1":
+    case "Snack 2":
+    case "Später Snack":
+      return "bg-sky-100 text-sky-900";
+    case "Mittagessen":
+      return "bg-emerald-100 text-emerald-900";
+    case "Abendessen":
+      return "bg-rose-100 text-rose-900";
+    default:
+      return "bg-muted text-muted-foreground";
   }
-
-  return hint.length > 36 ? `${hint.slice(0, 33).trim()}...` : hint;
 }
-function parseRecipeSteps(recipe: string): string[] {
-  return recipe
-    .split(/;|\n/)
-    .map((step) => step.trim())
-    .filter((step) => step.length > 0);
-}
-
-
-
-
-

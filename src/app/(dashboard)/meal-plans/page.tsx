@@ -2,39 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ClipboardList, Loader2, Plus, ShoppingCart } from "lucide-react";
 import { trpc } from "@/trpc/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NutrientBadge } from "@/components/ui/NutrientBadge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ClipboardList, Loader2, Plus, ShoppingCart, Beef, Wheat, Droplets } from "lucide-react";
-import type { MealPlanData } from "@/lib/openai/nutritionPrompt";
-
-function calcMacros(planJson: unknown): { protein: number; carbs: number; fat: number } {
-  try {
-    const plan = planJson as MealPlanData;
-    let protein = 0, carbs = 0, fat = 0;
-    for (const day of plan.days) {
-      for (const meal of day.meals) {
-        protein += meal.protein ?? 0;
-        carbs += meal.carbs ?? 0;
-        fat += meal.fat ?? 0;
-      }
-    }
-    return { protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) };
-  } catch {
-    return { protein: 0, carbs: 0, fat: 0 };
-  }
-}
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { GeneratePlanModal } from "@/components/modals/GeneratePlanModal";
 import { clearMealPlansUnreadCount } from "@/lib/mealPlanNotifications";
+import { getPlanNutrition, isNewMealPlan, isRedFlagMealPlan } from "@/lib/mealPlans/planFormat";
 
 function getWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -44,51 +22,48 @@ function getWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
+function getPlanBadge(planJson: unknown) {
+  if (isNewMealPlan(planJson) && isRedFlagMealPlan(planJson)) {
+    return (
+      <Badge variant="secondary" className="rounded-xl bg-destructive/10 text-destructive">
+        Red Flag
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="secondary" className="rounded-xl bg-primary/10 text-primary">
+      Wochenplan
+    </Badge>
+  );
+}
+
 export default function MealPlansPage() {
   const [patientSelectOpen, setPatientSelectOpen] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<{
-    id: string;
-    pseudonym: string;
-  } | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<{ id: string; pseudonym: string } | null>(
+    null
+  );
 
   useEffect(() => {
     clearMealPlansUnreadCount();
   }, []);
 
-  const {
-    data: plans,
-    isLoading,
-    error,
-    refetch,
-  } = trpc.mealPlans.list.useQuery(
+  const { data: plans, isLoading, error, refetch } = trpc.mealPlans.list.useQuery(
     { limit: 50 },
-    {
-      retry: 1,
-    }
+    { retry: 1 }
   );
   const { data: patients, isLoading: patientsLoading } = trpc.patients.list.useQuery(
     {},
-    {
-      enabled: patientSelectOpen,
-      retry: 1,
-    }
+    { enabled: patientSelectOpen, retry: 1 }
   );
-
-  function handleSelectPatient(patient: { id: string; pseudonym: string }) {
-    setSelectedPatient(patient);
-    setPatientSelectOpen(false);
-    setPlanModalOpen(true);
-  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-text-main">Ernährungspläne</h2>
-          <p className="text-muted-foreground">
-            Übersicht aller erstellten Pläne Ihrer Einrichtung
-          </p>
+          <p className="text-muted-foreground">Übersicht aller erstellten Pläne Ihrer Einrichtung</p>
         </div>
         <Button
           className="w-full rounded-xl bg-primary hover:bg-primary-600 sm:w-auto"
@@ -102,9 +77,7 @@ export default function MealPlansPage() {
       <Card className="rounded-xl shadow-sm">
         <CardHeader>
           <CardTitle className="text-text-main">Alle Ernährungspläne</CardTitle>
-          <CardDescription>
-            Sortiert nach Erstellungsdatum (neueste zuerst)
-          </CardDescription>
+          <CardDescription>Sortiert nach Erstellungsdatum</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -112,18 +85,18 @@ export default function MealPlansPage() {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : error ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="py-8 text-center text-muted-foreground">
               <p className="font-medium text-text-main">Pläne konnten nicht geladen werden.</p>
-              <p className="text-sm mt-1">{error.message}</p>
+              <p className="mt-1 text-sm">{error.message}</p>
               <Button variant="outline" className="mt-4 rounded-xl" onClick={() => refetch()}>
                 Erneut versuchen
               </Button>
             </div>
           ) : !plans || plans.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <ClipboardList className="mx-auto h-12 w-12 mb-3 opacity-50" />
+            <div className="py-8 text-center text-muted-foreground">
+              <ClipboardList className="mx-auto mb-3 h-12 w-12 opacity-50" />
               <p>Noch keine Ernährungspläne erstellt.</p>
-              <p className="text-sm mt-1">
+              <p className="mt-1 text-sm">
                 Legen Sie zuerst eine Bewohner:in an, um einen Plan zu erstellen.
               </p>
             </div>
@@ -133,8 +106,8 @@ export default function MealPlansPage() {
                 <TableRow>
                   <TableHead>Bewohner:in</TableHead>
                   <TableHead>KW</TableHead>
-                  <TableHead className="hidden sm:table-cell">Kalorien/Woche</TableHead>
-                  <TableHead className="hidden md:table-cell">Makros/Woche</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden lg:table-cell">Nährwerte</TableHead>
                   <TableHead className="hidden sm:table-cell">Erstellt von</TableHead>
                   <TableHead className="hidden md:table-cell">Einkaufsliste</TableHead>
                   <TableHead>Erstellt am</TableHead>
@@ -142,9 +115,7 @@ export default function MealPlansPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {plans.map((plan) => {
-                  const macros = calcMacros(plan.planJson);
-                  return (
+                {plans.map((plan) => (
                   <TableRow key={plan.id}>
                     <TableCell className="font-medium">
                       {plan.patient?.id ? (
@@ -156,28 +127,27 @@ export default function MealPlansPage() {
                       )}
                     </TableCell>
                     <TableCell>KW {getWeekNumber(new Date(plan.weekStart))}</TableCell>
+                    <TableCell>{getPlanBadge(plan.planJson)}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {(() => {
+                        const nutrients = getPlanNutrition(plan.planJson as never);
+                        return (
+                          <div className="grid gap-1">
+                            <div className="flex flex-wrap gap-2">
+                              <NutrientBadge type="kcal" value={nutrients.kcal} compact />
+                              <NutrientBadge type="protein" value={nutrients.protein} compact />
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <NutrientBadge type="carbs" value={nutrients.carbs} compact />
+                              <NutrientBadge type="fat" value={nutrients.fat} compact />
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <Badge variant="secondary" className="rounded-xl bg-secondary/20 text-secondary-600">
-                        {plan.totalKcal.toLocaleString("de-DE")} kcal
-                      </Badge>
+                      {plan.createdByUser?.name ?? "Unbekannt"}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex flex-col gap-1 text-xs">
-                        <span className="flex items-center gap-1 text-blue-600">
-                          <Beef className="h-3 w-3" />
-                          {macros.protein} g Protein
-                        </span>
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <Wheat className="h-3 w-3" />
-                          {macros.carbs} g Kohlenhydrate
-                        </span>
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <Droplets className="h-3 w-3" />
-                          {macros.fat} g Fett
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">{plan.createdByUser?.name ?? "Unbekannt"}</TableCell>
                     <TableCell className="hidden md:table-cell">
                       {plan.shoppingList ? (
                         <Link href={`/shopping-lists/${plan.shoppingList.id}`}>
@@ -190,9 +160,7 @@ export default function MealPlansPage() {
                         <span className="text-sm text-muted-foreground">Keine</span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      {new Date(plan.createdAt).toLocaleDateString("de-DE")}
-                    </TableCell>
+                    <TableCell>{new Date(plan.createdAt).toLocaleDateString("de-DE")}</TableCell>
                     <TableCell className="text-right">
                       <Link href={`/meal-plans/${plan.id}`}>
                         <Button variant="outline" size="sm" className="rounded-xl">
@@ -201,8 +169,7 @@ export default function MealPlansPage() {
                       </Link>
                     </TableCell>
                   </TableRow>
-                  );
-                })}
+                ))}
               </TableBody>
             </Table>
           )}
@@ -238,12 +205,11 @@ export default function MealPlansPage() {
                   key={patient.id}
                   variant="outline"
                   className="h-auto w-full justify-between rounded-xl py-3"
-                  onClick={() =>
-                    handleSelectPatient({
-                      id: patient.id,
-                      pseudonym: patient.pseudonym,
-                    })
-                  }
+                  onClick={() => {
+                    setSelectedPatient({ id: patient.id, pseudonym: patient.pseudonym });
+                    setPatientSelectOpen(false);
+                    setPlanModalOpen(true);
+                  }}
                 >
                   <span className="font-medium">{patient.pseudonym}</span>
                   <span className="text-xs text-muted-foreground">
@@ -256,7 +222,7 @@ export default function MealPlansPage() {
         </DialogContent>
       </Dialog>
 
-      {selectedPatient && (
+      {selectedPatient ? (
         <GeneratePlanModal
           open={planModalOpen}
           onOpenChange={setPlanModalOpen}
@@ -267,7 +233,7 @@ export default function MealPlansPage() {
             setPlanModalOpen(false);
           }}
         />
-      )}
+      ) : null}
     </div>
   );
 }

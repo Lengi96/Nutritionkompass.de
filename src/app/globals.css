@@ -78,3 +78,14 @@ details[open] > :not(summary) {
     font-feature-settings: "cv11" 1, "cv01" 1;
   }
 }
+
+#dashboard-shell[data-ui-density="compact"] .table-density-head {
+  height: 2.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+#dashboard-shell[data-ui-density="compact"] .table-density-cell {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}

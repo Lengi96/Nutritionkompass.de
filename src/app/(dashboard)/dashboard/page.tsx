@@ -328,7 +328,6 @@ function MealPlanTable({
   plans: Array<{
     id: string;
     weekStart: string | Date;
-    totalKcal: number;
     createdAt: string | Date;
     patient: { pseudonym: string };
   }>;
@@ -374,7 +373,7 @@ function MealPlanTable({
             <TableRow>
               <TableHead>Bewohner:in</TableHead>
               <TableHead>Kalenderwoche</TableHead>
-              <TableHead>Kalorien/Woche</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Erstellt am</TableHead>
               <TableHead />
             </TableRow>
@@ -395,9 +394,9 @@ function MealPlanTable({
                 <TableCell>
                   <Badge
                     variant="secondary"
-                    className="rounded-xl bg-secondary/20 text-secondary-600"
+                    className="rounded-xl bg-primary/10 text-primary"
                   >
-                    {plan.totalKcal.toLocaleString("de-DE")} kcal
+                    Wochenplan
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -633,7 +632,6 @@ export default function DashboardPage() {
                 mealPlans?.slice(0, 5).map((mp) => ({
                   id: mp.id,
                   weekStart: mp.weekStart,
-                  totalKcal: mp.totalKcal,
                   createdAt: mp.createdAt,
                   patient: { pseudonym: mp.patient.pseudonym },
                 })) ?? []

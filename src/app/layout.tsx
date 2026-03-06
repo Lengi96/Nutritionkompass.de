@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-sans",
+  weight: "100 900",
 });
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${geistSans.variable} font-sans antialiased`}>
         {children}
         <Toaster
           position="top-right"

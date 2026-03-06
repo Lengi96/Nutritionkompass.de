@@ -13,6 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
+  getUiDensityDataValue,
+  LANDING_PAGE_OPTIONS,
+  UI_DENSITY_OPTIONS,
+} from "@/lib/settings";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -59,6 +64,10 @@ export default function SettingsPage() {
   const { data: session, status } = useSession();
   const utils = trpc.useUtils();
   const isAdmin = session?.user?.role === "ADMIN";
+  const [defaultLandingPage, setDefaultLandingPage] = useState<
+    "DASHBOARD" | "PATIENTS" | "MEAL_PLANS" | "SHOPPING_LISTS"
+  >("DASHBOARD");
+  const [uiDensity, setUiDensity] = useState<"COMFORTABLE" | "COMPACT">("COMFORTABLE");
 
   const [orgName, setOrgName] = useState("");
   const [orgContactEmail, setOrgContactEmail] = useState("");
@@ -91,6 +100,7 @@ export default function SettingsPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const { data: mySettings, isLoading: mySettingsLoading } = trpc.settings.getMySettings.useQuery();
 
   const { data: organization, isLoading: orgLoading } = trpc.organization.get.useQuery(undefined, {
     enabled: isAdmin,
@@ -113,12 +123,28 @@ export default function SettingsPage() {
     setOrgNotes(organization.profileNotes ?? "");
   }, [organization]);
 
+  useEffect(() => {
+    if (!mySettings) return;
+    setDefaultLandingPage(mySettings.defaultLandingPage);
+    setUiDensity(mySettings.uiDensity);
+  }, [mySettings]);
+
   const updateOrg = trpc.organization.updateProfile.useMutation({
     onSuccess: (data) => {
       utils.organization.get.setData(undefined, data);
       toast.success("Einrichtung wurde gespeichert.");
     },
     onError: (error) => toast.error(error.message || "Einrichtung konnte nicht gespeichert werden."),
+  });
+  const updateMySettings = trpc.settings.updateMySettings.useMutation({
+    onSuccess: (data) => {
+      utils.settings.getMySettings.setData(undefined, data);
+      const densityValue = getUiDensityDataValue(data.uiDensity);
+      document.getElementById("dashboard-shell")?.setAttribute("data-ui-density", densityValue);
+      toast.success("Persönliche Einstellungen wurden gespeichert.");
+    },
+    onError: (error) =>
+      toast.error(error.message || "Persönliche Einstellungen konnten nicht gespeichert werden."),
   });
   const inviteMutation = trpc.staff.invite.useMutation({
     onSuccess: () => {
@@ -201,8 +227,12 @@ export default function SettingsPage() {
     );
   }, [orgPayload, organization]);
 
+  const mySettingsHasChanges =
+    !!mySettings &&
+    (defaultLandingPage !== mySettings.defaultLandingPage ||
+      uiDensity !== mySettings.uiDensity);
+
   if (status === "loading") return <div className="py-20 text-center text-muted-foreground">Lade Einstellungen...</div>;
-  if (!isAdmin) return <div className="py-20 text-center text-muted-foreground">Zugriff nur für Administratoren.</div>;
 
   const discardOrg = () => {
     if (!organization) return;
@@ -228,6 +258,13 @@ export default function SettingsPage() {
       city: orgPayload.city || null,
       country: orgPayload.country || null,
       profileNotes: orgPayload.profileNotes || null,
+    });
+  };
+  const submitMySettings = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateMySettings.mutate({
+      defaultLandingPage,
+      uiDensity,
     });
   };
   const submitInvite = (event: FormEvent<HTMLFormElement>) => {
@@ -270,10 +307,71 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-text-main">Einstellungen</h2>
-        <p className="text-muted-foreground">Verwaltung der Einrichtung und Mitarbeiter:innen</p>
+        <p className="text-muted-foreground">Persönliche Einstellungen und Verwaltung</p>
       </div>
 
-      <Tabs defaultValue="staff" className="space-y-4">
+      <div className="grid gap-6">
+        <Card className="rounded-xl shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-text-main">Persönliche Einstellungen</CardTitle>
+            <CardDescription>
+              Gilt nur für Ihren eigenen Arbeitsplatz und Ihre Navigation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={submitMySettings}>
+              <div className="space-y-2">
+                <Label htmlFor="defaultLandingPage">Standard-Startseite</Label>
+                <Select value={defaultLandingPage} onValueChange={(value) => setDefaultLandingPage(value as typeof defaultLandingPage)}>
+                  <SelectTrigger id="defaultLandingPage" disabled={mySettingsLoading || updateMySettings.isPending}>
+                    <SelectValue placeholder="Startseite wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANDING_PAGE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Wird nach dem Login und über das Logo in der Hauptnavigation berücksichtigt.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="uiDensity">Listendichte</Label>
+                <Select value={uiDensity} onValueChange={(value) => setUiDensity(value as typeof uiDensity)}>
+                  <SelectTrigger id="uiDensity" disabled={mySettingsLoading || updateMySettings.isPending}>
+                    <SelectValue placeholder="Dichte wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UI_DENSITY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Wirkt auf Tabellen und Übersichtslisten im Dashboard-Bereich.
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="rounded-xl bg-primary hover:bg-primary-600"
+                disabled={mySettingsLoading || updateMySettings.isPending || !mySettingsHasChanges}
+              >
+                {updateMySettings.isPending ? "Speichert..." : "Persönliche Einstellungen speichern"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {isAdmin && (
+        <Tabs defaultValue="staff" className="space-y-4">
         <TabsList className="rounded-xl">
           <TabsTrigger value="staff" className="rounded-xl"><Users className="mr-2 h-4 w-4" />Mitarbeiter:innen</TabsTrigger>
           <TabsTrigger value="organization" className="rounded-xl"><Building2 className="mr-2 h-4 w-4" />Einrichtung</TabsTrigger>
@@ -388,7 +486,8 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      )}
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent className="sm:rounded-xl">
@@ -435,4 +534,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
 

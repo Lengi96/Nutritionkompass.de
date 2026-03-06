@@ -49,7 +49,7 @@ function getNextMonday(): string {
 
 const generatePlanSchema = z.object({
   weekStart: z.string().min(1, "Bitte eine Woche auswählen."),
-  numDays: z.number().int().min(1).max(14).default(7),
+  numDays: z.literal(7).default(7),
   fixedMealTypes: z.array(z.enum(MEAL_TYPE_OPTIONS)).default([]),
   basedOnPreviousPlan: z.boolean().optional(),
   additionalNotes: z.string().optional(),
@@ -109,10 +109,10 @@ export function GeneratePlanModal({
 
   const additionalNotesExamples = [
     "3+2-Tagesstruktur: 3 Hauptmahlzeiten + 2 Zwischenmahlzeiten täglich",
-    "Keine Light-Produkte, vollwertige energiedichte Lebensmittel",
+    "Keine Light-Produkte, alltagsnahe vollwertige Lebensmittel",
     "2–3 Angstlebensmittel gezielt in die Woche integrieren",
     "Vegetarische Woche, pflanzliche Proteinquellen verwenden",
-    "Nur einfache Rezepte, max. 30 Minuten Zubereitungszeit",
+    "Nur einfache Rezepte, max. 25 Minuten aktive Zubereitungszeit",
   ];
 
   const noteTemplates = [
@@ -124,7 +124,7 @@ export function GeneratePlanModal({
     {
       id: "energiedichte",
       label: "Energiedichte stabilisieren",
-      text: "Keine Light-Produkte und keine kalorienreduzierten Varianten verwenden. Vollwertige, energiedichte Lebensmittel bevorzugen.",
+      text: "Keine Light-Produkte und keine kalorienreduzierten Varianten verwenden. Normale, alltagsnahe Lebensmittel bevorzugen.",
     },
     {
       id: "exposition",
@@ -133,13 +133,13 @@ export function GeneratePlanModal({
     },
     {
       id: "makros",
-      label: "Ausgewogene Makronährstoffe",
-      text: "Jede Hauptmahlzeit enthält Kohlenhydrate, Protein und Fett. Keine einseitigen oder einseitig 'sicheren' Mahlzeiten.",
+      label: "Baukasten Mahlzeiten",
+      text: "Jede Hauptmahlzeit enthält Kohlenhydrate, Protein, Fett und Obst oder Gemüse. Keine einseitigen oder vermeidungsfördernden Mahlzeiten.",
     },
     {
       id: "snacks",
       label: "Mehr Nachmittags-Snacks",
-      text: "Mehr Zwischenmahlzeiten, besonders am Nachmittag. Energiereiche Snacks einplanen, besonders bei Untergewicht oder Gewichtsstagnation.",
+      text: "Mehr Zwischenmahlzeiten, besonders am Nachmittag. Verlässliche Snacks einplanen, um lange Esspausen zu vermeiden.",
     },
     {
       id: "vegetarisch",
@@ -154,7 +154,7 @@ export function GeneratePlanModal({
     {
       id: "einfach",
       label: "Einfache Rezepte (≤ 30 min)",
-      text: "Nur einfache Rezepte mit maximal 30 Minuten Zubereitungszeit. Geringe Komplexität, entlastet Personal.",
+      text: "Nur einfache Rezepte mit maximal 25 Minuten aktiver Zubereitungszeit. Geringe Komplexität, entlastet Personal.",
     },
     {
       id: "kochen",
@@ -353,16 +353,16 @@ export function GeneratePlanModal({
 
           <div className="space-y-2">
             <Label htmlFor="numDays">
-              Planungszeitraum (Tage) <span className="text-destructive">*</span>
+              Planungszeitraum <span className="text-destructive">*</span>
             </Label>
             <Input
               id="numDays"
               type="number"
-              min={1}
-              max={14}
+              min={7}
+              max={7}
               step={1}
               className="rounded-xl"
-              disabled={generatePlan.isPending}
+              disabled
               {...register("numDays", {
                 setValueAs: (value) => Number(value),
               })}
@@ -370,7 +370,7 @@ export function GeneratePlanModal({
             {errors.numDays && (
               <p className="text-xs text-destructive">{errors.numDays.message}</p>
             )}
-            <p className="text-xs text-muted-foreground">Empfohlen: 1, 3, 7 oder 14 Tage.</p>
+            <p className="text-xs text-muted-foreground">Die neue Pipeline generiert immer einen 7-Tage-Wochenplan.</p>
           </div>
 
           <label className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${generatePlan.isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-accent/30"}`}>
@@ -382,7 +382,7 @@ export function GeneratePlanModal({
             <div>
               <span className="text-sm font-medium">Vorherigen Plan als Basis verwenden</span>
               <p className="text-xs text-muted-foreground">
-                Variiert die Mahlzeiten, behält aber die Kalorienverteilung bei
+                Variiert die Mahlzeiten, behält aber eine verlässliche Tagesstruktur bei
               </p>
             </div>
           </label>
@@ -466,10 +466,9 @@ export function GeneratePlanModal({
               </ul>
             </div>
           </div>
-
           <div className="rounded-xl bg-accent/50 px-4 py-3 text-xs text-muted-foreground">
             Die Generierung läuft im Hintergrund und kann je nach Umfang bis zu einige Minuten dauern.
-            Der Plan wird mit mindestens 1800 kcal pro Tag erstellt.
+            Die Ausgabe folgt einer festen Wochenstruktur und essstörungssensiblen Sicherheitsregeln.
           </div>
 
           {progress && (

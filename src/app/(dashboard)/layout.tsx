@@ -5,6 +5,8 @@ import { TopBar } from "@/components/layout/TopBar";
 import { TrialBanner } from "@/components/layout/TrialBanner";
 import { TRPCProvider } from "@/trpc/client";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { ensureUserSettings } from "@/server/settings";
+import { getUiDensityDataValue } from "@/lib/settings";
 
 export default async function DashboardLayout({
   children,
@@ -22,11 +24,17 @@ export default async function DashboardLayout({
     email: session.user.email,
     role: session.user.role,
   };
+  const userSettings = await ensureUserSettings(session.user.id);
+  const uiDensity = getUiDensityDataValue(userSettings.uiDensity);
 
   return (
     <SessionProvider>
       <TRPCProvider>
-        <div className="min-h-screen overflow-x-hidden bg-background">
+        <div
+          id="dashboard-shell"
+          data-ui-density={uiDensity}
+          className="min-h-screen overflow-x-hidden bg-background"
+        >
           <Sidebar user={user} />
           <div className="min-w-0 lg:pl-64">
             <TrialBanner />

@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3F8FB5"></stop>
+      <stop offset="100%" stop-color="#2E6F8F"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- outer circle -->
+  <circle cx="128" cy="128" r="96" stroke="url(#compassGradient)" stroke-width="14" fill="none" stroke-linecap="round"></circle>
+
+  <!-- compass needle -->
+  <polygon points="128,52 170,128 128,112 86,204 96,128" fill="url(#compassGradient)"></polygon>
+
+  <!-- center point -->
+  <circle cx="128" cy="128" r="6" fill="#2E6F8F"></circle>
+</svg>

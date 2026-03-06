@@ -11,6 +11,8 @@ import {
   ShoppingCart,
   CreditCard,
   Settings,
+  FileJson,
+  Bot,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -39,11 +41,13 @@ const navItems = [
   { href: "/patients", label: "Bewohner:innen", icon: Users },
   { href: "/meal-plans", label: "Ernährungspläne", icon: ClipboardList },
   { href: "/shopping-lists", label: "Einkaufslisten", icon: ShoppingCart },
+  { href: "/agent", label: "Agent", icon: Bot },
   { href: "/billing", label: "Abonnement", icon: CreditCard },
 ];
 
 const adminItems = [
   { href: "/settings", label: "Einstellungen", icon: Settings },
+  { href: "/fhir-export", label: "FHIR Export", icon: FileJson },
 ];
 
 function NavLink({
@@ -120,10 +124,14 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-5">
+      <Link
+        href="/start"
+        onClick={onNavClick}
+        className="flex items-center gap-2 px-4 py-5"
+      >
         <LogoIcon className="h-9 w-9 shrink-0" />
         <span className="text-base font-bold text-text-main">mein-nutrikompass.de</span>
-      </div>
+      </Link>
 
       <Separator className="mb-4" />
 
